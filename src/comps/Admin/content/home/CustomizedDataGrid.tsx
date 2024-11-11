@@ -1,23 +1,24 @@
-import * as React from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { columns, rows } from "./gridData";
 
-export default function CustomizedDataGrid() {
+export default function CustomizedDataGrid(params: any) {
+  const { rows, columns } = params.value;
+  const { onSelectionChange } = params;
   return (
     <DataGrid
       autoHeight
-      // checkboxSelection
       rows={rows}
       columns={columns}
+      checkboxSelection
       getRowClassName={(params) =>
         params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
       }
+      onCellClick={({ row }) => onSelectionChange(row)}
+      processRowUpdate={(newRow) => console.log(newRow)}
       initialState={{
         pagination: { paginationModel: { pageSize: 20 } },
       }}
       pageSizeOptions={[10, 20, 50]}
       disableColumnResize
-      // density="compact"
       sx={{ fontFamily: "'Public Sans', sans-serif", borderRadius: 3 }}
       slotProps={{
         filterPanel: {

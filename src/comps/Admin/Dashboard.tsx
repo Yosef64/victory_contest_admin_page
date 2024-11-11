@@ -11,18 +11,21 @@ export default function Dashboard() {
     <Grid container spacing={2}>
       <Grid
         item
-        xs={2.7}
+        xs={2} // Show sidebar on extra-small screens
+        md={2.7}
         sx={{
           overflow: "hidden",
           borderRight: "1px dashed grey",
           backgroundColor: "#faf9f7",
+          display: { xs: "none", md: "block" },
         }}
       >
         <Sidebar />
       </Grid>
       <Grid
         item
-        xs={9.3}
+        xs={12} 
+        md={9.3}
         sx={{ height: "100vh", overflow: "auto", backgroundColor: "#faf9f7" }}
       >
         <Box>

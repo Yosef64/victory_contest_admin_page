@@ -20,6 +20,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import { MenuListItems } from "./Sidentmenu.tsx";
 import Logo from "./Logo.tsx";
 import leetcodeImage from "../../../assets/leetcode.jpg";
+import { NavLink } from "react-router-dom";
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
     backgroundColor: "#44b700",
@@ -50,24 +51,102 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 export default function Sidebar() {
   return (
-    <Paper
+    <Box
       sx={{
         width: "100%",
         maxWidth: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-around",
+        justifyContent: "space-between",
+        height: "100vh",
         maxHeight: "100vh",
-        overflow: "hidden",
+        overflowY: "auto",
         paddingLeft: 2,
-        paddingTop: 2,
+        paddingY: 2,
         backgroundColor: "inherit",
       }}
-      elevation={0}
     >
       <Box>
         <Logo />
+        <Box sx={{ maxHeight: "72vh", overflow: "auto" }}>
+          <Box
+            sx={{
+              fontSize: "0.8rem",
+              textTransform: "uppercase",
+              fontFamily: '"Public Sans", sans-serif',
+              paddingTop: "24px",
+              paddingBottom: "8px",
+              color: "rgb(33, 43, 54)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: '"Public Sans", sans-serif',
+                fontWeight: 700,
+                transition: "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)",
+                lineHeight: "1.5",
+                fontSize: "0.8rem",
+                color:"rgb(100, 115, 129)"
+              }}
+            >
+              Admin
+            </Typography>
+          </Box>
+
+          <MenuList sx={{ width: "90%" }}>
+            {MenuListItems.map((item) => {
+              return (
+                <NavLink
+                  to={`${item.label}`}
+                  className={({ isActive, isPending }) =>
+                    isActive ? "active" : isPending ? "pending" : ""
+                  }
+                  end
+                  children={({ isActive }) => (
+                    <MenuItem
+                      key={item.id}
+                      selected={isActive}
+                      sx={{
+                        borderRadius: 3,
+                        paddingY: 1.7,
+                        marginBottom: 0.5,
+                        "&.Mui-selected": {
+                          backgroundColor: "#00AB5514",
+                          color: "#00AB55",
+                          fontWeight: 700,
+                        },
+                        "&.Mui-selected:hover": {
+                          backgroundColor: "#00AB5514",
+                        },
+                      }}
+                    >
+                      <ListItemIcon
+                        sx={{ color: isActive ? "#00AB55" : "#637381" }}
+                      >
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText>
+                        <Typography
+                          sx={{
+                            fontFamily: '"Public Sans", sans-serif',
+                            fontSize: "14px",
+                            color: isActive ? "#00AB55" : "#637381",
+                            fontWeight: isActive ? 700 : "normal",
+                          }}
+                        >
+                          {item.title}
+                        </Typography>
+                      </ListItemText>
+                    </MenuItem>
+                  )}
+                />
+              );
+            })}
+          </MenuList>
+        </Box>
       </Box>
+
+      {/* </div> */}
 
       <Card
         sx={{
@@ -113,73 +192,6 @@ export default function Sidebar() {
           }}
         />
       </Card>
-      {/* </div> */}
-      <Box>
-        <Box
-          sx={{
-            fontSize: "0.8rem",
-            textTransform: "uppercase",
-            fontFamily: '"Public Sans", sans-serif',
-            paddingTop: "24px",
-            paddingBottom: "8px",
-            color: "rgb(33, 43, 54)",
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: '"Public Sans", sans-serif',
-              fontWeight: 700,
-              transition: "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)",
-              lineHeight: "1.5",
-              fontSize: "0.8rem",
-            }}
-          >
-            Admin
-          </Typography>
-        </Box>
-
-        <MenuList sx={{ width: "90%" }}>
-          {MenuListItems.map((item) => {
-            return (
-              <MenuItem
-                key={item.id}
-                selected={item.title === "Home"}
-                sx={{
-                  borderRadius: 3,
-                  paddingY: 1.7,
-                  marginBottom: 0.5,
-                  "&.Mui-selected": {
-                    backgroundColor: "#00AB5514",
-                    color: "#00AB55",
-                    fontWeight: 700,
-                  },
-                  "&.Mui-selected:hover": {
-                    backgroundColor: "#00AB5514",
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{ color: item.title === "Home" ? "#00AB55" : "none" }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText>
-                  <Typography
-                    sx={{
-                      fontFamily: '"Public Sans", sans-serif',
-                      fontSize: "14px",
-                      color: item.title !== "Home" ? "#637381" : "inherit",
-                      fontWeight: item.title == "Home" ? 700 : "inherit",
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                </ListItemText>
-              </MenuItem>
-            );
-          })}
-        </MenuList>
-      </Box>
-    </Paper>
+    </Box>
   );
 }

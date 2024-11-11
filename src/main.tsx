@@ -14,6 +14,8 @@ import Questions from "./comps/Admin/content/questions/Questions.tsx";
 import Users from "./comps/Admin/content/users/Users.tsx";
 import Home from "./comps/Admin/content/home/Home.tsx";
 import ContestById from "./comps/Admin/content/contests/ContestById.tsx";
+import AddQuestions from "./comps/Admin/content/questions/AddQuestions.tsx";
+import AddContest from "./comps/Admin/content/contests/AddContest.tsx";
 
 const router = createBrowserRouter([
   {
@@ -31,7 +33,6 @@ const router = createBrowserRouter([
       {
         path: "contest/:id",
         element: <ContestById />,
-      
       },
       {
         path: "student",
@@ -44,7 +45,14 @@ const router = createBrowserRouter([
         path: "users",
         element: <Users />,
       },
-      
+      {
+        path: "addquestion",
+        element: <AddQuestions />,
+      },
+      {
+        path: "addcontest",
+        element: <AddContest />,
+      },
     ],
   },
 ]);

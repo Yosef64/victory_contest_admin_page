@@ -1,33 +1,13 @@
 import * as React from "react";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
-import Collapse from "@mui/material/Collapse";
-import IconButton from "@mui/material/IconButton";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
+
 import Typography from "@mui/material/Typography";
-import Paper from "@mui/material/Paper";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Checkbox,
-  FormControl,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  TablePagination,
-} from "@mui/material";
+
+import { FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { CheckBox } from "@mui/icons-material";
+import QuestionTable from "./QuestionTable";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -110,14 +90,7 @@ export default function Questions() {
     } = event;
     setGradeName(typeof value === "string" ? value.split(",") : value);
   };
-  const handleChangePage = (event:any,newPage: number) => {
-    setPage(newPage);
-  };
 
-  const handleChangeRowsPerPage = (event: any) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
   return (
     <div
       style={{
@@ -160,6 +133,7 @@ export default function Questions() {
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#00AB55",
                   },
+                  height: 50,
                 }}
               />
             }
@@ -220,6 +194,7 @@ export default function Questions() {
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#00AB55",
                   },
+                  height: 50,
                 }}
               />
             }
@@ -266,185 +241,7 @@ export default function Questions() {
           </Select>
         </FormControl>
       </Box>
-      <TableContainer
-        elevation={0}
-        component={Paper}
-        sx={{
-          // flex: 1,
-          borderRadius: 3,
-          width: "99%",
-          backgroundColor: "inherit",
-        }}
-      >
-        <Table stickyHeader aria-label="collapsible table">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#c7c7c7 " }}>
-              <TableCell />
-              {header.map((header, index) => (
-                <TableCell
-                  key={index}
-                  sx={{
-                    fontFamily: "'Public Sans',sans-serif",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  {header}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {questions
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Row key={index} row={row} />
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
-        component="div"
-        count={questions.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          "&.MuiTablePagination-selectLabel": {
-            fontFamily: "'Public Sans',sans-serif",
-            fontSize: "0.875rem",
-          },
-          overflow: "hidden",
-        }}
-      />
+      <QuestionTable questions={questions} />
     </div>
-  );
-}
-
-function Row(props:any) {
-  const { row } = props;
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <React.Fragment>
-      <TableRow
-        sx={{
-          "& > *": { borderBottom: "unset" },
-          cursor: "pointer",
-          "&:hover": { backgroundColor: "#f7f7f5" },
-        }}
-        onClick={() => setOpen(!open)}
-      >
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          component="th"
-          scope="row"
-        >
-          {row.question_text}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.chapter}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.grade}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.sub}
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Card
-              elevation={0}
-              sx={{ my: 0.8, borderRadius: 3, boxShadow: "0 0 1px #9c9898" }}
-            >
-              <CardHeader
-                title={"Q. " + row.question_text}
-                action={
-                  <Button
-                    sx={{
-                      fontFamily: "'Public Sans',sans-serif",
-                      textTransform: "none",
-                      // backgroundColor: "#00AB5514",
-                      color: "#00AB55",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Edit
-                  </Button>
-                }
-                sx={{
-                  "& .MuiCardHeader-title": {
-                    fontFamily: "'Public Sans', sans-seri",
-                    fontWeight: 600,
-                    lineHeight: 1.57143,
-                    fontSize: 15,
-                    textOverflow: "ellipsis",
-                  },
-                }}
-              />
-              <CardContent>
-                {row.choices.map((choice:string) => {
-                  return (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        padding: 0,
-                      }}
-                    >
-                      <Checkbox
-                        checked={true}
-                        sx={{
-                          "&.Mui-checked": {
-                            color: "#00AB55",
-                          },
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          fontFamily: '"Public Sans",sans-serif',
-                        }}
-                      >
-                        {choice}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </CardContent>
-              <CardActions
-                sx={{
-                  backgroundColor: "#00AB5514",
-                  fontFamily: "'Public Sans',sans-serif",
-                }}
-              >
-                <Box>
-                  <span
-                    style={{
-                      color: "#00AB55",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Explanation
-                  </span>{" "}
-                  : {row.exp}
-                </Box>
-              </CardActions>
-            </Card>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
   );
 }

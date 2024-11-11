@@ -15,7 +15,7 @@ export default function HighlightedCard() {
   return (
     <Card
       variant="outlined"
-      sx={{ height: "100%", borderRadius: 3,backgroundColor:"#f5f6fa" }}
+      sx={{ height: "100%", borderRadius: 3, backgroundColor: "#f5f6fa" }}
       elevation={0}
     >
       <CardContent>
@@ -41,7 +41,11 @@ export default function HighlightedCard() {
         <Button
           variant="contained"
           size="small"
-          color="primary"
+          sx={{
+            bgcolor: "#00AB55",
+            fontFamily: "'Public Sans',sans-serif",
+            textTransform: "none",
+          }}
           endIcon={<ChevronRightRoundedIcon />}
           fullWidth={isSmallScreen}
         >

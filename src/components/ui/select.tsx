@@ -21,6 +21,7 @@ const SelectTrigger = React.forwardRef<
       className
     )}
     {...props}
+    style={{ fontFamily: "'Public Sans',sans-serif" }}
   >
     {children}
     <SelectPrimitive.Icon asChild>
@@ -120,6 +121,7 @@ const SelectItem = React.forwardRef<
       className
     )}
     {...props}
+    style={{ fontFamily: "'Public Sans',sans-serif" }}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>

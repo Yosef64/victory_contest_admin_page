@@ -9,6 +9,7 @@ import PageViewsBarChart from "./PageViewsBarChart";
 import ChartUserByCountry from "./ChartUserByCountry";
 import CustomizedDataGrid from "./CustomizedDataGrid";
 // import CustomizedTreeView from "./CustomizedTreeView";
+import { columns, rows } from "./gridData";
 
 const data: StatCardProps[] = [
   {
@@ -46,7 +47,6 @@ const data: StatCardProps[] = [
 export default function Home() {
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" }, p: 2 }}>
-      {/* cards */}
       <Typography
         component="h2"
         variant="h6"
@@ -84,7 +84,7 @@ export default function Home() {
       </Typography>
       <Grid container spacing={2} columns={12}>
         <Grid size={{ xs: 12, lg: 9 }}>
-          <CustomizedDataGrid />
+          <CustomizedDataGrid value={{rows,columns}}/>
         </Grid>
         <Grid size={{ xs: 12, lg: 3 }}>
           <Stack gap={2} direction={{ xs: "column", sm: "row", lg: "column" }}>

@@ -26,12 +26,9 @@ import {
 } from "@/components/ui/select";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
+import { filterStudentByCityAndGrade } from "../Actions/studentFilter";
+import { Student } from "../models";
 
-interface Student {
-  name: string;
-  grade: number;
-  ranking: number;
-}
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.action.hover,
@@ -53,28 +50,78 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 const students: Student[] = [
   {
-    name: "John Doe",
-    grade: 85,
-    ranking: 1,
+    name: "Yoseph",
+    telegram_id: "1222",
+    gender: "Male",
+    age: 20,
+    grade: 12,
+    school: "hole ",
+    woreda: "something",
+    city: "Adama",
+    region: "Oromia",
+    image: leetcodeImage,
+    contests: [],
   },
   {
-    name: "John Doe",
-    grade: 85,
-    ranking: 1,
+    name: "Yoseph",
+    telegram_id: "1222",
+    gender: "Male",
+    age: 20,
+    grade: 12,
+    school: "hole ",
+    woreda: "something",
+    city: "Adama",
+    region: "Oromia",
+    image: leetcodeImage,
+    contests: [],
   },
   {
-    name: "John Doe",
-    grade: 85,
-    ranking: 1,
+    name: "Yoseph",
+    telegram_id: "1222",
+    gender: "Male",
+    age: 20,
+    grade: 12,
+    school: "hole ",
+    woreda: "something",
+    city: "Adama",
+    region: "Oromia",
+    image: leetcodeImage,
+    contests: [],
   },
 ];
 
-const header = ["Name", "Grade", "Ranking"];
-
+const header = ["Name", "Grade", "City", "Gender"];
+const grades = ["Grade 12", "Grade 11", "Grade 10", "Default"];
+const cities = ["Adama", "Addis Ababa", "Dire Dewa", "Bishoftu", "Default"];
+const schools = [
+  "Hawas",
+  "Kebena secondary School",
+  "Excel secondary school",
+  "Default",
+];
 export default function Users() {
+  const [selectedGrade, setSelectedGrade] = React.useState("default");
+  const [selectedCity, setselectedCity] = React.useState("default");
+  const [selectedSchool, setselectedSchool] = React.useState("default");
+  const handleGradeChange = (value: string) => {
+    console.log(value);
+
+    setSelectedGrade(value);
+  };
+  const handleSchoolChange = (value: string) => {
+    setselectedSchool(value);
+  };
+  const handlecityChange = (value: string) => {
+    setselectedCity(value);
+  };
+  const filteredStudents = filterStudentByCityAndGrade(students, {
+    selectedCity,
+    selectedGrade,
+    selectedSchool,
+  });
   return (
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
-      <Box sx={{ mt: 4 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
+      <Box sx={{}}>
         <Typography
           sx={{
             fontFamily: '"Public Sans", sans-serif',
@@ -101,8 +148,8 @@ export default function Users() {
           justifyContent: "space-between",
           // bgcolor: "gray",
           alignItems: "center",
-          width: "95%",
-          mt: 5,
+          width: "100%",
+          mt: 3,
         }}
       >
         <TextField
@@ -112,6 +159,8 @@ export default function Users() {
           sx={{
             m: 1,
             width: "25ch",
+            // height: 20,
+            height: 50,
 
             "& .MuiOutlinedInput-root": {
               borderRadius: 3,
@@ -144,34 +193,66 @@ export default function Users() {
                   </IconButton>
                 </InputAdornment>
               ),
+              style: { height: 50 },
             },
           }}
           inputProps={{
             style: { fontFamily: '"Public Sans",sans-serif' },
           }}
         />
-        <Select>
-          <SelectTrigger
-            className="w-[180px]"
-            style={
-              {
-                // border: "1px solid green",
-              }
-            }
-          >
-            <SelectValue placeholder="Select a fruit" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Fruits</SelectLabel>
-              <SelectItem value="apple">Apple</SelectItem>
-              <SelectItem value="banana">Banana</SelectItem>
-              <SelectItem value="blueberry">Blueberry</SelectItem>
-              <SelectItem value="grapes">Grapes</SelectItem>
-              <SelectItem value="pineapple">Pineapple</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Select onValueChange={handleGradeChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a grade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Grade</SelectLabel>
+                {grades.map((grade: string, index: number) => {
+                  return (
+                    <SelectItem key={index} value={grade.toLowerCase()}>
+                      {grade}
+                    </SelectItem>
+                  );
+                })}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select onValueChange={handlecityChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a City" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Grade</SelectLabel>
+                {cities.map((grade: string, index: number) => {
+                  return (
+                    <SelectItem key={index} value={grade.toLowerCase()}>
+                      {grade}
+                    </SelectItem>
+                  );
+                })}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select onValueChange={handleSchoolChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a school" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Grade</SelectLabel>
+                {schools.map((grade: string, index: number) => {
+                  return (
+                    <SelectItem key={index} value={grade.toLowerCase()}>
+                      {grade}
+                    </SelectItem>
+                  );
+                })}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Box>
       </Box>
       {/* <Box> */}
       <TableContainer
@@ -193,7 +274,7 @@ export default function Users() {
                     fontFamily: "'Public Sans',sans-serif",
                     fontSize: "0.9rem",
                   }}
-                  align={header == "Name" ? "left" : "center"}
+                  align={header == "Name" ? "left" : "right"}
                 >
                   {header}
                 </StyledTableCell>
@@ -201,7 +282,7 @@ export default function Users() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {students.map((row, index) => (
+            {filteredStudents.map((row, index) => (
               <Row key={index} student={row} />
             ))}
           </TableBody>
@@ -228,7 +309,7 @@ function Row({ student }: { student: Student }) {
         <StyledTableCell
           // component="th"
           scope="row"
-          align="left"
+          align="right"
         >
           <Box
             sx={{
@@ -249,15 +330,21 @@ function Row({ student }: { student: Student }) {
 
         <StyledTableCell
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="center"
+          align="right"
         >
           {student.grade}
         </StyledTableCell>
         <TableCell
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="center"
+          align="right"
         >
-          {student.ranking}
+          {student.city}
+        </TableCell>
+        <TableCell
+          sx={{ fontFamily: "'Public Sans',sans-serif" }}
+          align="right"
+        >
+          {student.gender}
         </TableCell>
       </StyledTableRow>
     </React.Fragment>

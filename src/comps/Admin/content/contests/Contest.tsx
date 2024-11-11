@@ -11,7 +11,6 @@ import {
 import React, { useState } from "react";
 
 import Checkbox from "@mui/material/Checkbox";
-import { styled } from "@mui/material/styles";
 import RankingAndContest from "./RankingAndContest.tsx";
 
 interface OptionType {
@@ -20,31 +19,13 @@ interface OptionType {
   children?: OptionType[];
 }
 
-const options: OptionType[] = [
-  {
-    label: "Category 1",
-    value: "category1",
-    children: [
-      { label: "Subcategory 1-1", value: "subcategory1-1" },
-      { label: "Subcategory 1-2", value: "subcategory1-2" },
-    ],
-  },
-  {
-    label: "Category 2",
-    value: "category2",
-    children: [
-      { label: "Subcategory 2-1", value: "subcategory2-1" },
-      { label: "Subcategory 2-2", value: "subcategory2-2" },
-    ],
-  },
-];
-
 export default function Contest() {
   const fixedOptions: { title: string; year: number | JSX.Element }[] = [];
-  const [value, setValue] = React.useState([...fixedOptions]);
+  const [value, setValue] = useState([...fixedOptions]);
   const fixedSchool: { title: string; year: number | JSX.Element }[] = [];
-  const [schoolValue, setSchoolValue] = React.useState([...fixedSchool]);
-  console.log(value);
+  const [subjectValue, setsubjectValue] = useState([...fixedSchool]);
+
+  console.log(subjectValue, value);
 
   return (
     <Box sx={{ paddingX: 2, paddingY: 2, overflow: "auto" }}>
@@ -172,14 +153,14 @@ export default function Contest() {
         <Autocomplete
           multiple
           id="fixed-tags-demo"
-          value={schoolValue}
+          value={subjectValue}
           onChange={(event, newValue) => {
-            setSchoolValue([
+            setsubjectValue([
               ...fixedSchool,
               ...newValue.filter((option) => !fixedSchool.includes(option)),
             ]);
           }}
-          options={top100Films}
+          options={subject}
           getOptionLabel={(option) => option.title}
           renderOption={(props, option, { selected }) => (
             <MenuItem
@@ -193,16 +174,14 @@ export default function Contest() {
                 margin: 1,
                 fontFamily: '"Public Sans", sans-serif',
               }}
-              // {...props}
-
               onClick={(event) => {
                 event.stopPropagation();
                 if (selected) {
-                  setSchoolValue((prev) =>
+                  setsubjectValue((prev) =>
                     prev.filter((item) => item !== option)
                   );
                 } else {
-                  setSchoolValue((prev) => [...prev, option]);
+                  setsubjectValue((prev) => [...prev, option]);
                 }
               }}
               selected={selected}
@@ -243,7 +222,7 @@ export default function Contest() {
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Schools"
+              label="Subject"
               InputLabelProps={{
                 sx: {
                   fontFamily: "'Public Sans', sans-serif",
@@ -256,7 +235,7 @@ export default function Contest() {
           disableCloseOnSelect
         />
       </Box>
-      <RankingAndContest grade={value} school={schoolValue} />
+      <RankingAndContest grade={value} school={subjectValue} />
     </Box>
   );
 }
@@ -267,6 +246,16 @@ const top100Films = [
   },
   {
     title: "Grade 11",
+    year: 0,
+  },
+];
+const subject = [
+  {
+    title: "Science",
+    year: 0,
+  },
+  {
+    title: "Science",
     year: 0,
   },
 ];

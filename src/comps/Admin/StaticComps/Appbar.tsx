@@ -72,7 +72,7 @@ export default function Appbar(props: any) {
           elevation={0}
           sx={{
             backdropFilter: "blur(6px)",
-            bgcolor: "inherit", // Semi-transparent white background
+            bgcolor: "inherit",
           }}
         >
           <Toolbar
@@ -82,7 +82,7 @@ export default function Appbar(props: any) {
               color: "blue",
             }}
           >
-            <Box sx={{ display: { lg: "none", sm: "block" } }}>
+            <Box sx={{ display: { md: "none", sm: "block" } }}>
               <IconButton
                 size="small"
                 edge="start"

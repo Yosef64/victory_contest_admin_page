@@ -22,13 +22,13 @@ import {
 import React from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { useNavigate } from "react-router-dom";
 const header = ["Question", "Chapter", "Grade", "Subject"];
 
 export default function QuestionTable(props: any) {
   const { questions } = props;
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const theme = useTheme();
 
   const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
@@ -38,6 +38,7 @@ export default function QuestionTable(props: any) {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
   return (
     <Box>
       <TableContainer
@@ -105,7 +106,11 @@ export default function QuestionTable(props: any) {
 function Row(props: any) {
   const { row } = props;
   const [open, setOpen] = React.useState(false);
-
+  const navigate = useNavigate();
+  const handleNavigate = (row: any) => {
+    const jsonString = encodeURIComponent(JSON.stringify(row));
+    navigate(`/dashboard/addquestion?edit=true&question=${jsonString}`);
+  };
   return (
     <React.Fragment>
       <TableRow
@@ -153,6 +158,7 @@ function Row(props: any) {
                 title={"Q. " + row.question_text}
                 action={
                   <Button
+                    onClick={() => handleNavigate(row)}
                     sx={{
                       fontFamily: "'Public Sans',sans-serif",
                       textTransform: "none",

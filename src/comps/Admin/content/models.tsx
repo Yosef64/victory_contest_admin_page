@@ -27,7 +27,7 @@ export interface Contest {
   subject: string;
 }
 
-interface Question {
+export interface Question {
   question_text: string;
   multiple_choice: string[];
   answer: string;

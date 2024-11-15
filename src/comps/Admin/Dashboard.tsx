@@ -1,4 +1,3 @@
-import React from "react";
 import Sidebar from "./StaticComps/Sidebar.tsx";
 import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
@@ -11,7 +10,6 @@ export default function Dashboard() {
     <Grid container spacing={2}>
       <Grid
         item
-        xs={2} // Show sidebar on extra-small screens
         md={2.7}
         sx={{
           overflow: "hidden",
@@ -24,7 +22,7 @@ export default function Dashboard() {
       </Grid>
       <Grid
         item
-        xs={12} 
+        xs={12}
         md={9.3}
         sx={{ height: "100vh", overflow: "auto", backgroundColor: "#faf9f7" }}
       >

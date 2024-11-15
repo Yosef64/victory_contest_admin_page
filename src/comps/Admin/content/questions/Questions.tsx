@@ -1,13 +1,11 @@
 import * as React from "react";
-import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
-
 import Typography from "@mui/material/Typography";
 
 import { FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import { CheckBox } from "@mui/icons-material";
+
 import QuestionTable from "./QuestionTable";
+import { grades, Subjects } from "./Data";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -19,19 +17,6 @@ const MenuProps = {
     },
   },
 };
-
-const names = [
-  "Oliver Hansen",
-  "Van Henry",
-  "April Tucker",
-  "Ralph Hubbard",
-  "Omar Alexander",
-  "Carlos Abbott",
-  "Miriam Wagner",
-  "Bradley Wilkerson",
-  "Virginia Andrews",
-  "Kelly Snyder",
-];
 
 const questions = [
   {
@@ -69,14 +54,17 @@ const questions = [
     sub: "Biology",
   },
 ];
-const header = ["Question", "Chapter", "Grade", "Subject"];
 
 export default function Questions() {
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const theme = useTheme();
-  const [subjectsname, setPersonName] = React.useState([]);
-  const [gradename, setGradeName] = React.useState([]);
+  const [subjectsname, setPersonName] = React.useState<string[]>([]);
+  const [gradename, setGradeName] = React.useState<string[]>([]);
+
+  const allQuestions = questions.filter(
+    (question) =>
+      (gradename.length === 0 ||
+        gradename.includes(`Grade ${question.grade}`)) &&
+      (subjectsname.length === 0 || subjectsname.includes(question.sub))
+  );
 
   const handleChange = (event: any) => {
     const {
@@ -84,6 +72,7 @@ export default function Questions() {
     } = event;
     setPersonName(typeof value === "string" ? value.split(",") : value);
   };
+
   const handleChangeGrade = (event: any) => {
     const {
       target: { value },
@@ -156,7 +145,7 @@ export default function Questions() {
                 Subjects
               </em>
             </MenuItem>
-            {names.map((name) => (
+            {Subjects.map((name) => (
               <MenuItem
                 key={name}
                 value={name}
@@ -215,7 +204,7 @@ export default function Questions() {
             <MenuItem disabled value="">
               <em style={{ fontFamily: "'Public Sans',sans-serif" }}>Grade</em>
             </MenuItem>
-            {names.map((name) => (
+            {grades.map((name) => (
               <MenuItem
                 key={name}
                 value={name}
@@ -241,7 +230,7 @@ export default function Questions() {
           </Select>
         </FormControl>
       </Box>
-      <QuestionTable questions={questions} />
+      <QuestionTable questions={allQuestions} />
     </div>
   );
 }

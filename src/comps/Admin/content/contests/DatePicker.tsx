@@ -11,38 +11,38 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import dayjs from "dayjs";
-import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
+import dayjs, { Dayjs } from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
-import { DesktopTimePicker } from "@mui/x-date-pickers/DesktopTimePicker";
-import { StaticTimePicker } from "@mui/x-date-pickers/StaticTimePicker";
 
-export function TimePickerComponent() {
+interface TimePickerComponentProps {
+  timeChangeHandler: (newValue: Dayjs | null) => void; // Specify the type for timeChangeHandler
+}
+export function TimePickerComponent({
+  timeChangeHandler,
+}: TimePickerComponentProps) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <MobileTimePicker
+        onChange={timeChangeHandler}
         defaultValue={dayjs("2022-04-17T15:30")}
         slotProps={{
-            textField: {
-              sx: {
-                height: 50, // Adjust height as needed
-                '& .MuiInputBase-root': {
-                  height: '95%',
-                },
+          textField: {
+            sx: {
+              height: 50, // Adjust height as needed
+              "& .MuiInputBase-root": {
+                height: "95%",
               },
             },
-          }}
+          },
+        }}
       />
     </LocalizationProvider>
   );
 }
 
-export function DatePickerDemo() {
-  const [date, setDate] = React.useState<Date>();
-
+export function DatePickerDemo({ date, setDate }: DatePickerDemoProps) {
   return (
     <Popover>
       <PopoverTrigger className="h-[50px]" asChild>
@@ -62,10 +62,14 @@ export function DatePickerDemo() {
           style={{ fontFamily: "'Public Sans',sans-serif" }}
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={(newValue) => setDate(newValue!)}
           initialFocus
         />
       </PopoverContent>
     </Popover>
   );
+}
+interface DatePickerDemoProps {
+  date: Date;
+  setDate: React.Dispatch<React.SetStateAction<Date>>;
 }

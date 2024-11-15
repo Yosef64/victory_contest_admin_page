@@ -13,11 +13,11 @@ import React, { useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
 import RankingAndContest from "./RankingAndContest.tsx";
 
-interface OptionType {
-  label: string;
-  value: string;
-  children?: OptionType[];
-}
+// interface OptionType {
+//   label: string;
+//   value: string;
+//   children?: OptionType[];
+// }
 
 export default function Contest() {
   const fixedOptions: { title: string; year: number | JSX.Element }[] = [];

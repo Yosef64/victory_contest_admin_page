@@ -1,26 +1,21 @@
-import React from "react";
 import {
   Avatar,
   Badge,
   Box,
   Card,
   CardHeader,
-  Divider,
   ListItemIcon,
   ListItemText,
-  Menu,
   MenuItem,
   MenuList,
-  Paper,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Home } from "@mui/icons-material";
-import HomeIcon from "@mui/icons-material/Home";
+
 import { MenuListItems } from "./Sidentmenu.tsx";
 import Logo from "./Logo.tsx";
 import leetcodeImage from "../../../assets/leetcode.jpg";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
     backgroundColor: "#44b700",
@@ -33,8 +28,6 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
       width: "100%",
       height: "100%",
       borderRadius: "50%",
-      // animation: 'ripple 1.2s infinite ease-in-out',
-      // border: '1px solid currentColor',
       content: '""',
     },
   },
@@ -50,6 +43,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 export default function Sidebar() {
+  const location = useLocation();
   return (
     <Box
       sx={{
@@ -86,7 +80,7 @@ export default function Sidebar() {
                 transition: "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)",
                 lineHeight: "1.5",
                 fontSize: "0.8rem",
-                color:"rgb(100, 115, 129)"
+                color: "rgb(100, 115, 129)",
               }}
             >
               Admin

@@ -1,10 +1,7 @@
 import { AppBar, Avatar, Badge, Box, IconButton, Toolbar } from "@mui/material";
 import React from "react";
-import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import CssBaseline from "@mui/material/CssBaseline";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
-import Container from "@mui/material/Container";
 import Slide from "@mui/material/Slide";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";

@@ -1,8 +1,17 @@
-import { Box, Button, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Grid,
+  Grid2,
+  SnackbarCloseReason,
+  Typography,
+} from "@mui/material";
 import React from "react";
 import CustomizedDataGrid from "../home/CustomizedDataGrid";
 import { GridColDef, GridRowsProp } from "@mui/x-data-grid";
 import { DatePickerDemo, TimePickerComponent } from "./DatePicker";
+import LoadingButton from "@mui/lab/LoadingButton";
+import SnackBar from "../questions/Snackbar";
 
 export const columns: GridColDef[] = [
   {
@@ -71,10 +80,29 @@ export const rows: GridRowsProp = [
 ];
 export default function AddContest(params: any) {
   const [selectedRows, setSelectedRows] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [startTime, setStartTimeSelected] = React.useState("");
+  const [date, setDate] = React.useState<Date>(new Date());
+  const [addStatus, setaddStatus] = React.useState(200);
+  const [snakOpen, setSnakOpen] = React.useState(false);
+  const [endTime, setEndTime] = React.useState("");
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
 
+    setSnakOpen(false);
+  };
+  function timeChangeHandler(newValue: any) {
+    setStartTimeSelected(newValue!.format("hh:mm A"));
+  }
+  function timeEndHanler(newValue: any) {
+    setEndTime(newValue!.format("hh:mm A"));
+  }
   const handleSelectionChange = (newSelection: row) => {
-    console.log(newSelection);
-
     setSelectedRows((prevSelectedRows: any) => {
       const isAlreadySelected = prevSelectedRows.some(
         (row: row) => row.id === newSelection.id
@@ -90,8 +118,35 @@ export default function AddContest(params: any) {
     });
   };
 
+  async function handleSubmitContest() {
+    const contestData = {
+      start_time: startTime,
+      date: date,
+      questions: selectedRows,
+      end_time: endTime,
+    };
+    setIsLoading(true);
+    const res = await fetch("http://127.0.0.1:8000/api/contest/add/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxOTAzMzQ4MzgxLCJpYXQiOjE3MzA1NDgzODEsImp0aSI6IjY1M2FmNDlhZjcwNzRmYTQ4NGNiMzVmZGI4MTMxMjUzIiwidXNlcl9pZCI6MX0.c8dOQ102J73JaTc1KEYkOsIbuh3nWhBFPRwBo_i5Qlg",
+      },
+      body: JSON.stringify(contestData),
+    });
+    setaddStatus(res.status);
+    setSnakOpen(true);
+    setIsLoading(false);
+  }
+
   return (
     <Box sx={{ p: 2 }}>
+      <SnackBar
+        snakOpen={snakOpen}
+        handleClose={handleClose}
+        addStatus={addStatus}
+      />
       <Box sx={{ mb: 4 }}>
         <Typography
           sx={{
@@ -130,8 +185,13 @@ export default function AddContest(params: any) {
       >
         Schedule Date
       </Typography>
-      <Box sx={{ display: "flex", gap: "5%", mb: 3 }}>
-        <Box>
+      <Grid
+        container
+        alignItems={"center"}
+        justifyContent={"space-between"}
+        sx={{ mb: 3 }}
+      >
+        <Grid item xs={12} md={3}>
           <Typography
             sx={{
               color: "rgb(99, 115, 129)",
@@ -141,9 +201,9 @@ export default function AddContest(params: any) {
           >
             Date
           </Typography>
-          <DatePickerDemo />
-        </Box>
-        <Box>
+          <DatePickerDemo date={date!} setDate={setDate} />
+        </Grid>
+        <Grid item xs={12} md={3}>
           <Typography
             sx={{
               color: "rgb(99, 115, 129)",
@@ -151,20 +211,34 @@ export default function AddContest(params: any) {
               fontSize: 14,
             }}
           >
-            Time
+            Start Time
           </Typography>
-          <TimePickerComponent />
-        </Box>
-      </Box>
+          <TimePickerComponent timeChangeHandler={timeChangeHandler} />
+        </Grid>
+        <Grid xs={12} md={3}>
+          <Typography
+            sx={{
+              color: "rgb(99, 115, 129)",
+              fontFamily: "'Public Sans',sans-serif",
+              fontSize: 14,
+            }}
+          >
+            End Time
+          </Typography>
+          <TimePickerComponent timeChangeHandler={timeEndHanler} />
+        </Grid>
+      </Grid>
 
       <Box>
-        <Button
+        <LoadingButton
+          loading={isLoading}
+          loadingIndicator="Submiting..."
           variant="contained"
           sx={{ bgcolor: "#00AB55", textTransform: "none", fontWeight: 600 }}
-          // onClick={}
+          onClick={handleSubmitContest}
         >
           Add Contest
-        </Button>
+        </LoadingButton>
       </Box>
     </Box>
   );

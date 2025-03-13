@@ -15,19 +15,20 @@ export interface ExtendedContestSubmission extends Student {}
 
 export interface Contest {
   contest_id: string;
-  date: Date;
+  date?: Date;
   title: string;
-  description: string;
-  questions?: Question[];
-  start_time?: string;
-  total_time:string;
+  description?: string;
+  questions: Question[];
+  start_time: string;
+  end_time: string;
   active_contenstants?: Student[];
-  Submissions?: Submission[];
+  submissions?: Submission[];
   grade: string;
   subject: string;
 }
 
 export interface Question {
+  id: string;
   question_text: string;
   multiple_choice: string[];
   answer: string;

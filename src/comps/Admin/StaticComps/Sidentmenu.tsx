@@ -2,18 +2,18 @@ export const MenuListItems: {
   id: number;
   title: string;
   icon: JSX.Element;
-  label: string;
+  path: string;
 }[] = [
   {
     id: 0,
     title: "Home",
-    label: "/dashboard",
+    path: "/dashboard",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         role="img"
-        className="MuiBox-root css-0 iconify iconify--ic"
+        className="mr-4 h-5 w-5 align-middle"
         width="1.5em"
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
@@ -34,13 +34,13 @@ export const MenuListItems: {
   {
     id: 1,
     title: "Questions",
-    label: "/dashboard/questions",
+    path: "/dashboard/questions",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         role="img"
-        className="MuiBox-root css-0 iconify iconify--ph"
+        className="mr-4 h-5 w-5 align-middle"
         width="1.5em"
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
@@ -59,13 +59,13 @@ export const MenuListItems: {
   {
     id: 2,
     title: "Contests",
-    label: "/dashboard/contest",
+    path: "/dashboard/contest",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         role="img"
-        className="MuiBox-root css-0 iconify iconify--ph"
+        className="mr-4 h-5 w-5 align-middle"
         width="1.5em"
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
@@ -85,13 +85,13 @@ export const MenuListItems: {
   {
     id: 3,
     title: "Users",
-    label: "/dashboard/users",
+    path: "/dashboard/users",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         role="img"
-        className="MuiBox-root css-0 iconify iconify--solar"
+        className="mr-4 h-5 w-5 align-middle"
         width="1.5em"
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
@@ -110,13 +110,13 @@ export const MenuListItems: {
   {
     id: 4,
     title: "Add Contest",
-    label: "/dashboard/addcontest",
+    path: "/dashboard/addcontest",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         role="img"
-        className="MuiBox-root css-0 iconify iconify--icon-park-twotone"
+        className="mr-4 h-5 w-5 align-middle"
         width="1.5em"
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
@@ -154,13 +154,13 @@ export const MenuListItems: {
   {
     id: 5,
     title: "Add Question",
-    label: "/dashboard/addquestion",
+    path: "/dashboard/addquestion",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
         role="img"
-        className="MuiBox-root css-0 iconify iconify--icon-park-twotone"
+        className="mr-4 h-5 w-5 align-middle"
         width="1.5em"
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"

@@ -15,6 +15,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import { Contest } from "../models";
 
 interface TimePickerComponentProps {
   timeChangeHandler: (newValue: Dayjs | null) => void; // Specify the type for timeChangeHandler
@@ -42,7 +43,7 @@ export function TimePickerComponent({
   );
 }
 
-export function DatePickerDemo({ date, setDate }: DatePickerDemoProps) {
+export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
   return (
     <Popover>
       <PopoverTrigger className="h-[50px]" asChild>
@@ -50,19 +51,23 @@ export function DatePickerDemo({ date, setDate }: DatePickerDemoProps) {
           variant={"outline"}
           className={cn(
             "w-[280px] justify-start text-left font-normal",
-            !date && "text-muted-foreground"
+            !contest.date && "text-muted-foreground"
           )}
         >
           <CalendarIcon />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
+          {contest.date ? (
+            format(contest.date, "PPP")
+          ) : (
+            <span>Pick a date</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <Calendar
           style={{ fontFamily: "'Public Sans',sans-serif" }}
           mode="single"
-          selected={date}
-          onSelect={(newValue) => setDate(newValue!)}
+          selected={contest.date}
+          onSelect={(newValue) => setContest({ ...contest, date: newValue })}
           initialFocus
         />
       </PopoverContent>
@@ -70,6 +75,6 @@ export function DatePickerDemo({ date, setDate }: DatePickerDemoProps) {
   );
 }
 interface DatePickerDemoProps {
-  date: Date;
-  setDate: React.Dispatch<React.SetStateAction<Date>>;
+  contest: Contest;
+  setContest: React.Dispatch<React.SetStateAction<Contest>>;
 }

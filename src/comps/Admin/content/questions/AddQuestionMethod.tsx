@@ -30,12 +30,13 @@ const access_token = import.meta.env.ACESS_TOKEN;
 
 function Option({ index, handleChangeOptions, formData }: OptionProps) {
   return (
-    <TextField
+    <input
+      type="text"
+      className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
+      placeholder={`Option ${index + 1}`}
       onChange={(e) => handleChangeOptions(index, e.target.value)}
-      fullWidth
-      label={`Option ${index + 1}`}
-      required
       value={formData.choices[0]}
+      required
     />
   );
 }
@@ -91,15 +92,7 @@ export function AddQuestionManual({
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/q/addquestion/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + access_token,
-        },
-
-        body: JSON.stringify(formData),
-      });
+      const res = await addOneQuestion(formData);
       setaddStatus(res.status);
     } catch (error) {
       setaddStatus(500);
@@ -132,13 +125,16 @@ export function AddQuestionManual({
         handleClose={handleClose}
         addStatus={addStatus}
       />
-      <TextField
+      <textarea
+        id="message"
+        rows={4}
+        className="block p-2.5  text-sm w-[50%] text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55]  focus:outline-none"
+        placeholder="write the question..."
         onChange={(e) =>
           setFormData({ ...formData, question_text: e.target.value })
         }
-        label="Question"
-        sx={{ width: "50%" }}
-      />
+      ></textarea>
+
       <Box>
         <Box sx={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Typography
@@ -194,11 +190,15 @@ export function AddQuestionManual({
             >
               Answer
             </Typography>
-            <TextField
+            <input
+              type="text"
+              id="company"
+              className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
+              placeholder="Answer"
               onChange={(e) =>
                 setFormData({ ...formData, answer: e.target.value })
               }
-              label="Answer"
+              required
             />
           </Box>
           <Box>
@@ -397,7 +397,11 @@ export function UploadQuestonsComponent() {
       </Box>
       <Box sx={{ mt: 8 }}>
         <Typography
-          sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600,mb:4 }}
+          sx={{
+            fontFamily: "'Public Sans',sans-serif",
+            fontWeight: 600,
+            mb: 4,
+          }}
         >
           Proccessed Questions
         </Typography>

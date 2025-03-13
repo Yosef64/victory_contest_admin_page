@@ -3,7 +3,7 @@ import React from "react";
 import logo from "../../../assets/logo.jpg";
 export default function Logo() {
   return (
-    <Box sx={{ mb: 2 }}>
+    <div>
       <Card
         sx={{
           width: "90%",
@@ -49,6 +49,6 @@ export default function Logo() {
           </Typography>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 }

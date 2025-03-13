@@ -54,7 +54,7 @@ interface TabPanelProps {
 }
 const questions = [
   {
-    question_id: 1,
+    id: 1,
     question_text: "What is You name?",
     choices: ["Yoseph", "Johnny sinner", "Tewodros"],
     answer: "Yoseph",
@@ -65,7 +65,7 @@ const questions = [
     sub: "Biology",
   },
   {
-    question_id: 2,
+    id: 2,
     question_text:
       "What is You name? What is You name? What is You name? What is You name? What is You name?What is You name? What is You name?",
     choices: ["Yoseph", "Johnny sinner", "Tewodros"],
@@ -77,7 +77,7 @@ const questions = [
     sub: "Biology",
   },
   {
-    question_id: 3,
+    id: 3,
     question_text: "What is You name?",
     choices: ["Yoseph", "Johnny sins", "Tewodros"],
     answer: "Yoseph",
@@ -238,12 +238,10 @@ export default function ContestById() {
               <MenubarContent
                 style={{ fontFamily: "'Public Sans',sans-serif" }}
               >
-                <MenubarItem>New Tab</MenubarItem>
-                <MenubarItem>New Window</MenubarItem>
-                <MenubarSeparator />
-                <MenubarItem>Share</MenubarItem>
-                <MenubarSeparator />
-                <MenubarItem>Print</MenubarItem>
+                <MenubarItem>Announce contest</MenubarItem>
+                <MenubarItem className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red- ">
+                  Delete contest
+                </MenubarItem>
               </MenubarContent>
             </MenubarMenu>
           </Menubar>

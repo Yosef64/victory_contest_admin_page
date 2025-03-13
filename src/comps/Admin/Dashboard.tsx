@@ -7,30 +7,14 @@ import Appbar from "./StaticComps/Appbar.js";
 
 export default function Dashboard() {
   return (
-    <Grid container spacing={2}>
-      <Grid
-        item
-        md={2.7}
-        sx={{
-          overflow: "hidden",
-          borderRight: "1px dashed grey",
-          backgroundColor: "#faf9f7",
-          display: { xs: "none", md: "block" },
-        }}
-      >
+    <div className="flex h-screen">
+      <div className="hidden custom:block w-60 border-r border-dashed border-gray-500 bg-[#faf9f7] overflow-hidden">
         <Sidebar />
-      </Grid>
-      <Grid
-        item
-        xs={12}
-        md={9.3}
-        sx={{ height: "100vh", overflow: "auto", backgroundColor: "#faf9f7" }}
-      >
-        <Box>
-          <Appbar />
-          <Outlet />
-        </Box>
-      </Grid>
-    </Grid>
+      </div>
+      <div className="flex-1 h-full overflow-auto bg-[#faf9f7]">
+        <Appbar />
+        <Outlet />
+      </div>
+    </div>
   );
 }

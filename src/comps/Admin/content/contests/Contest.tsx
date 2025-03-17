@@ -28,7 +28,7 @@ export default function Contest() {
   console.log(subjectValue, value);
 
   return (
-    <Box sx={{ paddingX: 2, paddingY: 2, overflow: "auto" }}>
+    <Box sx={{ paddingY: 2, overflow: "auto" }}>
       <Box
         sx={{
           display: "flex",

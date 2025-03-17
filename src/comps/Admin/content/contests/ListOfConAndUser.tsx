@@ -14,10 +14,8 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React from "react";
 import { styled } from "@mui/material/styles";
-import { Contest } from "../models";
-import { Link, redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getContests } from "@/lib/utils";
 
@@ -25,11 +23,7 @@ type GradeProps = {
   grade: { title: string; year: number | JSX.Element }[];
 };
 export function ListOfContest({ grade }: GradeProps) {
-  const {
-    data: contests,
-    status,
-    error,
-  } = useQuery({
+  const { data: contests, status } = useQuery({
     queryKey: ["contests"],
     queryFn: async () => await getContests(),
   });
@@ -47,7 +41,7 @@ export function ListOfContest({ grade }: GradeProps) {
     <Box sx={{}}>
       {filteredContest.map((contest) => {
         return (
-          <Link to={`/dashboard/contest/${contest.contest_id}`}>
+          <Link to={`/dashboard/contest/${contest.id}`}>
             <Card
               elevation={0}
               sx={{
@@ -58,6 +52,7 @@ export function ListOfContest({ grade }: GradeProps) {
                 cursor: "pointer",
                 bgcolor: "white",
                 boxShadow: "0 0 1px #9c9898",
+                mb: 2,
               }}
             >
               <CardHeader
@@ -194,7 +189,7 @@ const users = [
     name: "Tadese Wered",
   },
 ];
-const StyledBadge = styled(Badge)(({ theme }) => ({
+const StyledBadge = styled(Badge)(({}) => ({
   "& .MuiBadge-badge": {
     right: 4,
     top: 14,

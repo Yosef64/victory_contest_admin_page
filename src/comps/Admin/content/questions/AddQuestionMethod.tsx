@@ -27,6 +27,7 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import { ProcessFile } from "./processData";
 import { addOneQuestion } from "@/lib/utils";
 import { Question } from "../models";
+import { useSearchParams } from "react-router-dom";
 
 interface OptionProps {
   index: number;
@@ -55,12 +56,11 @@ function Option({
   );
 }
 
-export function AddQuestionManual({
-  questionString,
-}: {
-  questionString: string | null;
-}) {
-  const question = questionString
+export function AddQuestionManual() {
+  const [searchParams] = useSearchParams();
+
+  const questionString = searchParams.get("question");
+  const question: Question = questionString
     ? JSON.parse(questionString)
     : {
         question_text: "",
@@ -177,6 +177,7 @@ export function AddQuestionManual({
           <input
             type="text"
             id="answer"
+            value={question.answer}
             className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-[20%] p-2.5 focus:outline-none"
             placeholder="Answer"
             onChange={(e) =>

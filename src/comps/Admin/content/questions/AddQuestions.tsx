@@ -13,7 +13,7 @@ export default function AddQuestions() {
 
   const isEdit = searchParams.get("edit");
   const questionString = searchParams.get("question");
-
+  console.log(questionString);
   return (
     <Box sx={{ padding: 2 }}>
       <Box sx={{ mb: 5 }}>
@@ -72,7 +72,7 @@ export default function AddQuestions() {
         </Tabs>
       </Box>
       <CustomTabPanel value={tabValue} index={0}>
-        <AddQuestionManual questionString={questionString} />
+        <AddQuestionManual />
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
         <UploadQuestonsComponent />

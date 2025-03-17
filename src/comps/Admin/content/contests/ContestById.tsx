@@ -15,6 +15,7 @@ import {
   IconButton,
   Avatar,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   Select,
@@ -25,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React from "react";
+import React, { useState } from "react";
 import leetcodeImage from "../../../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
 import {
@@ -46,48 +47,23 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { CalendarDays } from "lucide-react";
 import QuestionTable from "../questions/QuestionTable";
-import { filterContestByStudentData } from "../Actions/studentFilter";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
+import {
+  addContest,
+  announceContest,
+  getContestById,
+  getSubmissionByContest,
+  updateContest,
+  uploadImage,
+} from "@/lib/utils";
+import { transformSubmission } from "@/lib/helpers";
+import { AlertDialogBox, DialogBox } from "./Message";
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
-const questions = [
-  {
-    id: 1,
-    question_text: "What is You name?",
-    choices: ["Yoseph", "Johnny sinner", "Tewodros"],
-    answer: "Yoseph",
-    exp: "Because It's my name",
-    chapter: 1,
-    grade: 12,
-    contest: 1,
-    sub: "Biology",
-  },
-  {
-    id: 2,
-    question_text:
-      "What is You name? What is You name? What is You name? What is You name? What is You name?What is You name? What is You name?",
-    choices: ["Yoseph", "Johnny sinner", "Tewodros"],
-    answer: "Yoseph",
-    exp: "Because It's my name",
-    chapter: 1,
-    grade: 12,
-    contest: 1,
-    sub: "Biology",
-  },
-  {
-    id: 3,
-    question_text: "What is You name?",
-    choices: ["Yoseph", "Johnny sins", "Tewodros"],
-    answer: "Yoseph",
-    exp: "Because It's my name",
-    chapter: 1,
-    grade: 12,
-    contest: 1,
-    sub: "Biology",
-  },
-];
 
 function CustomTabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -115,7 +91,14 @@ export default function ContestById() {
   const [tabValue, setTabValue] = React.useState(0);
   const [school, setschool] = React.useState("");
   const [city, setcity] = React.useState("");
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const [snakOpen, setSnakOpen] = useState(false);
+  const { id } = useParams();
+  console.log(id);
+  const { data: contest, status } = useQuery({
+    queryKey: ["contest", id],
+    queryFn: async () => await getContestById(id!),
+  });
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
   const handleSelect = (value: any) => {
@@ -124,6 +107,21 @@ export default function ContestById() {
   };
   const handleSelectCity = (value: any) => {
     setcity(value);
+  };
+
+  const handleActionMade = async (
+    action: string,
+    time?: { start_time: string; end_time: string },
+    info?: { title: string; description: string },
+    imgurl?: string
+  ) => {
+    if (action === "announce") {
+      await announceContest(contest!, imgurl!);
+    } else if (action === "clone") {
+      await addContest({ ...contest!, ...info! });
+    } else {
+      await updateContest(contest!, time!);
+    }
   };
   //   const filteredSubmissons = filterContestByStudentData(questions,{school,city});
   return (
@@ -160,7 +158,7 @@ export default function ContestById() {
             }}
             color="inherit"
           >
-            Contest Number One
+            {status === "success" && contest.title}
           </Link>
         </Breadcrumbs>
       </Box>
@@ -193,7 +191,7 @@ export default function ContestById() {
                   cursor: "pointer",
                 }}
               >
-                Contest Number One
+                {status === "success" && contest.title}
               </Typography>
             </HoverCardTrigger>
             <HoverCardContent className="w-[90]">
@@ -203,9 +201,7 @@ export default function ContestById() {
               >
                 <h4 className="text-sm font-semibold font-">@contest</h4>
                 <p className="text-sm font-semibold">
-                  Contest Number One is an ongoing online learning platform that
-                  aims to provide students with a comprehensive and engaging
-                  learning experience.
+                  {status === "success" && contest.description}
                 </p>
                 <div className="flex items-center pt-2 justify-between">
                   <div className="flex items-center pt-2">
@@ -237,8 +233,23 @@ export default function ContestById() {
               </MenubarTrigger>
               <MenubarContent
                 style={{ fontFamily: "'Public Sans',sans-serif" }}
+                className="w-2"
               >
-                <MenubarItem>Announce contest</MenubarItem>
+                <MenubarItem asChild>
+                  <DialogBox action={"announce"} handler={handleActionMade}>
+                    <button>Announce Contest</button>
+                  </DialogBox>
+                </MenubarItem>
+                <MenubarItem asChild>
+                  <DialogBox action={"clone"} handler={handleActionMade}>
+                    <button>Clone contest</button>
+                  </DialogBox>
+                </MenubarItem>
+                <MenubarItem asChild>
+                  <DialogBox handler={handleActionMade} action="update">
+                    <button>update time</button>
+                  </DialogBox>
+                </MenubarItem>
                 <MenubarItem className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red- ">
                   Delete contest
                 </MenubarItem>
@@ -334,31 +345,27 @@ export default function ContestById() {
           <Standing />
         </CustomTabPanel>
         <CustomTabPanel value={tabValue} index={1}>
-          <QuestionTable questions={questions} />
+          <QuestionTable questions={contest?.questions} />
         </CustomTabPanel>
       </Box>
     </Box>
   );
 }
-function createData(
-  name: string,
-  rank: number,
-  penality: number,
-  solved: number
-) {
-  return { name, rank, penality, solved };
-}
 
-const rows = [
-  createData("Frozen yoghurt", 159, 6.0, 24),
-  createData("Ice cream sandwich", 237, 9.0, 37),
-  createData("Eclair", 262, 16.0, 24),
-  createData("Cupcake", 305, 3.7, 67),
-  createData("Gingerbread", 356, 16.0, 49),
-];
 const talbeHeader = ["Rank", "Contestant", "Solved", "Penality", "Time"];
-function Standing(props: any) {
-  const { submissions } = props;
+function Standing() {
+  const { id } = useParams();
+  const { data: submissions = [], status } = useQuery({
+    queryKey: ["submissions_by_contest"],
+    queryFn: async () => getSubmissionByContest(id!),
+  });
+  if (status === "pending") {
+    return <CircularProgress />;
+  }
+  if (status === "error") {
+    return <div className="">Error</div>;
+  }
+  const rows = transformSubmission(submissions);
   return (
     <Box>
       <TableContainer

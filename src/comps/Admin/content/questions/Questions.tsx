@@ -2,10 +2,18 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
-import { FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
+import {
+  CircularProgress,
+  FormControl,
+  MenuItem,
+  OutlinedInput,
+  Select,
+} from "@mui/material";
 
 import QuestionTable from "./QuestionTable";
 import { grades, Subjects } from "./Data";
+import { useQuery } from "@tanstack/react-query";
+import { getQuestions } from "@/lib/utils";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -18,54 +26,14 @@ const MenuProps = {
   },
 };
 
-const questions = [
-  {
-    question_id: 1,
-    question_text: "What is You name?",
-    choices: ["Yoseph", "Johnny sinner", "Tewodros"],
-    answer: "Yoseph",
-    exp: "Because It's my name",
-    chapter: 1,
-    grade: 12,
-    contest: 1,
-    sub: "Biology",
-  },
-  {
-    question_id: 2,
-    question_text:
-      "What is You name? What is You name? What is You name? What is You name? What is You name?What is You name? What is You name?",
-    choices: ["Yoseph", "Johnny sinner", "Tewodros"],
-    answer: "Yoseph",
-    exp: "Because It's my name",
-    chapter: 1,
-    grade: 12,
-    contest: 1,
-    sub: "Biology",
-  },
-  {
-    question_id: 3,
-    question_text: "What is You name?",
-    choices: ["Yoseph", "Johnny sins", "Tewodros"],
-    answer: "Yoseph",
-    exp: "Because It's my name",
-    chapter: 1,
-    grade: 12,
-    contest: 1,
-    sub: "Biology",
-  },
-];
-
 export default function Questions() {
   const [subjectsname, setPersonName] = React.useState<string[]>([]);
   const [gradename, setGradeName] = React.useState<string[]>([]);
-
-  const allQuestions = questions.filter(
-    (question) =>
-      (gradename.length === 0 ||
-        gradename.includes(`Grade ${question.grade}`)) &&
-      (subjectsname.length === 0 || subjectsname.includes(question.sub))
-  );
-
+  const { data: questions = [], status } = useQuery({
+    queryKey: ["questions"],
+    queryFn: async () => await getQuestions(),
+  });
+  console.log(questions);
   const handleChange = (event: any) => {
     const {
       target: { value },
@@ -79,6 +47,12 @@ export default function Questions() {
     } = event;
     setGradeName(typeof value === "string" ? value.split(",") : value);
   };
+  const filteredQuestion = questions.filter(
+    (x) =>
+      (gradename.length === 0 && subjectsname.length === 0) ||
+      subjectsname.includes(x.subject) ||
+      gradename.includes(x.grade)
+  );
 
   return (
     <div
@@ -230,7 +204,11 @@ export default function Questions() {
           </Select>
         </FormControl>
       </Box>
-      <QuestionTable questions={allQuestions} />
+      {status == "pending" ? (
+        <CircularProgress />
+      ) : (
+        <QuestionTable status={status} questions={filteredQuestion} />
+      )}
     </div>
   );
 }

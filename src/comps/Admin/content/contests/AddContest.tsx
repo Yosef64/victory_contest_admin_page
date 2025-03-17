@@ -24,7 +24,6 @@ export default function AddContest() {
   const [snakOpen, setSnakOpen] = React.useState(false);
 
   const [contest, setContest] = React.useState<Contest>({
-    contest_id: "string",
     title: "string",
     description: "string",
     questions: [],
@@ -72,13 +71,17 @@ export default function AddContest() {
     const contestData: Contest = {
       ...contest,
       questions: selectedRows,
-      contest_id: "something is not missing",
     };
     setIsLoading(true);
-    const res = await addContest(contestData);
-    setaddStatus(res);
-    setSnakOpen(true);
-    setIsLoading(false);
+    try {
+      await addContest(contestData);
+      setaddStatus(200);
+    } catch (error) {
+      setaddStatus(500);
+    } finally {
+      setSnakOpen(true);
+      setIsLoading(false);
+    }
   }
 
   return (

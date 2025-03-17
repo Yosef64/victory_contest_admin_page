@@ -14,7 +14,7 @@ export interface Student {
 export interface ExtendedContestSubmission extends Student {}
 
 export interface Contest {
-  contest_id: string;
+  id?: string;
   date?: Date;
   title: string;
   description?: string;
@@ -40,9 +40,13 @@ export interface Question {
 
 export interface Submission {
   submission_id: string;
-  student_id: string;
+  student: {
+    student_id: string;
+    imgurl: string;
+    name: string;
+  };
   contest_id: string;
   submission_time: string;
   score: number;
-  wrongAnswer: string[];
+  wrong_question: Question[];
 }

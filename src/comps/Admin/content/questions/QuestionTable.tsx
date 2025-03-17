@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Checkbox,
+  CircularProgress,
   Collapse,
   IconButton,
   Paper,
@@ -17,27 +18,33 @@ import {
   TablePagination,
   TableRow,
   Typography,
-  useTheme,
 } from "@mui/material";
 import React from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useNavigate } from "react-router-dom";
+
+import { Question } from "../models";
 const header = ["Question", "Chapter", "Grade", "Subject"];
 
 export default function QuestionTable(props: any) {
-  const { questions } = props;
+  const { questions, status }: { questions: Question[]; status: string } =
+    props;
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  console.log(questions);
 
-  const handleChangePage = (event: any, newPage: number) => {
+  const handleChangePage = (_event: any, newPage: number) => {
     setPage(newPage);
   };
-
   const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  if (status === "pending") {
+    return <CircularProgress color="success" />;
+  }
 
   return (
     <Box>
@@ -80,7 +87,7 @@ export default function QuestionTable(props: any) {
       <TablePagination
         rowsPerPageOptions={[2, 10, 25, 100]}
         component="div"
-        count={questions.length}
+        count={questions?.length ?? 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
@@ -104,7 +111,7 @@ export default function QuestionTable(props: any) {
 }
 
 function Row(props: any) {
-  const { row } = props;
+  const { row }: { row: Question } = props;
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
   const handleNavigate = (row: any) => {
@@ -144,7 +151,7 @@ function Row(props: any) {
           {row.grade}
         </TableCell>
         <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.sub}
+          {row.subject}
         </TableCell>
       </TableRow>
       <TableRow>
@@ -181,7 +188,7 @@ function Row(props: any) {
                 }}
               />
               <CardContent>
-                {row.choices.map((choice: string) => {
+                {row.multiple_choice.map((choice: string) => {
                   return (
                     <Box
                       sx={{
@@ -224,7 +231,7 @@ function Row(props: any) {
                   >
                     Explanation
                   </span>{" "}
-                  : {row.exp}
+                  : {row.explanation}
                 </Box>
               </CardActions>
             </Card>

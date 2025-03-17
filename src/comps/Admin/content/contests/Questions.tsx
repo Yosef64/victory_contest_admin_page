@@ -57,7 +57,11 @@ export default function Questions({ handleSelectionChange }: Props) {
   });
 
   if (status === "pending") {
-    return <CircularProgress />;
+    return (
+      <div className="w-full flex justify-center items-center">
+        <CircularProgress color="success" />
+      </div>
+    );
   }
   if (error) {
     return <div className="">Error</div>;

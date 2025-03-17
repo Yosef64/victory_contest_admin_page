@@ -28,14 +28,16 @@ export interface Contest {
 }
 
 export interface Question {
-  id: string;
+  id?: string;
   question_text: string;
   multiple_choice: string[];
   answer: string;
   explanation: string;
   grade: string;
-  chapter: number;
+  chapter: string;
+  subject: string;
 }
+
 export interface Submission {
   submission_id: string;
   student_id: string;

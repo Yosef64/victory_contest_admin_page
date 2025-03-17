@@ -9,70 +9,13 @@ import {
 } from "@mui/material";
 import React from "react";
 import CustomizedDataGrid from "../home/CustomizedDataGrid";
-import { GridColDef, GridRowsProp } from "@mui/x-data-grid";
 import { DatePickerDemo, TimePickerComponent } from "./DatePicker";
 import LoadingButton from "@mui/lab/LoadingButton";
 import SnackBar from "../questions/Snackbar";
 import { Contest, Question } from "../models";
+import { addContest, addOneQuestion } from "@/lib/utils";
+import Questions from "./Questions";
 
-export const columns: GridColDef[] = [
-  {
-    field: "question",
-    headerName: "Question",
-    flex: 1.5,
-    minWidth: 200,
-    headerAlign: "left",
-    align: "left",
-  },
-  {
-    field: "chapter",
-    headerName: "Chapter",
-    flex: 0.5,
-    minWidth: 80,
-    headerAlign: "left",
-    align: "left",
-  },
-  {
-    field: "grade",
-    headerName: "Grade",
-    headerAlign: "left",
-    align: "left",
-    flex: 1,
-    minWidth: 80,
-  },
-  {
-    field: "subject",
-    headerName: "Subject",
-    headerAlign: "left",
-    align: "left",
-    flex: 1,
-    minWidth: 100,
-  },
-];
-
-export const rows: GridRowsProp = [
-  {
-    id: 1,
-    question: "Homepage Overview",
-    subject: "Math",
-    chapter: 1,
-    grade: 12,
-  },
-  {
-    id: 2,
-    question: "Homepage Overview",
-    subject: "Math",
-    chapter: 1,
-    grade: 11,
-  },
-  {
-    id: 3,
-    question: "Homepage Overview",
-    subject: "Math",
-    chapter: 1,
-    grade: 12,
-  },
-];
 export default function AddContest() {
   const [selectedRows, setSelectedRows] = React.useState<Question[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -113,6 +56,7 @@ export default function AddContest() {
       const isAlreadySelected = prevSelectedRows.some(
         (row: Question) => row.id === newSelection.id
       );
+      console.log(newSelection);
 
       if (isAlreadySelected) {
         return prevSelectedRows.filter(
@@ -131,16 +75,8 @@ export default function AddContest() {
       contest_id: "something is not missing",
     };
     setIsLoading(true);
-    const res = await fetch("http://127.0.0.1:8000/api/contest/add/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxOTAzMzQ4MzgxLCJpYXQiOjE3MzA1NDgzODEsImp0aSI6IjY1M2FmNDlhZjcwNzRmYTQ4NGNiMzVmZGI4MTMxMjUzIiwidXNlcl9pZCI6MX0.c8dOQ102J73JaTc1KEYkOsIbuh3nWhBFPRwBo_i5Qlg",
-      },
-      body: JSON.stringify(contestData),
-    });
-    setaddStatus(res.status);
+    const res = await addContest(contestData);
+    setaddStatus(res);
     setSnakOpen(true);
     setIsLoading(false);
   }
@@ -197,10 +133,7 @@ export default function AddContest() {
         >
           Choose Questions
         </Typography>
-        <CustomizedDataGrid
-          value={{ rows, columns }}
-          onSelectionChange={handleSelectionChange}
-        />
+        <Questions handleSelectionChange={handleSelectionChange} />
       </Box>
       <Typography
         sx={{

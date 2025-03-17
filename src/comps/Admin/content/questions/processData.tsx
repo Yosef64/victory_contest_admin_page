@@ -1,50 +1,65 @@
-type Question = {
-  id: number;
-  question: string;
-  choices: string[];
-  explanation: string;
-};
-function parseQuestionsWithChoices(text: string) {
+import { Question } from "../models";
+
+function parseQuestionsWithChoices(text: string): Question[] {
   const questions: Question[] = [];
   const lines = text.split("\n");
+  console.log(text);
 
   let currentQuestion: Question | null = null;
+  let currentGrade = ""; // Store the grade for all questions below it
+  let currentSubject = ""; // Store the subject for all questions below it
+  let currentChapter = ""; // Store the chapter for all questions below it
   let currentChange = { question: false, choice: false, exp: false };
 
   lines.forEach((line) => {
+    const subjectMatch = line.match(/Subject:\s*(.*)/i);
+    const gradeMatch = line.match(/Grade:\s*(\d+)/i);
+    const chapterMatch = line.match(/Chapter:\s*(.*)/i);
     const questionMatch = line.match(/^Q\d*\.?\s*(.*)/i);
     const choiceMatch = line.match(/^([A-D])\.\s*(.*)/);
+    const answerMatch = line.match(/^Answer:\s*(.*)/);
     const expMatch = line.startsWith("Explanation");
-    if (questionMatch) {
+
+    if (subjectMatch) {
+      currentSubject = subjectMatch[1].trim();
+    } else if (gradeMatch) {
+      currentGrade = gradeMatch[1].trim();
+    } else if (chapterMatch) {
+      currentChapter = chapterMatch[1].trim();
+    } else if (questionMatch) {
       if (currentQuestion) {
         questions.push(currentQuestion);
       }
 
       currentQuestion = {
-        id: questions.length + 1,
-        question: questionMatch[1].trim(),
-        choices: [],
+        question_text: questionMatch[1].trim(),
+        multiple_choice: [],
+        answer: "",
         explanation: "",
+        grade: currentGrade,
+        subject: currentSubject,
+        chapter: currentChapter,
       };
-      currentChange.question = true;
+      currentChange = { question: true, choice: false, exp: false };
     } else if (choiceMatch && currentQuestion) {
-      currentQuestion.choices.push(choiceMatch[2].trim());
+      currentQuestion.multiple_choice.push(choiceMatch[2].trim());
       currentChange = { question: false, choice: true, exp: false };
-    } else if (expMatch) {
-      // currentQuestion!.explanation += line.trim();
+    } else if (answerMatch && currentQuestion) {
+      currentQuestion.answer = answerMatch[1].trim();
+    } else if (expMatch && currentQuestion) {
+      const explanation = line.replace("Explanation:", "").trim();
+      currentQuestion.explanation += explanation;
       currentChange = { question: false, choice: false, exp: true };
-      const currentLine = line.trim();
-      const explanation = currentLine.split(" ").slice(1).join(" ");
-      currentQuestion!.explanation += explanation;
     } else {
       if (currentQuestion) {
         if (currentChange.question) {
-          currentQuestion.question += line.trim();
+          currentQuestion.question_text += " " + line.trim();
         } else if (currentChange.choice) {
-          currentQuestion.choices[currentQuestion.choices.length - 1] +=
-            line.trim();
+          currentQuestion.multiple_choice[
+            currentQuestion.multiple_choice.length - 1
+          ] += " " + line.trim();
         } else if (currentChange.exp) {
-          currentQuestion.explanation += line.trim();
+          currentQuestion.explanation += " " + line.trim();
         }
       }
     }
@@ -56,19 +71,19 @@ function parseQuestionsWithChoices(text: string) {
 
   return questions;
 }
-export function ProcessFile(file: File):Promise<Question[]> {
+
+export function ProcessFile(file: File): Promise<Question[]> {
   if (!file) {
     console.error("Invalid file input.");
     return Promise.reject("Invalid file input.");
   }
 
   return new Promise((resolve, reject) => {
-    
-
     const reader = new FileReader();
     reader.onload = (event: any) => {
       try {
         const text = event.target.result;
+        console.log(text);
         const questions = parseQuestionsWithChoices(text);
         // console.log(questions);
         resolve(questions);

@@ -4,6 +4,7 @@ import {
   Box,
   Card,
   CardHeader,
+  CircularProgress,
   IconButton,
   List,
   ListItem,
@@ -17,24 +18,27 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { Contest } from "../models";
 import { Link, redirect } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { getContests } from "@/lib/utils";
 
-const contests: Contest[] = [
-  {
-    contest_id: "1344",
-    date: new Date(2024, 5, 12),
-
-    total_time: "5",
-    title: "Victory Math contest #12",
-    description: "somet thing is somethign and you better not to miss it!",
-    questions: [],
-    grade: "Grade 11",
-    subject: "Maths",
-  },
-];
 type GradeProps = {
   grade: { title: string; year: number | JSX.Element }[];
 };
 export function ListOfContest({ grade }: GradeProps) {
+  const {
+    data: contests,
+    status,
+    error,
+  } = useQuery({
+    queryKey: ["contests"],
+    queryFn: async () => await getContests(),
+  });
+  if (status === "pending") {
+    return <CircularProgress />;
+  }
+  if (status === "error") {
+    return <div className="">Error</div>;
+  }
   const filteredContest = contests.filter((contest) => {
     if (grade.length === 0) return true;
     return grade.some((element) => element.title === contest.grade);

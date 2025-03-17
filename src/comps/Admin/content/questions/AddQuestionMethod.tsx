@@ -8,7 +8,6 @@ import {
   Checkbox,
   Grid,
   SnackbarCloseReason,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
@@ -26,26 +25,36 @@ import {
 import { chapters, grades, Subjects } from "./Data";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { ProcessFile } from "./processData";
-const access_token = import.meta.env.ACESS_TOKEN;
+import { addOneQuestion } from "@/lib/utils";
+import { Question } from "../models";
 
-function Option({ index, handleChangeOptions, formData }: OptionProps) {
+interface OptionProps {
+  index: number;
+  handleChangeOptions: (index: number, value: string) => void;
+  value: string;
+}
+
+function Option({
+  index,
+  handleChangeOptions,
+  value,
+}: {
+  index: number;
+  handleChangeOptions: (index: number, value: string) => void;
+  value: string;
+}) {
   return (
     <input
       type="text"
       className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
       placeholder={`Option ${index + 1}`}
       onChange={(e) => handleChangeOptions(index, e.target.value)}
-      value={formData.choices[0]}
+      value={value}
       required
     />
   );
 }
 
-type OptionProps = {
-  index: number;
-  handleChangeOptions: (index: number, value: string) => void;
-  formData: any;
-};
 export function AddQuestionManual({
   questionString,
 }: {
@@ -60,62 +69,60 @@ export function AddQuestionManual({
         grade: "",
         subject: "",
         chapter: "",
+        explanation: "",
       };
+
   const [loading, setLoading] = useState(false);
-  const [addStatus, setaddStatus] = useState(200);
+  const [addStatus, setAddStatus] = useState(200);
   const [snakOpen, setSnakOpen] = useState(false);
-  const [formData, setFormData] = useState(question);
-  const [optionComponents, setOptionComponents] = useState([
-    <Option
-      index={0}
-      handleChangeOptions={handleChangeOptions}
-      formData={formData}
-    />,
-    <Option
-      index={1}
-      handleChangeOptions={handleChangeOptions}
-      formData={formData}
-    />,
-  ]);
+  const [formData, setFormData] = useState({
+    question_text: "",
+    multiple_choice: ["", ""],
+    answer: "",
+    grade: "",
+    subject: "",
+    chapter: "",
+    explanation: "",
+  });
 
   const handleClose = (
-    event: React.SyntheticEvent | Event,
-    reason?: SnackbarCloseReason
+    _event: React.SyntheticEvent | Event,
+    reason?: string
   ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
+    if (reason === "clickaway") return;
     setSnakOpen(false);
   };
 
   const handleSubmit = async () => {
     setLoading(true);
+    console.log(formData);
+    if (Object.values(formData).some((value) => !value)) {
+      setSnakOpen(true);
+      setAddStatus(500);
+    }
     try {
-      const res = await addOneQuestion(formData);
-      setaddStatus(res.status);
+      await addOneQuestion(formData);
     } catch (error) {
-      setaddStatus(500);
-      console.log(error);
+      setAddStatus(500);
+      console.error(error);
     }
     setLoading(false);
     setSnakOpen(true);
   };
-  function handleChangeOptions(index: number, value: string) {
-    const newOptions = [...formData.choices];
-    newOptions[index] = value;
-    setFormData({ ...formData, choices: newOptions });
-  }
+
+  const handleChangeOptions = (index: number, value: string) => {
+    setFormData((prevData) => {
+      const newOptions = [...prevData.multiple_choice];
+      newOptions[index] = value;
+      return { ...prevData, multiple_choice: newOptions };
+    });
+  };
+
   const handleAddOption = () => {
-    const newOption = (
-      <Option
-        index={optionComponents.length}
-        handleChangeOptions={handleChangeOptions}
-        formData={formData}
-      />
-    );
-    setOptionComponents([...optionComponents, newOption]);
-    setFormData({ ...formData, choices: [...formData.choices, ""] });
+    setFormData((prevData) => ({
+      ...prevData,
+      multiple_choice: [...prevData.multiple_choice, ""],
+    }));
   };
 
   return (
@@ -128,8 +135,8 @@ export function AddQuestionManual({
       <textarea
         id="message"
         rows={4}
-        className="block p-2.5  text-sm w-[50%] text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55]  focus:outline-none"
-        placeholder="write the question..."
+        className="block p-2.5 text-sm w-[50%] text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55] focus:outline-none"
+        placeholder="Write the question..."
         onChange={(e) =>
           setFormData({ ...formData, question_text: e.target.value })
         }
@@ -137,21 +144,12 @@ export function AddQuestionManual({
 
       <Box>
         <Box sx={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <Typography
-            sx={{
-              my: 3,
-              fontFamily: "'Public Sans',sans-serif",
-              fontWeight: 600,
-              fontSize: 17,
-            }}
-          >
+          <Typography sx={{ my: 3, fontWeight: 600, fontSize: 17 }}>
             Options
           </Typography>
           <Button
             variant="text"
             sx={{
-              fontFamily: "'Public Sans',sans-serif",
-              textTransform: "none",
               backgroundColor: "#00AB5514",
               color: "#00AB55",
               fontWeight: 600,
@@ -163,158 +161,107 @@ export function AddQuestionManual({
         </Box>
 
         <Grid container spacing={4}>
-          {optionComponents.map((component) => {
-            return (
-              <Grid item xs={12} sm={6}>
-                {component}
-              </Grid>
-            );
-          })}
+          {formData.multiple_choice.map((option, index) => (
+            <Grid item xs={12} sm={6} key={index}>
+              <Option
+                index={index}
+                handleChangeOptions={handleChangeOptions}
+                value={option}
+              />
+            </Grid>
+          ))}
         </Grid>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            my: 3,
-            width: "95%",
-          }}
-        >
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "'Public Sans',sans-serif",
-                mb: 1,
-                fontWeight: 600,
-              }}
-            >
-              Answer
-            </Typography>
-            <input
-              type="text"
-              id="company"
-              className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
-              placeholder="Answer"
-              onChange={(e) =>
-                setFormData({ ...formData, answer: e.target.value })
-              }
-              required
-            />
-          </Box>
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "'Public Sans',sans-serif",
-                mb: 1,
-                fontWeight: 600,
-              }}
-            >
-              Grade
-            </Typography>
+
+        <div>
+          <p className="font-sans my-5 font-semibold text-lg">Value</p>
+          <input
+            type="text"
+            id="answer"
+            className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-[20%] p-2.5 focus:outline-none"
+            placeholder="Answer"
+            onChange={(e) =>
+              setFormData({ ...formData, answer: e.target.value })
+            }
+            required
+          />
+          <textarea
+            id="explanation"
+            rows={4}
+            className="block p-2.5 text-sm w-[50%] text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55] focus:outline-none"
+            placeholder="Explanation..."
+            onChange={(e) =>
+              setFormData({ ...formData, explanation: e.target.value })
+            }
+          ></textarea>
+        </div>
+
+        <div className="flex flex-col">
+          <div className="font-sans my-5 font-semibold text-lg">Info</div>
+          <div className="flex gap-6">
             <Select
               onValueChange={(value) =>
                 setFormData({ ...formData, grade: value })
               }
             >
-              <SelectTrigger
-                style={{ fontFamily: "'Public Sans',sans-serif" }}
-                className="w-[180px] h-[50px]"
-              >
+              <SelectTrigger className="w-[180px] h-[50px]">
                 <SelectValue placeholder="Select Grade" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel
-                    style={{ fontFamily: "'Public Sans',sans-serif" }}
-                  >
-                    Grade
-                  </SelectLabel>
-                  {grades.map((grad: string) => {
-                    return (
-                      <SelectItem value={grad.split(" ")[1]}>{grad}</SelectItem>
-                    );
-                  })}
+                  <SelectLabel>Grade</SelectLabel>
+                  {grades.map((grad) => (
+                    <SelectItem key={grad} value={grad.split(" ")[1]}>
+                      {grad}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </Box>
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "'Public Sans',sans-serif",
-                mb: 1,
-                fontWeight: 600,
-              }}
-            >
-              Subject
-            </Typography>
+
             <Select
               onValueChange={(value) =>
                 setFormData({ ...formData, subject: value })
               }
             >
-              <SelectTrigger
-                style={{ fontFamily: "'Public Sans',sans-serif" }}
-                className="w-[180px] h-[50px]"
-              >
+              <SelectTrigger className="w-[180px] h-[50px]">
                 <SelectValue placeholder="Select Subject" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel
-                    style={{ fontFamily: "'Public Sans',sans-serif" }}
-                  >
-                    Subject
-                  </SelectLabel>
-                  {Subjects.map((subject) => {
-                    return <SelectItem value={subject}>{subject}</SelectItem>;
-                  })}
+                  <SelectLabel>Subject</SelectLabel>
+                  {Subjects.map((subject) => (
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </Box>
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "'Public Sans',sans-serif",
-                mb: 1,
-                fontWeight: 600,
-              }}
-            >
-              Chapter
-            </Typography>
+
             <Select
               onValueChange={(value) =>
                 setFormData({ ...formData, chapter: value })
               }
             >
-              <SelectTrigger
-                style={{ fontFamily: "'Public Sans',sans-serif" }}
-                className="w-[180px] h-[50px]"
-              >
-                <SelectValue placeholder="Select chapter" />
+              <SelectTrigger className="w-[180px] h-[50px]">
+                <SelectValue placeholder="Select Chapter" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel
-                    style={{ fontFamily: "'Public Sans',sans-serif" }}
-                  >
-                    Chapter
-                  </SelectLabel>
-                  {chapters.map((chapter) => {
-                    return (
-                      <SelectItem value={chapter.split(" ")[1]}>
-                        {chapter}
-                      </SelectItem>
-                    );
-                  })}
+                  <SelectLabel>Chapter</SelectLabel>
+                  {chapters.map((chapter) => (
+                    <SelectItem key={chapter} value={chapter.split(" ")[1]}>
+                      {chapter}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </Box>
-        </Box>
+          </div>
+        </div>
       </Box>
-      <Box>
+
+      <div className="mt-7">
         {!questionString ? (
           <LoadingButton
             loading={loading}
@@ -323,8 +270,6 @@ export function AddQuestionManual({
               backgroundColor: "#00AB55",
               borderRadius: 2,
               width: 100,
-              fontFamily: "'Public Sans',sans-serif",
-              textTransform: "none",
               fontSize: 15,
               fontWeight: 600,
             }}
@@ -335,25 +280,20 @@ export function AddQuestionManual({
         ) : (
           <LoadingButton>Edit</LoadingButton>
         )}
-      </Box>
+      </div>
     </Box>
   );
 }
-type Question = {
-  id: number;
-  question: string;
-  choices: string[];
-  explanation: string;
-};
+
 export function UploadQuestonsComponent() {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const handleFileChange = (e: any) => {
+  const handleFileChange = async (e: any) => {
     const file = e.target.files[0];
-    const returned = ProcessFile(file);
-
-    returned.then((value: Question[]) => {
-      setQuestions(value);
-    });
+    ProcessFile(file)
+      .then((value: Question[]) => {
+        setQuestions(value);
+      })
+      .catch((err) => console.log(err));
   };
   return (
     <Box>
@@ -406,93 +346,85 @@ export function UploadQuestonsComponent() {
           Proccessed Questions
         </Typography>
         <Box>
-          {questions.map((question: Question) => {
-            return (
-              <Card
-                elevation={0}
+          {questions.map((question: Question, index: number) => (
+            <Card
+              key={index}
+              elevation={0}
+              sx={{
+                my: 0.8,
+                borderRadius: 3,
+                boxShadow: "0 0 1px #9c9898",
+              }}
+            >
+              <CardHeader
+                title={"Q. " + question.question_text}
+                action={
+                  <Button
+                    sx={{
+                      fontFamily: "'Public Sans',sans-serif",
+                      textTransform: "none",
+                      backgroundColor: "#00AB5514",
+                      color: "#00AB55",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Edit
+                  </Button>
+                }
                 sx={{
-                  my: 0.8,
-                  borderRadius: 3,
-                  boxShadow: "0 0 1px #9c9898",
-                  // height: 200,
+                  "& .MuiCardHeader-title": {
+                    fontFamily: "'Public Sans',sans-serif",
+                    fontWeight: 600,
+                    lineHeight: 1.57143,
+                    fontSize: 15,
+                    textOverflow: "ellipsis",
+                  },
+                }}
+              />
+              <CardContent>
+                {question.multiple_choice.map((choice: string, i: number) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: 0,
+                    }}
+                  >
+                    <Checkbox
+                      checked={question.answer === String.fromCharCode(65 + i)} // A=65, B=66, etc.
+                      sx={{
+                        "&.Mui-checked": {
+                          color: "#00AB55",
+                        },
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: '"Public Sans",sans-serif',
+                      }}
+                    >
+                      {choice}
+                    </Typography>
+                  </Box>
+                ))}
+              </CardContent>
+              <CardActions
+                sx={{
+                  backgroundColor: "#00AB5514",
+                  fontFamily: "'Public Sans',sans-serif",
+                  fontSize: 14,
                 }}
               >
-                <CardHeader
-                  title={"Q. " + question.question}
-                  action={
-                    <Button
-                      sx={{
-                        fontFamily: "'Public Sans',sans-serif",
-                        textTransform: "none",
-                        backgroundColor: "#00AB5514",
-                        color: "#00AB55",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  }
-                  sx={{
-                    "& .MuiCardHeader-title": {
-                      fontFamily: "'Public Sans', sans-seri",
-                      fontWeight: 600,
-                      lineHeight: 1.57143,
-                      fontSize: 15,
-                      textOverflow: "ellipsis",
-                    },
-                  }}
-                />
-                <CardContent>
-                  {question.choices.map((choice: string) => {
-                    return (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          padding: 0,
-                        }}
-                      >
-                        <Checkbox
-                          checked={true}
-                          sx={{
-                            "&.Mui-checked": {
-                              color: "#00AB55",
-                            },
-                          }}
-                        />
-                        <Typography
-                          sx={{
-                            fontFamily: '"Public Sans",sans-serif',
-                          }}
-                        >
-                          {choice}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </CardContent>
-                <CardActions
-                  sx={{
-                    backgroundColor: "#00AB5514",
-                    fontFamily: "'Public Sans',sans-serif",
-                    fontSize: 14,
-                  }}
-                >
-                  <Box>
-                    <span
-                      style={{
-                        color: "#00AB55",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Explanation
-                    </span>{" "}
-                    : {question.explanation}
-                  </Box>
-                </CardActions>
-              </Card>
-            );
-          })}
+                <Box>
+                  <span style={{ color: "#00AB55", fontWeight: 600 }}>
+                    Explanation
+                  </span>
+                  : {question.explanation}
+                </Box>
+              </CardActions>
+            </Card>
+          ))}
         </Box>
       </Box>
     </Box>

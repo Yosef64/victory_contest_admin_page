@@ -16,7 +16,7 @@ export default function SnackBar({ snakOpen, handleClose, addStatus }: any) {
               severity="success"
               sx={{ fontFamily: "'Public Sans',sans-serif" }}
             >
-              Successfully added the question
+              Successfully Added!
             </Alert>
           ) : (
             <Alert
@@ -24,7 +24,7 @@ export default function SnackBar({ snakOpen, handleClose, addStatus }: any) {
               severity="error"
               sx={{ fontFamily: "'Public Sans',sans-serif" }}
             >
-              Failed to add the question
+              Failed to add!
             </Alert>
           )
         }

@@ -1,49 +1,8 @@
-import {
-  Avatar,
-  Badge,
-  Box,
-  Card,
-  CardHeader,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  MenuList,
-  Typography,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-
 import { MenuListItems } from "./Sidentmenu.tsx";
 import Logo from "./Logo.tsx";
-import leetcodeImage from "../../../assets/leetcode.jpg";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Icon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-const StyledBadge = styled(Badge)(({ theme }) => ({
-  "& .MuiBadge-badge": {
-    backgroundColor: "#44b700",
-    color: "#44b700",
-    boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-    "&::after": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      borderRadius: "50%",
-      content: '""',
-    },
-  },
-  "@keyframes ripple": {
-    "0%": {
-      transform: "scale(.8)",
-      opacity: 1,
-    },
-    "100%": {
-      transform: "scale(2.4)",
-      opacity: 0,
-    },
-  },
-}));
+import { useRef, useState } from "react";
+
 export default function Sidebar() {
   const location = useLocation();
   return (

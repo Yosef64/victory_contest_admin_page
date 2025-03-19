@@ -1,12 +1,4 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Route,
-  Link,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Dashboard from "./comps/Admin/Dashboard.tsx";
 import Contest from "./comps/Admin/content/contests/Contest.tsx";
 import Questions from "./comps/Admin/content/questions/Questions.tsx";

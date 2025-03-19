@@ -97,12 +97,11 @@ export function DialogBox({
     }
   };
 
-  const handleContestAnnounce = async (file: File) => {
+  const handleContestAnnounce = async (file: File, message: string) => {
     setisLoading(true);
     try {
-      const imgurl = await uploadImage(file!);
+      await handler(action, null, null, { file, message });
 
-      await handler(action, null, null, imgurl);
       setOpen(false);
     } catch (error) {
       setError(true);
@@ -250,9 +249,10 @@ function DialogForAnnounce({
   handleContestAnnounce,
   isLoading,
 }: {
-  handleContestAnnounce: (file: File) => void; // Assuming this is the intended type
+  handleContestAnnounce: (file: File, message: string) => void; // Assuming this is the intended type
   isLoading: boolean;
 }) {
+  const [message, setMessage] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -325,12 +325,21 @@ function DialogForAnnounce({
           </div>
         )}
       </div>
+      <textarea
+        id="message"
+        rows={4}
+        className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55]  focus:outline-none"
+        placeholder="Write descrition..."
+        onChange={(e) => {
+          setMessage(e.target.value), console.log(e.target.value);
+        }}
+      ></textarea>
 
       <DialogFooter>
         <Button
           className="bg-[#00AB55] text-white font-bold hover:bg-[#00AB55]"
           disabled={isLoading}
-          onClick={() => handleContestAnnounce(file!)}
+          onClick={() => handleContestAnnounce(file!, message)}
         >
           {isLoading ? "saving" : "Announce"}
         </Button>

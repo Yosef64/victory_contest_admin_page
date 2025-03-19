@@ -28,10 +28,18 @@ export async function getContestById(contest_id: string): Promise<Contest> {
   const { contest }: { contest: Contest } = res.data;
   return contest;
 }
-export async function announceContest(contest: Contest, imgurl: string) {
+export async function announceContest(
+  contest: Contest,
+  data: { file: File | null; message: string }
+) {
+  let imgurl = "";
+  if (data.file) {
+    imgurl = await uploadImage(data.file);
+  }
+  const announceData = { message: data.message, imgurl };
   const res = await axios.post(`${VITE_API_LINK}/api/contest/announce`, {
     contest,
-    imgurl,
+    announceData,
   });
   return res.data;
 }

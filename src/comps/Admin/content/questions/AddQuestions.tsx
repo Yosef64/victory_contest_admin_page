@@ -11,7 +11,6 @@ export default function AddQuestions() {
   const [searchParams] = useSearchParams();
   const [tabValue, setTabValue] = useState(0);
 
-  const isEdit = searchParams.get("edit");
   const questionString = searchParams.get("question");
   console.log(questionString);
   return (
@@ -38,7 +37,7 @@ export default function AddQuestions() {
             borderBottom: "none",
           }}
           // variant="fullWidth"
-          onChange={(e, newValue) => setTabValue(newValue)}
+          onChange={(_e, newValue) => setTabValue(newValue)}
         >
           <Tab
             sx={{

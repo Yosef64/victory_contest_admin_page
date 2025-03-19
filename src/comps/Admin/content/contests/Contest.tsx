@@ -1,5 +1,4 @@
 import {
-  MenuList,
   Box,
   Typography,
   TextField,
@@ -8,7 +7,7 @@ import {
   Autocomplete,
   Chip,
 } from "@mui/material";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import Checkbox from "@mui/material/Checkbox";
 import RankingAndContest from "./RankingAndContest.tsx";
@@ -60,7 +59,7 @@ export default function Contest() {
           multiple
           id="fixed-tags-demo"
           value={value}
-          onChange={(event, newValue) => {
+          onChange={(_event, newValue) => {
             setValue([
               ...fixedOptions,
               ...newValue.filter((option) => !fixedOptions.includes(option)),
@@ -68,7 +67,7 @@ export default function Contest() {
           }}
           options={top100Films}
           getOptionLabel={(option) => option.title}
-          renderOption={(props, option, { selected }) => (
+          renderOption={(_props, option, { selected }) => (
             <MenuItem
               sx={{
                 "&.Mui-selected": {
@@ -154,7 +153,7 @@ export default function Contest() {
           multiple
           id="fixed-tags-demo"
           value={subjectValue}
-          onChange={(event, newValue) => {
+          onChange={(_event, newValue) => {
             setsubjectValue([
               ...fixedSchool,
               ...newValue.filter((option) => !fixedSchool.includes(option)),
@@ -162,7 +161,7 @@ export default function Contest() {
           }}
           options={subject}
           getOptionLabel={(option) => option.title}
-          renderOption={(props, option, { selected }) => (
+          renderOption={(_props, option, { selected }) => (
             <MenuItem
               sx={{
                 "&.Mui-selected": {

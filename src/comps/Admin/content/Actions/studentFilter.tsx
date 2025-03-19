@@ -1,4 +1,4 @@
-import { ExtendedContestSubmission, Student, Submission } from "../models";
+import { ExtendedContestSubmission, Student } from "../models";
 
 // export function filterStudentByGrade(arr: Student[], value: any) {
 //   return arr.filter((student: Student) => student.grade == value);

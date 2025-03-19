@@ -39,7 +39,7 @@ export interface Question {
 }
 
 export interface Submission {
-  submission_id: string;
+  id?: string;
   student: {
     student_id: string;
     imgurl: string;
@@ -48,5 +48,5 @@ export interface Submission {
   contest_id: string;
   submission_time: string;
   score: number;
-  wrong_question: Question[];
+  missed_question: Question[];
 }

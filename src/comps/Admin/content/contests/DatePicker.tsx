@@ -67,7 +67,10 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
           style={{ fontFamily: "'Public Sans',sans-serif" }}
           mode="single"
           selected={contest.date}
-          onSelect={(newValue) => setContest({ ...contest, date: newValue })}
+          onSelect={(newValue) => {
+            setContest({ ...contest, date: newValue });
+            console.log(newValue?.getMonth());
+          }}
           initialFocus
         />
       </PopoverContent>

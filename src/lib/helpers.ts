@@ -1,11 +1,5 @@
 import { Submission } from "@/comps/Admin/content/models";
 
-interface LeaderboardEntry {
-  name: string;
-  rank: number;
-  penalty: number;
-  solved: number;
-}
 export function transformSubmission(submissions: Submission[]) {
   submissions.sort((a: Submission, b: Submission) =>
     b.score !== a.score
@@ -17,7 +11,7 @@ export function transformSubmission(submissions: Submission[]) {
     return {
       name: sub.student.name,
       rank: index + 1,
-      penalty: sub.wrong_question.length,
+      penalty: sub.missed_question.length,
       solved: sub.score,
     };
   });

@@ -1,5 +1,4 @@
 import { Alert, Snackbar } from "@mui/material";
-import React from "react";
 
 export default function SnackBar({ snakOpen, handleClose, addStatus }: any) {
   return (

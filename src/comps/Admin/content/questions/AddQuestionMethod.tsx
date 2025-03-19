@@ -7,7 +7,6 @@ import {
   CardHeader,
   Checkbox,
   Grid,
-  SnackbarCloseReason,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
@@ -28,12 +27,6 @@ import { ProcessFile } from "./processData";
 import { addOneQuestion } from "@/lib/utils";
 import { Question } from "../models";
 import { useSearchParams } from "react-router-dom";
-
-interface OptionProps {
-  index: number;
-  handleChangeOptions: (index: number, value: string) => void;
-  value: string;
-}
 
 function Option({
   index,

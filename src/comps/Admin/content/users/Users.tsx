@@ -1,6 +1,5 @@
 import {
   Box,
-  Collapse,
   IconButton,
   InputAdornment,
   Paper,

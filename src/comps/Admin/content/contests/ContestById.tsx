@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React, { useState } from "react";
+import React from "react";
 import leetcodeImage from "../../../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
 import {
@@ -34,8 +34,6 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import {
@@ -55,10 +53,9 @@ import {
   getContestById,
   getSubmissionByContest,
   updateContest,
-  uploadImage,
 } from "@/lib/utils";
 import { transformSubmission } from "@/lib/helpers";
-import { AlertDialogBox, DialogBox } from "./Message";
+import { DialogBox } from "./Message";
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -91,9 +88,9 @@ export default function ContestById() {
   const [tabValue, setTabValue] = React.useState(0);
   const [school, setschool] = React.useState("");
   const [city, setcity] = React.useState("");
-  const [snakOpen, setSnakOpen] = useState(false);
+  // const [snakOpen, setSnakOpen] = useState(false);
   const { id } = useParams();
-  console.log(id);
+  console.log(id, school, city);
   const { data: contest, status } = useQuery({
     queryKey: ["contest", id],
     queryFn: async () => await getContestById(id!),
@@ -113,10 +110,11 @@ export default function ContestById() {
     action: string,
     time?: { start_time: string; end_time: string },
     info?: { title: string; description: string },
-    imgurl?: string
+    data?: { file: File; message: string }
   ) => {
     if (action === "announce") {
-      await announceContest(contest!, imgurl!);
+      console.log();
+      await announceContest(contest!, data!);
     } else if (action === "clone") {
       await addContest({ ...contest!, ...info! });
     } else {
@@ -237,17 +235,23 @@ export default function ContestById() {
               >
                 <MenubarItem asChild>
                   <DialogBox action={"announce"} handler={handleActionMade}>
-                    <button>Announce Contest</button>
+                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
+                      Announce Contest
+                    </button>
                   </DialogBox>
                 </MenubarItem>
                 <MenubarItem asChild>
                   <DialogBox action={"clone"} handler={handleActionMade}>
-                    <button>Clone contest</button>
+                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
+                      Clone contest
+                    </button>
                   </DialogBox>
                 </MenubarItem>
                 <MenubarItem asChild>
                   <DialogBox handler={handleActionMade} action="update">
-                    <button>update time</button>
+                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
+                      update time
+                    </button>
                   </DialogBox>
                 </MenubarItem>
                 <MenubarItem className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red- ">

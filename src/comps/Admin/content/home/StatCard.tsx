@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -79,7 +78,10 @@ export default function StatCard({
   const trendValues = { up: "+25%", down: "-25%", neutral: "+5%" };
 
   return (
-    <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 ,borderRadius:3}}>
+    <Card
+      variant="outlined"
+      sx={{ height: "100%", flexGrow: 1, borderRadius: 3 }}
+    >
       <CardContent>
         <Typography
           sx={{ fontFamily: "'Public Sans',sans-serif", fontSize: 15 }}

@@ -1,19 +1,10 @@
-import {
-  Box,
-  Button,
-  Grid,
-  Grid2,
-  SnackbarCloseReason,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Grid, SnackbarCloseReason, Typography } from "@mui/material";
 import React from "react";
-import CustomizedDataGrid from "../home/CustomizedDataGrid";
 import { DatePickerDemo, TimePickerComponent } from "./DatePicker";
 import LoadingButton from "@mui/lab/LoadingButton";
 import SnackBar from "../questions/Snackbar";
 import { Contest, Question } from "../models";
-import { addContest, addOneQuestion } from "@/lib/utils";
+import { addContest } from "@/lib/utils";
 import Questions from "./Questions";
 
 export default function AddContest() {
@@ -33,7 +24,7 @@ export default function AddContest() {
     subject: "string",
   });
   const handleClose = (
-    event: React.SyntheticEvent | Event,
+    _event: React.SyntheticEvent | Event,
     reason?: SnackbarCloseReason
   ) => {
     if (reason === "clickaway") {

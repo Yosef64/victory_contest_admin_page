@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTheme } from "@mui/material/styles";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -97,7 +96,7 @@ export default function SessionsChart() {
             {
               scaleType: "point",
               data,
-              tickInterval: (index, i) => (i + 1) % 5 === 0,
+              tickInterval: (i) => (i + 1) % 5 === 0,
               labelStyle: {
                 fontFamily: "'Public Sans',sans-serif",
                 fontWeight: 700,

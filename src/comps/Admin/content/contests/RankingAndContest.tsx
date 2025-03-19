@@ -1,12 +1,15 @@
 import { Box, Grid } from "@mui/material";
-import React from "react";
 import { ListOfContest, Rankings } from "./ListOfConAndUser.tsx";
 
 type RankingAndContestProps = {
   grade: { title: string; year: number | JSX.Element }[];
   school: { title: string; year: number | JSX.Element }[];
 };
-export default function RankingAndContest({ grade, school }: RankingAndContestProps) {
+export default function RankingAndContest({
+  grade,
+  school,
+}: RankingAndContestProps) {
+  console.log(school);
   return (
     <Box>
       <Grid container spacing={5}>

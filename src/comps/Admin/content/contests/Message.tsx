@@ -21,7 +21,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import React, { ReactNode, useEffect, useState } from "react";
-import { uploadImage } from "@/lib/utils";
 
 export function AlertDialogBox({
   children,
@@ -46,6 +45,7 @@ export function AlertDialogBox({
       setisLoading(false);
     }
   };
+  console.log(isLoading, error);
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>

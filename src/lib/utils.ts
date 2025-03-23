@@ -42,15 +42,20 @@ export async function announceContest(
   contest: Contest,
   data: { file: File | null; message: string }
 ) {
-  let imgurl = "";
-  if (data.file) {
-    imgurl = await uploadImage(data.file);
-  }
-  const announceData = { message: data.message, imgurl };
-  const res = await axios.post(`${VITE_API_LINK}/api/contest/announce`, {
-    contest,
-    announceData,
-  });
+  const formData = new FormData();
+  formData.append("file", data.file!);
+  formData.append("contest", JSON.stringify(contest));
+  formData.append("message", data.message);
+  const res = await axios.post(
+    `${VITE_API_LINK}/api/contest/announce`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 10000,
+    }
+  );
   return res.data;
 }
 export async function updateContest(contest: Contest, data: Object) {
@@ -144,8 +149,6 @@ export async function getAllAdmins() {
 export async function uploadImage(file: File) {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "victory_bot");
-  formData.append("cloud_name", "dud4t1ptn");
 
   const res = await axios.post(
     "https://api.cloudinary.com/v1_1/dud4t1ptn/image/upload",

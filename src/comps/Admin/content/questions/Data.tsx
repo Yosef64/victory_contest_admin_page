@@ -2,7 +2,7 @@ export const grades = Array.from({ length: 4 }, (_, index) => {
   return `Grade ${9 + index}`;
 });
 export const Subjects = [
-  "Mathemathics",
+  "Math",
   "History",
   "English",
   "Biology",

@@ -1,9 +1,9 @@
 import CustomizedDataGrid from "../home/CustomizedDataGrid";
 import { GridColDef, GridRowsProp } from "@mui/x-data-grid";
-import { useQuery } from "@tanstack/react-query";
 import { getQuestions } from "@/lib/utils";
-import { CircularProgress } from "@mui/material";
 import { Question } from "../models";
+import { useEffect, useState } from "react";
+import { Loading } from "../Stauts";
 
 export const columns: GridColDef[] = [
   {
@@ -43,27 +43,28 @@ interface Props {
   handleSelectionChange: (value: any) => void;
 }
 export default function Questions({ handleSelectionChange }: Props) {
-  const {
-    data: questions = [],
-    status,
-    error,
-  } = useQuery({
-    queryKey: ["questions"],
-    queryFn: async () => {
-      const data = await getQuestions();
-      console.log("Fetched Questions:", data); // Debugging output
-      return data;
-    },
-  });
+  const [status, setStatus] = useState("pending");
+  const [questions, setQuestions] = useState<Question[]>([]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setStatus("pending");
+      try {
+        const data: Question[] = await getQuestions();
+        setQuestions(data);
+        setStatus("sucess");
+      } catch (error) {
+        setStatus("error");
+      }
+    };
+
+    fetchQuestions();
+  }, []);
 
   if (status === "pending") {
-    return (
-      <div className="w-full flex justify-center items-center">
-        <CircularProgress color="success" />
-      </div>
-    );
+    return <Loading />;
   }
-  if (error) {
+  if (status === "error") {
     return <div className="">Error</div>;
   }
 

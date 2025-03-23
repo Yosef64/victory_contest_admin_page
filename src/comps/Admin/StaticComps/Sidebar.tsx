@@ -2,6 +2,8 @@ import { MenuListItems } from "./Sidentmenu.tsx";
 import Logo from "./Logo.tsx";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext.tsx";
+import { Avatar } from "@mui/material";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -51,6 +53,7 @@ export default function Sidebar() {
 const DropdownMenu = () => {
   const [menuIsOpen, setMenuIsOpen] = useState(false);
   const menuRef = useRef(null);
+  const { user } = useAuth();
 
   return (
     <div className="absolute bottom-0">
@@ -64,21 +67,16 @@ const DropdownMenu = () => {
         aria-expanded={menuIsOpen}
         onClick={() => setMenuIsOpen(!menuIsOpen)}
       >
-        <img
-          src="https://penguinui.s3.amazonaws.com/component-assets/avatar-7.webp"
-          className="size-8 object-cover rounded-radius"
-          alt="avatar"
-          aria-hidden="true"
-        />
+        <Avatar src={user.imgurl} />
         <div className="flex flex-col">
           <span className="text-sm font-bold text-on-surface-strong dark:text-on-surface-dark-strong">
-            Alex Martinez
+            {user.name}
           </span>
           <span
             className="w-32 overflow-hidden text-ellipsis text-xs md:w-36"
             aria-hidden="true"
           >
-            @alexmartinez
+            Admin
           </span>
           <span className="sr-only">profile settings</span>
         </div>
@@ -103,7 +101,7 @@ const DropdownMenu = () => {
       {menuIsOpen && (
         <div
           ref={menuRef}
-          className="absolute bottom-20 right-6 z-20 -mr-1 w-48 border divide-y divide-outline border-outline bg-surface dark:divide-outline-dark dark:border-outline-dark dark:bg-surface-dark rounded-radius md:-right-44 md:bottom-4"
+          className="fixed bottom-20 right-6 z-20 -mr-1 w-48 border divide-y divide-outline border-outline bg-surface dark:divide-outline-dark dark:border-outline-dark dark:bg-surface-dark rounded-radius md:-right-44 md:bottom-4"
           role="menu"
         >
           <div className="flex flex-col py-1.5">
@@ -130,149 +128,3 @@ const DropdownMenu = () => {
     </div>
   );
 };
-{
-  /* <Box
-      sx={{
-        width: "100%",
-        maxWidth: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        height: "100vh",
-        maxHeight: "100vh",
-        overflowY: "auto",
-        paddingLeft: 2,
-        paddingY: 2,
-        backgroundColor: "inherit",
-      }}
-    >
-      <Box>
-        <Logo />
-        <Box sx={{ maxHeight: "72vh", overflow: "auto" }}>
-          <Box
-            sx={{
-              fontSize: "0.8rem",
-              textTransform: "uppercase",
-              fontFamily: '"Public Sans", sans-serif',
-              paddingTop: "24px",
-              paddingBottom: "8px",
-              color: "rgb(33, 43, 54)",
-            }}
-          >
-            <Typography
-              sx={{
-                fontFamily: '"Public Sans", sans-serif',
-                fontWeight: 700,
-                transition: "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)",
-                lineHeight: "1.5",
-                fontSize: "0.8rem",
-                color: "rgb(100, 115, 129)",
-              }}
-            >
-              Admin
-            </Typography>
-          </Box>
-
-          <MenuList sx={{ width: "90%" }}>
-            {MenuListItems.map((item) => {
-              return (
-                <NavLink
-                  to={`${item.label}`}
-                  className={({ isActive, isPending }) =>
-                    isActive ? "active" : isPending ? "pending" : ""
-                  }
-                  end
-                  children={({ isActive }) => (
-                    <MenuItem
-                      key={item.id}
-                      selected={isActive}
-                      sx={{
-                        borderRadius: 3,
-                        paddingY: 1.7,
-                        marginBottom: 0.5,
-                        "&.Mui-selected": {
-                          backgroundColor: "#00AB5514",
-                          color: "#00AB55",
-                          fontWeight: 700,
-                        },
-                        "&.Mui-selected:hover": {
-                          backgroundColor: "#00AB5514",
-                        },
-                      }}
-                    >
-                      <ListItemIcon
-                        sx={{ color: isActive ? "#00AB55" : "#637381" }}
-                      >
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText>
-                        <Typography
-                          sx={{
-                            fontFamily: '"Public Sans", sans-serif',
-                            fontSize: "14px",
-                            color: isActive ? "#00AB55" : "#637381",
-                            fontWeight: isActive ? 700 : "normal",
-                          }}
-                        >
-                          {item.title}
-                        </Typography>
-                      </ListItemText>
-                    </MenuItem>
-                  )}
-                />
-              );
-            })}
-          </MenuList>
-        </Box>
-      </Box>
-
-      {/* </div> */
-}
-
-{
-  /* <Card
-        sx={{
-          width: "90%",
-          bgcolor: "rgba(145, 158, 171, 0.12)",
-          borderRadius: 4,
-          paddingLeft: 1,
-          cursor: "pointer",
-        }}
-        elevation={0}
-      >
-        <CardHeader
-          avatar={
-            <StyledBadge
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              variant="dot"
-            >
-              <Avatar alt="Remy Sharp" src={leetcodeImage} />
-            </StyledBadge>
-          }
-          title="Yoseph Alemu"
-          subheader="Admin"
-          sx={{
-            "& .MuiCardHeader-subheader": {
-              margin: "0px",
-              lineHeight: 1.57143,
-              fontSize: "0.875rem",
-              fontFamily: '"Public Sans", sans-serif',
-              fontWeight: 400,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              color: "rgb(99, 115, 129)",
-            },
-            "& .MuiCardHeader-title": {
-              fontFamily: "'Public Sans', sans-seri",
-              fontWeight: 600,
-              lineHeight: 1.57143,
-              fontSize: "0.875rem",
-              textOverflow: "ellipsis",
-            },
-          }}
-        />
-      </Card>
-    </Box> */
-}

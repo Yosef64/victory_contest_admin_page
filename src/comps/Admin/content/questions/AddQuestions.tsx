@@ -9,6 +9,8 @@ import {
 
 export default function AddQuestions() {
   const [searchParams] = useSearchParams();
+  const isEdit = searchParams.get("edit");
+
   const [tabValue, setTabValue] = useState(0);
 
   const questionString = searchParams.get("question");
@@ -23,7 +25,7 @@ export default function AddQuestions() {
             fontWeight: 700,
           }}
         >
-          Add Question
+          {isEdit ? "Edit the question you chose" : "Add Question"}
         </Typography>
       </Box>
       <Box>

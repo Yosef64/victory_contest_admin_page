@@ -6,6 +6,16 @@ import SnackBar from "../questions/Snackbar";
 import { Contest, Question } from "../models";
 import { addContest } from "@/lib/utils";
 import Questions from "./Questions";
+import { chapters, grades, Subjects } from "../questions/Data";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AddContest() {
   const [selectedRows, setSelectedRows] = React.useState<Question[]>([]);
@@ -15,13 +25,14 @@ export default function AddContest() {
   const [snakOpen, setSnakOpen] = React.useState(false);
 
   const [contest, setContest] = React.useState<Contest>({
-    title: "string",
-    description: "string",
+    title: "",
+    description: "",
     questions: [],
-    start_time: "string",
-    end_time: "string",
-    grade: "string",
-    subject: "string",
+    start_time: "",
+    end_time: "",
+    grade: "",
+    subject: "",
+    date: "",
   });
   const handleClose = (
     _event: React.SyntheticEvent | Event,
@@ -59,6 +70,7 @@ export default function AddContest() {
   };
 
   async function handleSubmitContest() {
+    console.log("from handle submit function", contest.date);
     const contestData: Contest = {
       ...contest,
       questions: selectedRows,
@@ -129,6 +141,51 @@ export default function AddContest() {
         </Typography>
         <Questions handleSelectionChange={handleSelectionChange} />
       </Box>
+      <div className="flex flex-col mb-8">
+        <div className="font-sans text-gray-500 mb-3 text-[17px] font-semibold">
+          {" "}
+          Info
+        </div>
+        <div className="flex gap-4">
+          <Select
+            onValueChange={(value) =>
+              setContest({ ...contest, subject: value })
+            }
+          >
+            <SelectTrigger className="w-[180px] h-[50px]">
+              <SelectValue placeholder="Select Chapter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Chapter</SelectLabel>
+                {Subjects.map((subject, index) => (
+                  <SelectItem key={index} value={subject}>
+                    {subject}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <Select
+            onValueChange={(value) => setContest({ ...contest, grade: value })}
+          >
+            <SelectTrigger className="w-[180px] h-[50px]">
+              <SelectValue placeholder="Select Grade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Grade</SelectLabel>
+                {grades.map((subject, index) => (
+                  <SelectItem key={index} value={subject}>
+                    {subject}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <Typography
         sx={{
           fontWeight: 700,

@@ -1,4 +1,9 @@
-import { Contest, Question, Submission } from "@/comps/Admin/content/models";
+import {
+  Contest,
+  Question,
+  Student,
+  Submission,
+} from "@/comps/Admin/content/models";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import axios from "axios";
@@ -7,7 +12,12 @@ const VITE_API_LINK = import.meta.env.VITE_API_URL;
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
+//Student Action
+export async function getAllStudents(): Promise<Student[]> {
+  const res = await axios.get(`${VITE_API_LINK}/api/student/`);
+  const { message }: { message: Student[] } = res.data;
+  return message;
+}
 export async function deleteContest(contest_id: string) {
   const res = await axios.delete(
     `${VITE_API_LINK}/api/contest/delete/${contest_id}`
@@ -57,11 +67,35 @@ export async function addOneQuestion(question: Question): Promise<void> {
   });
   return res.data;
 }
+export async function addMultipleQuestions(questions: Question[]) {
+  const res = await axios.post(`${VITE_API_LINK}/api/question/addQuestions`, {
+    questions,
+  });
+  return res.data;
+}
 export async function getQuestions(): Promise<Question[]> {
-  console.log(VITE_API_LINK);
   const res = await axios.get(`${VITE_API_LINK}/api/question/`);
   const { questions } = res.data;
   return questions;
+}
+export async function updateQuestion(question: Question) {
+  const { id } = question;
+  if (!id) {
+    throw new Error("Id not found");
+  }
+  const res = await axios.put(
+    `${VITE_API_LINK}/api/question/updatequestion/${id}`,
+    {
+      question,
+    }
+  );
+  return res.data;
+}
+export async function deleteQusetion(id: string) {
+  const res = await axios.delete(
+    `${VITE_API_LINK}/api/question/deletequestion/${id}`
+  );
+  return res.data;
 }
 
 //Action Submission
@@ -75,6 +109,36 @@ export async function getSubmissionByContest(
   return submissions;
 }
 
+//Admin
+
+export async function loginUser(email: string, password: string) {
+  const res = await axios.post(`${VITE_API_LINK}/api/admin/login`, {
+    email,
+    password,
+  });
+  return res.data;
+}
+export async function registerUser(data: {
+  name: string;
+  password: string;
+  email: string;
+}) {
+  const res = await axios.post(`${VITE_API_LINK}/api/admin/register`, {
+    data,
+  });
+  return res.data;
+}
+export async function approveAdmin(
+  email: string,
+  data: { isApproved: boolean }
+) {
+  const res = await axios.put(`${VITE_API_LINK}/api/admin/${email}`, { data });
+  return res.data;
+}
+export async function getAllAdmins() {
+  const res = await axios.get(`${VITE_API_LINK}/api/admin`);
+  return res.data;
+}
 //Third Party
 
 export async function uploadImage(file: File) {

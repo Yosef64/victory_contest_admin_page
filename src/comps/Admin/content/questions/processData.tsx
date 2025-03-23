@@ -6,9 +6,9 @@ function parseQuestionsWithChoices(text: string): Question[] {
   console.log(text);
 
   let currentQuestion: Question | null = null;
-  let currentGrade = ""; // Store the grade for all questions below it
-  let currentSubject = ""; // Store the subject for all questions below it
-  let currentChapter = ""; // Store the chapter for all questions below it
+  let currentGrade = "";
+  let currentSubject = "";
+  let currentChapter = "";
   let currentChange = { question: false, choice: false, exp: false };
 
   lines.forEach((line) => {

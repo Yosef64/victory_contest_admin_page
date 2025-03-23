@@ -24,7 +24,11 @@ import {
 import { chapters, grades, Subjects } from "./Data";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { ProcessFile } from "./processData";
-import { addOneQuestion } from "@/lib/utils";
+import {
+  addMultipleQuestions,
+  addOneQuestion,
+  updateQuestion,
+} from "@/lib/utils";
 import { Question } from "../models";
 import { useSearchParams } from "react-router-dom";
 
@@ -53,11 +57,13 @@ export function AddQuestionManual() {
   const [searchParams] = useSearchParams();
 
   const questionString = searchParams.get("question");
+  const isEditing = searchParams.get("edit");
+
   const question: Question = questionString
     ? JSON.parse(questionString)
     : {
         question_text: "",
-        choices: ["", ""],
+        multiple_choice: ["", ""],
         answer: "",
         grade: "",
         subject: "",
@@ -68,15 +74,7 @@ export function AddQuestionManual() {
   const [loading, setLoading] = useState(false);
   const [addStatus, setAddStatus] = useState(200);
   const [snakOpen, setSnakOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    question_text: "",
-    multiple_choice: ["", ""],
-    answer: "",
-    grade: "",
-    subject: "",
-    chapter: "",
-    explanation: "",
-  });
+  const [formData, setFormData] = useState(question);
 
   const handleClose = (
     _event: React.SyntheticEvent | Event,
@@ -88,13 +86,14 @@ export function AddQuestionManual() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    console.log(formData);
     if (Object.values(formData).some((value) => !value)) {
       setSnakOpen(true);
       setAddStatus(500);
     }
     try {
       await addOneQuestion(formData);
+
+      setAddStatus(200);
     } catch (error) {
       setAddStatus(500);
       console.error(error);
@@ -116,6 +115,23 @@ export function AddQuestionManual() {
       ...prevData,
       multiple_choice: [...prevData.multiple_choice, ""],
     }));
+  };
+  const handleEditQueston = async () => {
+    setLoading(true);
+    console.log(formData);
+    if (Object.values(formData).some((value) => !value)) {
+      setSnakOpen(true);
+      setAddStatus(500);
+    }
+    try {
+      await updateQuestion(formData);
+      setAddStatus(200);
+    } catch (error) {
+      setAddStatus(500);
+      console.error(error);
+    }
+    setLoading(false);
+    setSnakOpen(true);
   };
 
   return (
@@ -149,7 +165,8 @@ export function AddQuestionManual() {
             }}
             onClick={handleAddOption}
           >
-            Add Option
+            {}
+            {"Add Option"}
           </Button>
         </Box>
 
@@ -170,7 +187,7 @@ export function AddQuestionManual() {
           <input
             type="text"
             id="answer"
-            value={question.answer}
+            value={formData.answer}
             className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-[20%] p-2.5 focus:outline-none"
             placeholder="Answer"
             onChange={(e) =>
@@ -256,7 +273,7 @@ export function AddQuestionManual() {
       </Box>
 
       <div className="mt-7">
-        {!questionString ? (
+        {!isEditing ? (
           <LoadingButton
             loading={loading}
             onClick={handleSubmit}
@@ -272,7 +289,20 @@ export function AddQuestionManual() {
             Add
           </LoadingButton>
         ) : (
-          <LoadingButton>Edit</LoadingButton>
+          <LoadingButton
+            loading={loading}
+            sx={{
+              backgroundColor: "#00AB55",
+              borderRadius: 2,
+              width: 100,
+              fontSize: 15,
+              fontWeight: 600,
+              color: "white",
+            }}
+            onClick={handleEditQueston}
+          >
+            Edit
+          </LoadingButton>
         )}
       </div>
     </Box>
@@ -281,6 +311,9 @@ export function AddQuestionManual() {
 
 export function UploadQuestonsComponent() {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [addStatus, setAddStatus] = useState(200);
+  const [snakOpen, setSnakOpen] = useState(false);
   const handleFileChange = async (e: any) => {
     const file = e.target.files[0];
     ProcessFile(file)
@@ -289,8 +322,32 @@ export function UploadQuestonsComponent() {
       })
       .catch((err) => console.log(err));
   };
+  const handleSubmitQuestions = async () => {
+    setLoading(true);
+    try {
+      await addMultipleQuestions(questions);
+      setAddStatus(200);
+    } catch (error) {
+      setAddStatus(500);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleClose = (
+    _event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") return;
+    setSnakOpen(false);
+  };
+
   return (
     <Box>
+      <SnackBar
+        snakOpen={snakOpen}
+        handleClose={handleClose}
+        addStatus={addStatus}
+      />
       <Box sx={{ display: "flex", alignItems: "center", gap: 7 }}>
         <Typography
           sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}
@@ -420,6 +477,20 @@ export function UploadQuestonsComponent() {
             </Card>
           ))}
         </Box>
+        <Button
+          disabled={loading}
+          sx={{
+            backgroundColor: "#00AB55",
+            borderRadius: 2,
+
+            fontSize: 15,
+            fontWeight: 600,
+            color: "white",
+          }}
+          onClick={handleSubmitQuestions}
+        >
+          {loading ? "Adding..." : "Add Questions"}
+        </Button>
       </Box>
     </Box>
   );

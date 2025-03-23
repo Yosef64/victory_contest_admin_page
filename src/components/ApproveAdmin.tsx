@@ -13,22 +13,14 @@ import {
   Avatar,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
-import { filterStudentByCityAndGrade } from "../Actions/studentFilter";
-import { Student } from "../models";
-import { getAllStudents } from "@/lib/utils";
-import Eror, { Loading } from "../Stauts";
+import Eror, { Loading } from "@/comps/Admin/content/Stauts";
+import { Admin } from "@/comps/Admin/content/models";
+import { approveAdmin, getAllAdmins } from "@/lib/utils";
 
+const headers = ["Name", "Email", "password", "status"];
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.action.hover,
@@ -48,52 +40,23 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     border: 0,
   },
 }));
-
-const header = ["Name", "Grade", "City", "Gender"];
-const grades = ["Grade 12", "Grade 11", "Grade 10", "Default"];
-const cities = ["Adama", "Addis Ababa", "Dire Dewa", "Bishoftu", "Default"];
-const schools = [
-  "Hawas",
-  "Kebena secondary School",
-  "Excel secondary school",
-  "Default",
-];
-export default function Users() {
-  const [selectedGrade, setSelectedGrade] = React.useState("default");
-  const [selectedCity, setselectedCity] = React.useState("default");
-  const [selectedSchool, setselectedSchool] = React.useState("default");
-  const [students, setStudent] = useState<Student[]>([]);
+export default function ApproveAdmin() {
+  const [admins, setadmins] = useState<Admin[]>([]);
   const [status, setStatus] = useState("pending");
-
   useEffect(() => {
-    const fetchStudents = async () => {
-      setStatus("pending");
+    const fetchAdmins = async () => {
       try {
-        const students = await getAllStudents();
-        setStudent(students);
+        const { admins } = await getAllAdmins();
+
+        setadmins(admins);
         setStatus("success");
       } catch (error) {
         setStatus("error");
       }
     };
-    fetchStudents();
+    fetchAdmins();
   }, []);
-  const handleGradeChange = (value: string) => {
-    console.log(value);
 
-    setSelectedGrade(value);
-  };
-  const handleSchoolChange = (value: string) => {
-    setselectedSchool(value);
-  };
-  const handlecityChange = (value: string) => {
-    setselectedCity(value);
-  };
-  const filteredStudents = filterStudentByCityAndGrade(students, {
-    selectedCity,
-    selectedGrade,
-    selectedSchool,
-  });
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
       <Box sx={{}}>
@@ -105,7 +68,7 @@ export default function Users() {
             mb: 1,
           }}
         >
-          Users
+          Admins
         </Typography>
         <Typography
           sx={{
@@ -175,59 +138,6 @@ export default function Users() {
             style: { fontFamily: '"Public Sans",sans-serif' },
           }}
         />
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Select onValueChange={handleGradeChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a grade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {grades.map((grade: string, index: number) => {
-                  return (
-                    <SelectItem key={index} value={grade.toLowerCase()}>
-                      {grade}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={handlecityChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a City" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {cities.map((grade: string, index: number) => {
-                  return (
-                    <SelectItem key={index} value={grade.toLowerCase()}>
-                      {grade}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={handleSchoolChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a school" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {schools.map((grade: string, index: number) => {
-                  return (
-                    <SelectItem key={index} value={grade.toLowerCase()}>
-                      {grade}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Box>
       </Box>
       {/* <Box> */}
 
@@ -244,7 +154,7 @@ export default function Users() {
           <Table>
             <TableHead>
               <TableRow>
-                {header.map((header, index) => (
+                {headers.map((header, index) => (
                   <StyledTableCell
                     key={index}
                     sx={{
@@ -259,7 +169,7 @@ export default function Users() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredStudents.map((row, index) => (
+              {admins.map((row, index) => (
                 <Row key={index} student={row} />
               ))}
             </TableBody>
@@ -275,7 +185,14 @@ export default function Users() {
   );
 }
 
-function Row({ student }: { student: Student }) {
+function Row({ student }: { student: Admin }) {
+  const [approved, setApproved] = useState(false);
+  const handleApprove = async () => {
+    try {
+      await approveAdmin(student.email, { isApproved: true });
+      setApproved(true);
+    } catch (error) {}
+  };
   return (
     <React.Fragment>
       <StyledTableRow
@@ -309,25 +226,28 @@ function Row({ student }: { student: Student }) {
             </Typography>
           </Box>
         </StyledTableCell>
-
+        <StyledTableCell align="right">
+          <div>
+            <p>{student.email}</p>
+          </div>
+        </StyledTableCell>
+        <StyledTableCell align="right">
+          <div>
+            <p>{student.password}</p>
+          </div>
+        </StyledTableCell>
         <StyledTableCell
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
           align="right"
         >
-          {student.grade}
+          {student.isApproved || approved ? (
+            "Approved"
+          ) : (
+            <div>
+              <button onClick={handleApprove}>Not approved</button>
+            </div>
+          )}
         </StyledTableCell>
-        <TableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="right"
-        >
-          {student.city}
-        </TableCell>
-        <TableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="right"
-        >
-          {student.gender}
-        </TableCell>
       </StyledTableRow>
     </React.Fragment>
   );

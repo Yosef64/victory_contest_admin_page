@@ -6,6 +6,7 @@ import Slide from "@mui/material/Slide";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import leetcodeImage from "../../../assets/leetcode.jpg";
+import { useAuth } from "@/context/AuthContext";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -57,6 +58,7 @@ HideOnScroll.propTypes = {
   window: PropTypes.func,
 };
 export default function Appbar(props: any) {
+  const { user } = useAuth();
   return (
     <React.Fragment>
       <CssBaseline />
@@ -174,7 +176,7 @@ export default function Appbar(props: any) {
                 variant="dot"
               >
                 {" "}
-                <Avatar alt="Remy Sharp" src={leetcodeImage} />
+                <Avatar alt="Remy Sharp" src={user.imgurl} />
               </StyledBadge>
             </Box>
           </Toolbar>

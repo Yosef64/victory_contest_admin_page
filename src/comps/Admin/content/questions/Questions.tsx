@@ -2,18 +2,13 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
-import {
-  CircularProgress,
-  FormControl,
-  MenuItem,
-  OutlinedInput,
-  Select,
-} from "@mui/material";
+import { FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
 
 import QuestionTable from "./QuestionTable";
 import { grades, Subjects } from "./Data";
-import { useQuery } from "@tanstack/react-query";
 import { getQuestions } from "@/lib/utils";
+import { Question } from "../models";
+import { Loading } from "../Stauts";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -29,11 +24,22 @@ const MenuProps = {
 export default function Questions() {
   const [subjectsname, setPersonName] = React.useState<string[]>([]);
   const [gradename, setGradeName] = React.useState<string[]>([]);
-  const { data: questions = [], status } = useQuery({
-    queryKey: ["questions"],
-    queryFn: async () => await getQuestions(),
-  });
-  console.log(questions);
+  const [status, setStatus] = React.useState("pending");
+  const [questions, setquestions] = React.useState<Question[]>([]);
+  React.useEffect(() => {
+    const fetchQuestion = async () => {
+      setStatus("pending");
+      try {
+        const data = await getQuestions();
+        setquestions(data);
+        setStatus("success");
+      } catch (error) {
+        setStatus("error");
+      }
+    };
+    fetchQuestion();
+  }, []);
+
   const handleChange = (event: any) => {
     const {
       target: { value },
@@ -178,9 +184,9 @@ export default function Questions() {
             <MenuItem disabled value="">
               <em style={{ fontFamily: "'Public Sans',sans-serif" }}>Grade</em>
             </MenuItem>
-            {grades.map((name) => (
+            {grades.map((name, index) => (
               <MenuItem
-                key={name}
+                key={index}
                 value={name}
                 sx={{
                   "&.Mui-selected": {
@@ -205,7 +211,7 @@ export default function Questions() {
         </FormControl>
       </Box>
       {status == "pending" ? (
-        <CircularProgress />
+        <Loading />
       ) : (
         <QuestionTable status={status} questions={filteredQuestion} />
       )}

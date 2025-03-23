@@ -8,14 +8,21 @@ export interface Student {
   woreda?: string;
   city?: string;
   region?: string;
-  image?: string;
+  imgurl?: string;
   contests: Contest[];
+}
+export interface Admin {
+  name: string;
+  password?: string;
+  email: string;
+  imgurl?: string;
+  isApproved?: boolean;
 }
 export interface ExtendedContestSubmission extends Student {}
 
 export interface Contest {
   id?: string;
-  date?: Date;
+  date: string | Date;
   title: string;
   description?: string;
   questions: Question[];

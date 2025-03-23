@@ -4,7 +4,6 @@ import {
   Box,
   Card,
   CardHeader,
-  CircularProgress,
   IconButton,
   List,
   ListItem,
@@ -18,6 +17,7 @@ import { styled } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getContests } from "@/lib/utils";
+import { Loading } from "../Stauts";
 
 type GradeProps = {
   grade: { title: string; year: number | JSX.Element }[];
@@ -28,7 +28,7 @@ export function ListOfContest({ grade }: GradeProps) {
     queryFn: async () => await getContests(),
   });
   if (status === "pending") {
-    return <CircularProgress />;
+    return <Loading />;
   }
   if (status === "error") {
     return <div className="">Error</div>;

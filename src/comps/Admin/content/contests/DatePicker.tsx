@@ -56,7 +56,7 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
         >
           <CalendarIcon />
           {contest.date ? (
-            format(contest.date, "PPP")
+            format(new Date(contest.date), "PPP") // Format contest.date for display
           ) : (
             <span>Pick a date</span>
           )}
@@ -66,10 +66,14 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
         <Calendar
           style={{ fontFamily: "'Public Sans',sans-serif" }}
           mode="single"
-          selected={contest.date}
+          selected={contest.date ? new Date(contest.date) : undefined} // Convert contest.date to Date object
           onSelect={(newValue) => {
-            setContest({ ...contest, date: newValue });
-            console.log(newValue?.getMonth());
+            if (!newValue) return;
+
+            console.log(newValue);
+            const localDateString = newValue.toLocaleDateString("en-CA");
+            console.log("formated", localDateString);
+            setContest({ ...contest, date: localDateString });
           }}
           initialFocus
         />
@@ -77,6 +81,7 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
     </Popover>
   );
 }
+
 interface DatePickerDemoProps {
   contest: Contest;
   setContest: React.Dispatch<React.SetStateAction<Contest>>;

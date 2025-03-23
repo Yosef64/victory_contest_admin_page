@@ -6,7 +6,6 @@ import {
   CardContent,
   CardHeader,
   Checkbox,
-  CircularProgress,
   Collapse,
   IconButton,
   Paper,
@@ -19,12 +18,24 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React from "react";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import React, { ReactNode } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useNavigate } from "react-router-dom";
 
 import { Question } from "../models";
+import { deleteQusetion } from "@/lib/utils";
+import { Loading } from "../Stauts";
 const header = ["Question", "Chapter", "Grade", "Subject"];
 
 export default function QuestionTable(props: any) {
@@ -43,7 +54,7 @@ export default function QuestionTable(props: any) {
   };
 
   if (status === "pending") {
-    return <CircularProgress color="success" />;
+    <Loading />;
   }
 
   return (
@@ -113,11 +124,13 @@ export default function QuestionTable(props: any) {
 function Row(props: any) {
   const { row }: { row: Question } = props;
   const [open, setOpen] = React.useState(false);
+  const [snakOpen, setSnakOpen] = React.useState(false);
   const navigate = useNavigate();
   const handleNavigate = (row: any) => {
     const jsonString = encodeURIComponent(JSON.stringify(row));
     navigate(`/dashboard/addquestion?edit=true&question=${jsonString}`);
   };
+
   return (
     <React.Fragment>
       <TableRow
@@ -164,18 +177,29 @@ function Row(props: any) {
               <CardHeader
                 title={"Q. " + row.question_text}
                 action={
-                  <Button
-                    onClick={() => handleNavigate(row)}
-                    sx={{
-                      fontFamily: "'Public Sans',sans-serif",
-                      textTransform: "none",
-                      // backgroundColor: "#00AB5514",
-                      color: "#00AB55",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Edit
-                  </Button>
+                  <div>
+                    <Button
+                      onClick={() => handleNavigate(row)}
+                      sx={{
+                        fontFamily: "'Public Sans',sans-serif",
+                        textTransform: "none",
+                        // backgroundColor: "#00AB5514",
+                        color: "#00AB55",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <AlertForDelete
+                      open={snakOpen}
+                      setOpen={setSnakOpen}
+                      question_id={row.id}
+                    >
+                      <button className="text-red-600 px-4 py-2 hover:bg-gray-200 rounded-lg font-sans font-semibold">
+                        Delete
+                      </button>
+                    </AlertForDelete>
+                  </div>
                 }
                 sx={{
                   "& .MuiCardHeader-title": {
@@ -188,9 +212,10 @@ function Row(props: any) {
                 }}
               />
               <CardContent>
-                {row.multiple_choice.map((choice: string) => {
+                {row.multiple_choice.map((choice: string, index) => {
                   return (
                     <Box
+                      key={index}
                       sx={{
                         display: "flex",
                         alignItems: "center",
@@ -239,5 +264,60 @@ function Row(props: any) {
         </TableCell>
       </TableRow>
     </React.Fragment>
+  );
+}
+function AlertForDelete({
+  children,
+  open,
+  setOpen,
+  question_id,
+}: {
+  children: ReactNode;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  question_id: string | undefined;
+}) {
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(false);
+  const handleDeleteQuestion = async () => {
+    setLoading(true);
+    try {
+      await deleteQusetion(question_id!);
+      setOpen(false);
+      setError(false);
+      window.location.reload();
+    } catch (error) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete the
+            question you choose.
+          </AlertDialogDescription>
+          {error && (
+            <div className="px-3 py-2">
+              <span>Something went wrong!</span>
+            </div>
+          )}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <button
+            className="hover:bg-red-400 bg-red-500 px-5 rounded-lg text-white font-bold"
+            onClick={() => handleDeleteQuestion()}
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

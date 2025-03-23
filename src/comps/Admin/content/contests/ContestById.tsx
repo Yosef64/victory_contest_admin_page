@@ -15,7 +15,6 @@ import {
   IconButton,
   Avatar,
   Chip,
-  CircularProgress,
 } from "@mui/material";
 import {
   Select,
@@ -56,6 +55,7 @@ import {
 } from "@/lib/utils";
 import { transformSubmission } from "@/lib/helpers";
 import { DialogBox } from "./Message";
+import { Loading } from "../Stauts";
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -364,7 +364,7 @@ function Standing() {
     queryFn: async () => getSubmissionByContest(id!),
   });
   if (status === "pending") {
-    return <CircularProgress />;
+    return <Loading />;
   }
   if (status === "error") {
     return <div className="">Error</div>;

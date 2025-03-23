@@ -56,8 +56,8 @@ export default function Questions() {
   const filteredQuestion = questions.filter(
     (x) =>
       (gradename.length === 0 && subjectsname.length === 0) ||
-      subjectsname.some((value) => value.split(" ")[1] === x.subject) ||
-      gradename.some((value) => value.split(" ")[1] === x.grade)
+      gradename.some((value) => value.split(" ")[1] === x.grade) ||
+      subjectsname.includes(x.subject)
   );
 
   return (

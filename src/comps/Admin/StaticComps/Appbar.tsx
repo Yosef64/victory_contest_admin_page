@@ -5,7 +5,6 @@ import useScrollTrigger from "@mui/material/useScrollTrigger";
 import Slide from "@mui/material/Slide";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
-import leetcodeImage from "../../../assets/leetcode.jpg";
 import { useAuth } from "@/context/AuthContext";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({

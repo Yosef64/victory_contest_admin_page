@@ -6,7 +6,7 @@ import SnackBar from "../questions/Snackbar";
 import { Contest, Question } from "../models";
 import { addContest } from "@/lib/utils";
 import Questions from "./Questions";
-import { chapters, grades, Subjects } from "../questions/Data";
+import { grades, Subjects } from "../questions/Data";
 import {
   Select,
   SelectContent,

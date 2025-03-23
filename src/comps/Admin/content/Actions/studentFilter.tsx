@@ -1,13 +1,5 @@
 import { ExtendedContestSubmission, Student } from "../models";
 
-// export function filterStudentByGrade(arr: Student[], value: any) {
-//   return arr.filter((student: Student) => student.grade == value);
-// }
-
-// export function filterStudentByCity(arr: Student[], value: any) {
-//   return arr.filter((student: Student) => student.city == value);
-// }
-
 export function filterStudentByCityAndGrade(arr: Student[], value: any) {
   const {
     selectedCity: city,

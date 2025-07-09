@@ -24,13 +24,10 @@ import {
 import { chapters, grades, Subjects } from "./Data";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { ProcessFile } from "./processData";
-import {
-  addMultipleQuestions,
-  addOneQuestion,
-  updateQuestion,
-} from "@/lib/utils";
+import { addMultipleQuestions, updateQuestion } from "@/lib/utils";
 import { Question } from "../../types/models";
 import { useSearchParams } from "react-router-dom";
+import { addQuestion } from "@/services/questionServices";
 
 function Option({
   index,
@@ -74,7 +71,11 @@ export function AddQuestionManual() {
   const [loading, setLoading] = useState(false);
   const [addStatus, setAddStatus] = useState(200);
   const [snakOpen, setSnakOpen] = useState(false);
-  const [formData, setFormData] = useState(question);
+  const [formData, setFormData] = useState({
+    ...question,
+  });
+  const [questionImage, setQuestionImage] = useState<File | null>(null);
+  const [explanationImage, setExplanationImage] = useState<File | null>(null);
 
   const handleClose = (
     _event: React.SyntheticEvent | Event,
@@ -86,20 +87,49 @@ export function AddQuestionManual() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    // Validate required fields
     if (Object.values(formData).some((value) => !value)) {
       setSnakOpen(true);
       setAddStatus(500);
+      setLoading(false);
+      return;
     }
     try {
-      await addOneQuestion(formData);
+      // console.log("formData before formDatatosend", formData);
+      const formDataToSend = new FormData();
+      // console.log("formData after to send", formData);
+      // Append all question fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === "multiple_choice" && Array.isArray(value)) {
+          value.forEach((v, i) => {
+            if (v !== null && v !== undefined) {
+              formDataToSend.append(`multiple_choice`, v.toString());
+              console.log(`Appended multiple_choice[${i}]:`, v); // Debug each append
+            }
+          });
+        } else if (value !== null && value !== undefined) {
+          formDataToSend.append(key, value.toString());
+        }
+      });
+      console.log("question image", questionImage);
+      // Append images if selected
+      if (questionImage) formDataToSend.append("question_image", questionImage);
+      if (explanationImage)
+        formDataToSend.append("explanation_image", explanationImage);
+      console.log("FormDataToSend contents:");
+      for (const [key, value] of formDataToSend.entries()) {
+        console.log(`${key}:`, value instanceof File ? value.name : value);
+      }
 
+      await addQuestion(formDataToSend);
       setAddStatus(200);
     } catch (error) {
+      console.log(error);
       setAddStatus(500);
-      console.error(error);
+    } finally {
+      setLoading(false);
+      setSnakOpen(true);
     }
-    setLoading(false);
-    setSnakOpen(true);
   };
 
   const handleChangeOptions = (index: number, value: string) => {
@@ -141,6 +171,24 @@ export function AddQuestionManual() {
         handleClose={handleClose}
         addStatus={addStatus}
       />
+      {/* Question Image Input */}
+      {/* <Box sx={{ mb: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={() => questionImageInputRef.current?.click()}
+          sx={{ mb: 1 }}
+        >
+          Select Question Image
+        </Button>
+        <input
+          type="file"
+          accept="image/*"
+          ref={questionImageInputRef}
+          style={{ display: "none" }}
+          onChange={(e) => setQuestionImage(e.target.files?.[0] || null)}
+        />
+        {questionImage && <span>{questionImage.name}</span>}
+      </Box> */}
       <textarea
         id="message"
         rows={4}
@@ -149,9 +197,25 @@ export function AddQuestionManual() {
         onChange={(e) =>
           setFormData({ ...formData, question_text: e.target.value })
         }
+        value={formData.question_text}
       ></textarea>
 
-      <Box>
+      <div className="w-100 mt-3">
+        <label
+          className="block mb-2 text-[14px] font-medium font-sans text-gray-900 dark:text-white"
+          htmlFor="file_input"
+        >
+          Question Image (optional)
+        </label>
+        <input
+          className="block text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+          id="file_input"
+          type="file"
+          onChange={(e) => setQuestionImage(e.target.files?.[0] || null)}
+        />
+      </div>
+
+      <Box sx={{ marginTop: "10px" }}>
         <Box sx={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Typography sx={{ my: 3, fontWeight: 600, fontSize: 17 }}>
             Options
@@ -195,6 +259,24 @@ export function AddQuestionManual() {
             }
             required
           />
+          {/* Explanation Image Input */}
+          {/* <Box sx={{ mb: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => explanationImageInputRef.current?.click()}
+              sx={{ mb: 1 }}
+            >
+              Select Explanation Image
+            </Button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={explanationImageInputRef}
+              style={{ display: "none" }}
+              onChange={(e) => setExplanationImage(e.target.files?.[0] || null)}
+            />
+            {explanationImage && <span>{explanationImage.name}</span>}
+          </Box> */}
           <textarea
             id="explanation"
             rows={4}
@@ -203,7 +285,22 @@ export function AddQuestionManual() {
             onChange={(e) =>
               setFormData({ ...formData, explanation: e.target.value })
             }
+            value={formData.explanation}
           ></textarea>
+          <div className="w-100 mt-3">
+            <label
+              className="block mb-2 text-[14px] font-medium font-sans text-gray-900 dark:text-white"
+              htmlFor="file_input"
+            >
+              Explanation Image(optional)
+            </label>
+            <input
+              className="block text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+              id="file_input"
+              type="file"
+              onChange={(e) => setExplanationImage(e.target.files?.[0] || null)}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col">

@@ -24,14 +24,9 @@ import {
 import { chapters, grades, Subjects } from "./Data";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { ProcessFile } from "./processData";
-import {
-  addMultipleQuestions,
-  addOneQuestion,
-  updateQuestion,
-} from "@/lib/utils";
+import { addMultipleQuestions, updateQuestion } from "@/lib/utils";
 import { Question } from "../../types/models";
 import { useSearchParams } from "react-router-dom";
-import { useRef } from "react";
 import { addQuestion } from "@/services/questionServices";
 
 function Option({
@@ -81,8 +76,6 @@ export function AddQuestionManual() {
   });
   const [questionImage, setQuestionImage] = useState<File | null>(null);
   const [explanationImage, setExplanationImage] = useState<File | null>(null);
-  const questionImageInputRef = useRef<HTMLInputElement>(null);
-  const explanationImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleClose = (
     _event: React.SyntheticEvent | Event,

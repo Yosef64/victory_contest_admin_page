@@ -19,7 +19,6 @@ import { styled } from "@mui/material/styles";
 import Eror, { Loading } from "@/components/common/Stauts";
 import { Admin } from "@/types/models";
 import { approveAdmin, getAllAdmins } from "@/lib/utils";
-import { useRef } from "react";
 
 const headers = ["Name", "Email", "Status"];
 const StyledTableCell = styled(TableCell)(({ theme }) => ({

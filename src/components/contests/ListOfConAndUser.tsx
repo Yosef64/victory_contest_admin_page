@@ -1,6 +1,5 @@
 import {
   Avatar,
-  Badge,
   Box,
   Card,
   CardHeader,
@@ -9,18 +8,15 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Paper,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getContests } from "@/lib/utils";
 import ErrorComponent, { Loading } from "../common/Stauts";
-import { Rank } from "@/types/contest";
-import { useEffect, useState } from "react";
 import { getRankings } from "@/services/contestServices";
+import { StyledBadge } from "../ui/styled-badge";
+import { CalendarIcon, Circle } from "lucide-react";
 
 type ListOfContestProps = {
   grade: { title: string; year: number | JSX.Element }[];
@@ -35,7 +31,7 @@ export function ListOfContest({ grade, subject }: ListOfContestProps) {
     return <Loading />;
   }
   if (status === "error") {
-    return <div className="">Error</div>;
+    return <ErrorComponent />;
   }
   const selectedGrades = grade.map((g) => g.title);
   const selectedSubjects = subject.map((s) => s.title);
@@ -67,7 +63,58 @@ export function ListOfContest({ grade, subject }: ListOfContestProps) {
             >
               <CardHeader
                 title={contest.title}
-                subheader="Contest Description"
+                subheader={(() => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const contestDate = contest.date
+                    ? new Date(contest.date)
+                    : null;
+                  let status = "unknown";
+                  if (contestDate) {
+                    contestDate.setHours(0, 0, 0, 0);
+                    status = contestDate >= today ? "active" : "dead";
+                  }
+                  return (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <CalendarIcon size={16} style={{ color: "#00AB55" }} />
+                        <span
+                          style={{
+                            fontSize: 14,
+                            color: "#637381",
+                            fontFamily: '"Public Sans", sans-serif',
+                          }}
+                        >
+                          {contest.date
+                            ? new Date(contest.date).toLocaleDateString()
+                            : "No date"}
+                        </span>
+                      </Box>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <Circle
+                          size={12}
+                          style={{
+                            color: status === "active" ? "#00AB55" : "#FF5630",
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: 14,
+                            color: "#637381",
+                            fontFamily: '"Public Sans", sans-serif',
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {status}
+                        </span>
+                      </Box>
+                    </Box>
+                  );
+                })()}
                 sx={{
                   "& .MuiCardHeader-title": {
                     fontFamily: "'Public Sans', sans-seri",
@@ -140,78 +187,23 @@ export function ListOfContest({ grade, subject }: ListOfContestProps) {
   );
 }
 
-const users = [
-  {
-    id: 1,
-    img: "/assets/leetcode.jpg",
-    name: "Yospeh Alemu",
-  },
-  {
-    id: 2,
-    img: "/assets/leetcode.jpg",
-    name: "Yohannes Maye",
-  },
-  {
-    id: 3,
-    img: "/assets/leetcode.jpg",
-    name: "Tadese Wered",
-  },
-  {
-    id: 3,
-    img: "/assets/leetcode.jpg",
-    name: "Tadese Wered",
-  },
-  {
-    id: 3,
-    img: "/assets/leetcode.jpg",
-    name: "Tadese Wered",
-  },
-  {
-    id: 3,
-    img: "/assets/leetcode.jpg",
-    name: "Tadese Wered",
-  },
-];
-const StyledBadge = styled(Badge)(({}) => ({
-  "& .MuiBadge-badge": {
-    right: 4,
-    top: 14,
-    border: `1px solid black`,
-    backgroundColor: "white",
-    padding: "0 4px",
-    color: "black",
-    fontFamily: "'Public Sans', sans-serif",
-    fontWeight: 600,
-  },
-}));
-// Minimal Skeleton component (if shadcn/ui Skeleton is not available)
-
 export function Rankings({}) {
-  const [ranking, setRanking] = useState<Rank[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["student-rankings"],
+    queryFn: async () => {
+      const res = await getRankings();
+      // getRankings returns { rankings: Rank[] }
+      return res.rankings;
+    },
+  });
 
-  useEffect(() => {
-    const fetchRanking = async () => {
-      try {
-        const res = await getRankings();
-        console.log("Ranking data:", res);
-        setRanking(res);
-      } catch (error: any) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRanking();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
-  if (error) {
-    return <ErrorComponent />;
+  if (isError) {
+    return <ErrorComponent message={error.message} />;
   }
+  const ranking = data || [];
   return (
     <div className="p-2 rounded-md bg-white">
       <div>
@@ -240,7 +232,6 @@ export function Rankings({}) {
                 badgeContent={user.rank}
               >
                 <Avatar>
-                  {/* If you have user.img, use it. Otherwise, fallback to initials or a default. */}
                   {user.imgurl ? (
                     <img
                       src={user.imgurl}
@@ -267,7 +258,7 @@ export function Rankings({}) {
                   whiteSpace: "nowrap",
                 },
               }}
-              primary={`#${user.rank} ${user.name}`}
+              primary={`${user.name}`}
               secondary={`Points: ${user.total_points}`}
             />
           </ListItem>

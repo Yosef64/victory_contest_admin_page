@@ -1,7 +1,7 @@
 export interface Student {
   name: string;
   telegram_id: string;
-  gender: string;
+  sex: string;
   age: number;
   grade: number;
   school?: string;
@@ -10,6 +10,7 @@ export interface Student {
   region?: string;
   imgurl?: string;
   contests: Contest[];
+  payment?: Payment;
 }
 export interface Admin {
   name: string;
@@ -33,7 +34,18 @@ export interface Contest {
   grade: string;
   subject: string;
 }
-
+export interface Payment {
+  id?: string;
+  student: {
+    student_id: string;
+    imgurl: string;
+    name: string;
+  };
+  contest_id: string;
+  payment_date: string;
+  amount: number;
+  payment_method: string;
+}
 export interface Question {
   id?: string;
   question_text: string;

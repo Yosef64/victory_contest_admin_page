@@ -1,4 +1,4 @@
-import { Question } from "../models";
+import { Question } from "../../types/models";
 
 function parseQuestionsWithChoices(text: string): Question[] {
   const questions: Question[] = [];

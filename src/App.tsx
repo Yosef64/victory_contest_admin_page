@@ -1,13 +1,13 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import Dashboard from "./comps/Admin/Dashboard";
-import Contest from "./comps/Admin/content/contests/Contest";
-import Questions from "./comps/Admin/content/questions/Questions";
-import Users from "./comps/Admin/content/users/Users";
-import Home from "./comps/Admin/content/home/Home";
-import ContestById from "./comps/Admin/content/contests/ContestById";
-import AddQuestions from "./comps/Admin/content/questions/AddQuestions";
-import AddContest from "./comps/Admin/content/contests/AddContest";
+import Dashboard from "./layout/DashboardLayout";
+import Contest from "./components/contests/Contest";
+import Questions from "./components/questions/Questions";
+import Users from "./components/users/Users";
+import Home from "./components/home/Home";
+import ContestById from "./components/contests/ContestById";
+import AddQuestions from "./components/questions/AddQuestions";
+import AddContest from "./components/contests/AddContest";
 import Login from "./components/auth/Login";
 import RootLayout from "./components/RootLoyout";
 import Register from "./components/auth/Register";

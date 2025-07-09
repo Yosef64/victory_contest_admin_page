@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Typography } from "@mui/material";
-import logo from "../../../assets/logo.jpg";
+import logo from "../../assets/logo.jpg";
 export default function Logo() {
   return (
     <div>

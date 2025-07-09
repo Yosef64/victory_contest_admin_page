@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import React from "react";
-import leetcodeImage from "../../../../assets/leetcode.jpg";
+import leetcodeImage from "../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
 import {
   Menubar,
@@ -55,7 +55,7 @@ import {
 } from "@/lib/utils";
 import { transformSubmission } from "@/lib/helpers";
 import { DialogBox } from "./Message";
-import { Loading } from "../Stauts";
+import { Loading } from "../common/Stauts";
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;

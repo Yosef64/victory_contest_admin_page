@@ -3,7 +3,7 @@ import React from "react";
 import { DatePickerDemo, TimePickerComponent } from "./DatePicker";
 import LoadingButton from "@mui/lab/LoadingButton";
 import SnackBar from "../questions/Snackbar";
-import { Contest, Question } from "../models";
+import { Contest, Question } from "../../types/models";
 import { addContest } from "@/lib/utils";
 import Questions from "./Questions";
 import { grades, Subjects } from "../questions/Data";

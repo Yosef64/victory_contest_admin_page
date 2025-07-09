@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import SnackBar from "./Snackbar";
-import cloud from "../../../../assets/cloud.svg";
+import cloud from "../../assets/cloud.svg";
 import {
   Select,
   SelectContent,
@@ -29,7 +29,7 @@ import {
   addOneQuestion,
   updateQuestion,
 } from "@/lib/utils";
-import { Question } from "../models";
+import { Question } from "../../types/models";
 import { useSearchParams } from "react-router-dom";
 
 function Option({

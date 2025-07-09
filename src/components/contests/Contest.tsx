@@ -24,8 +24,6 @@ export default function Contest() {
   const fixedSchool: { title: string; year: number | JSX.Element }[] = [];
   const [subjectValue, setsubjectValue] = useState([...fixedSchool]);
 
-  console.log(subjectValue, value);
-
   return (
     <Box sx={{ paddingY: 2, overflow: "auto" }}>
       <Box
@@ -79,7 +77,6 @@ export default function Contest() {
                 margin: 1,
                 fontFamily: '"Public Sans", sans-serif',
               }}
-              // {...props}
               onClick={(event) => {
                 event.stopPropagation();
                 if (selected) {
@@ -137,14 +134,6 @@ export default function Contest() {
                   },
                 },
               }}
-              // InputProps={{
-              //   sx: {
-              //     "&.Mui-focused ": {
-              //       borderColor: "green",
-              //       color: "green",
-              //     },
-              //   },
-              // }}
             />
           )}
           disableCloseOnSelect
@@ -234,7 +223,7 @@ export default function Contest() {
           disableCloseOnSelect
         />
       </Box>
-      <RankingAndContest grade={value} school={subjectValue} />
+      <RankingAndContest grade={value} subject={subjectValue} />
     </Box>
   );
 }

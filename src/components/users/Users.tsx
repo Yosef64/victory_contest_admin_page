@@ -11,8 +11,10 @@ import {
   TextField,
   Typography,
   Avatar,
+  Chip,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -24,10 +26,12 @@ import {
 } from "@/components/ui/select";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
-import { filterStudentByCityAndGrade } from "../Actions/studentFilter";
-import { Student } from "../models";
+import { filterStudentByCityAndGrade } from "../../lib/studentFilter";
+import { Student } from "../../types/models";
 import { getAllStudents } from "@/lib/utils";
-import Eror, { Loading } from "../Stauts";
+import { Loading } from "../common/Stauts";
+import { Tooltip } from "@mui/material";
+import ErrorComponent from "../common/Stauts";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -64,6 +68,7 @@ export default function Users() {
   const [selectedSchool, setselectedSchool] = React.useState("default");
   const [students, setStudent] = useState<Student[]>([]);
   const [status, setStatus] = useState("pending");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -78,9 +83,8 @@ export default function Users() {
     };
     fetchStudents();
   }, []);
-  const handleGradeChange = (value: string) => {
-    console.log(value);
 
+  const handleGradeChange = (value: string) => {
     setSelectedGrade(value);
   };
   const handleSchoolChange = (value: string) => {
@@ -89,11 +93,14 @@ export default function Users() {
   const handlecityChange = (value: string) => {
     setselectedCity(value);
   };
+  // Add search filter
   const filteredStudents = filterStudentByCityAndGrade(students, {
     selectedCity,
     selectedGrade,
     selectedSchool,
-  });
+  }).filter((student) =>
+    student.name.toLowerCase().includes(search.toLowerCase())
+  );
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
       <Box sx={{}}>
@@ -130,13 +137,13 @@ export default function Users() {
         <TextField
           label=""
           placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           id="outlined-start-adornment"
           sx={{
             m: 1,
             width: "25ch",
-            // height: 20,
             height: 50,
-
             "& .MuiOutlinedInput-root": {
               borderRadius: 3,
               "&.Mui-focused fieldset": {
@@ -244,7 +251,7 @@ export default function Users() {
           <Table>
             <TableHead>
               <TableRow>
-                {header.map((header, index) => (
+                {[...header, "Payment", "Info"].map((header, index) => (
                   <StyledTableCell
                     key={index}
                     sx={{
@@ -267,7 +274,7 @@ export default function Users() {
         ) : status === "pending" ? (
           <Loading />
         ) : (
-          <Eror />
+          <ErrorComponent />
         )}
       </TableContainer>
       {/* </Box> */}
@@ -276,6 +283,7 @@ export default function Users() {
 }
 
 function Row({ student }: { student: Student }) {
+  const navigate = useNavigate();
   return (
     <React.Fragment>
       <StyledTableRow
@@ -284,15 +292,7 @@ function Row({ student }: { student: Student }) {
           "&:hover": { backgroundColor: "#f7f7f5" },
         }}
       >
-        {/* <TableCell>
-          
-        </TableCell> */}
-
-        <StyledTableCell
-          // component="th"
-          scope="row"
-          align="right"
-        >
+        <StyledTableCell align="right">
           <Box
             sx={{
               width: "100%",
@@ -304,12 +304,26 @@ function Row({ student }: { student: Student }) {
             <IconButton aria-label="expand row" size="small">
               <Avatar src={student.imgurl} />
             </IconButton>
-            <Typography sx={{ fontFamily: "'Public Sans',sans-serif" }}>
-              {student.name}
-            </Typography>
+            <Tooltip
+              title="Go to profile"
+              sx={{ fontFamily: '"Public Sans",sans-serif' }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: "'Public Sans',sans-serif",
+                  color: "black",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  navigate(`/dashboard/user/${student.telegram_id}`)
+                }
+              >
+                {student.name}
+              </Typography>
+            </Tooltip>
           </Box>
         </StyledTableCell>
-
         <StyledTableCell
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
           align="right"
@@ -326,7 +340,50 @@ function Row({ student }: { student: Student }) {
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
           align="right"
         >
-          {student.gender}
+          {student.sex}
+        </TableCell>
+        <TableCell align="right">
+          {(() => {
+            const paymentDate = student.payment?.payment_date
+              ? new Date(student.payment.payment_date)
+              : null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let label = "Unpaid";
+            let color: "success" | "error" | "default" = "error";
+            if (paymentDate) {
+              paymentDate.setHours(0, 0, 0, 0);
+              if (paymentDate >= today) {
+                label = "Paid";
+                color = "success";
+              } else {
+                label = "Expired";
+                color = "error";
+              }
+            }
+            return (
+              <Chip
+                label={label}
+                color={color}
+                size="small"
+                sx={{ fontWeight: 600, fontFamily: '"Public Sans",sans-serif' }}
+              />
+            );
+          })()}
+        </TableCell>
+        <TableCell align="right">
+          <Tooltip title="View Info">
+            <IconButton
+              onClick={() => navigate(`/dashboard/user/${student.telegram_id}`)}
+            >
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                <path
+                  fill="#00AB55"
+                  d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm0-7a1 1 0 0 1-1-1V9a1 1 0 1 1 2 0v3a1 1 0 0 1-1 1Zm0 4a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"
+                />
+              </svg>
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </StyledTableRow>
     </React.Fragment>

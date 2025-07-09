@@ -17,12 +17,16 @@ import { styled } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getContests } from "@/lib/utils";
-import { Loading } from "../Stauts";
+import ErrorComponent, { Loading } from "../common/Stauts";
+import { Rank } from "@/types/contest";
+import { useEffect, useState } from "react";
+import { getRankings } from "@/services/contestServices";
 
-type GradeProps = {
+type ListOfContestProps = {
   grade: { title: string; year: number | JSX.Element }[];
+  subject: { title: string; year: number | JSX.Element }[];
 };
-export function ListOfContest({ grade }: GradeProps) {
+export function ListOfContest({ grade, subject }: ListOfContestProps) {
   const { data: contests, status } = useQuery({
     queryKey: ["contests"],
     queryFn: async () => await getContests(),
@@ -33,9 +37,15 @@ export function ListOfContest({ grade }: GradeProps) {
   if (status === "error") {
     return <div className="">Error</div>;
   }
+  const selectedGrades = grade.map((g) => g.title);
+  const selectedSubjects = subject.map((s) => s.title);
   const filteredContest = contests.filter((contest) => {
-    if (grade.length === 0) return true;
-    return grade.some((element) => element.title === contest.grade);
+    const gradeMatch =
+      selectedGrades.length === 0 || selectedGrades.includes(contest.grade);
+    const subjectMatch =
+      selectedSubjects.length === 0 ||
+      selectedSubjects.includes(contest.subject);
+    return gradeMatch && subjectMatch;
   });
   return (
     <Box sx={{}}>
@@ -78,43 +88,16 @@ export function ListOfContest({ grade }: GradeProps) {
                     color: "rgb(99, 115, 129)",
                   },
                 }}
+                // Removed the action icons as per your request
                 action={
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Tooltip
-                      title="Problems"
-                      sx={{
-                        fontFamily: "'Public Sans',sans-serif",
-                        fontWeight: 700,
-                        backgroundColor: "black",
-                      }}
-                    >
-                      <IconButton
-                        sx={{
-                          color: "#00AB55",
-                          "&:hover": { backgroundColor: "#00AB5514" },
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          role="img"
-                          className="MuiBox-root css-0 iconify iconify--ph"
-                          width="0.9em"
-                          height="0.9em"
-                          preserveAspectRatio="xMidYMid meet"
-                          viewBox="0 0 256 256"
-                        >
-                          <g fill="currentColor">
-                            <path
-                              d="M152 128a24 24 0 1 1-24-24a24 24 0 0 1 24 24"
-                              opacity=".2"
-                            ></path>
-                            <path d="M200 152a31.84 31.84 0 0 0-19.53 6.68l-23.11-18A31.65 31.65 0 0 0 160 128c0-.74 0-1.48-.08-2.21l13.23-4.41A32 32 0 1 0 168 104c0 .74 0 1.48.08 2.21l-13.23 4.41A32 32 0 0 0 128 96a32.6 32.6 0 0 0-5.27.44L115.89 81A32 32 0 1 0 96 88a32.6 32.6 0 0 0 5.27-.44l6.84 15.4a31.92 31.92 0 0 0-8.57 39.64l-25.71 22.84a32.06 32.06 0 1 0 10.63 12l25.71-22.84a31.91 31.91 0 0 0 37.36-1.24l23.11 18A31.65 31.65 0 0 0 168 184a32 32 0 1 0 32-32m0-64a16 16 0 1 1-16 16a16 16 0 0 1 16-16M80 56a16 16 0 1 1 16 16a16 16 0 0 1-16-16M56 208a16 16 0 1 1 16-16a16 16 0 0 1-16 16m56-80a16 16 0 1 1 16 16a16 16 0 0 1-16-16m88 72a16 16 0 1 1 16-16a16 16 0 0 1-16 16"></path>
-                          </g>
-                        </svg>
-                      </IconButton>
-                    </Tooltip>
-
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      height: "100%",
+                      justifyContent: "center",
+                    }}
+                  >
                     <IconButton
                       sx={{
                         color: "#00AB55",
@@ -201,21 +184,38 @@ const StyledBadge = styled(Badge)(({}) => ({
     fontWeight: 600,
   },
 }));
+// Minimal Skeleton component (if shadcn/ui Skeleton is not available)
+
 export function Rankings({}) {
+  const [ranking, setRanking] = useState<Rank[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchRanking = async () => {
+      try {
+        const res = await getRankings();
+        console.log("Ranking data:", res);
+        setRanking(res);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRanking();
+  }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
+  if (error) {
+    return <ErrorComponent />;
+  }
   return (
-    <Paper sx={{ backgroundColor: "white", p: 2, borderRadius: 4 }}>
-      <Box>
-        <Typography
-          sx={{
-            fontFamily: '"Public Sans", sans-serif',
-            fontSize: 19,
-            fontWeight: 700,
-            lineHeight: 1.55556,
-            display: "block",
-          }}
-        >
-          Ranking
-        </Typography>
+    <div className="p-2 rounded-md bg-white">
+      <div>
+        <p className="font-public-sans font-bold text-lg">Ranking</p>
         <Typography
           sx={{
             margin: "4px 0px 0px",
@@ -227,52 +227,52 @@ export function Rankings({}) {
             display: "block",
           }}
         >
-          There are 748 users with ratings
+          There are {ranking.length} users with ratings
         </Typography>
-      </Box>
+      </div>
       <List>
-        {users.map((user) => {
-          return (
-            <ListItem>
-              <ListItemAvatar>
-                <StyledBadge
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
-                  }}
-                  color="primary"
-                  badgeContent={4}
-                >
-                  <Avatar>
+        {ranking.map((user) => (
+          <ListItem key={user.telegram_id}>
+            <ListItemAvatar>
+              <StyledBadge
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                color="primary"
+                badgeContent={user.rank}
+              >
+                <Avatar>
+                  {/* If you have user.img, use it. Otherwise, fallback to initials or a default. */}
+                  {user.imgurl ? (
                     <img
-                      src={user.img}
-                      alt="Elon Musk"
+                      src={user.imgurl}
+                      alt={user.name}
                       style={{ objectFit: "contain" }}
                       width="100%"
                       height="100%"
                     />
-                  </Avatar>
-                </StyledBadge>
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  "& .MuiTypography-root": {
-                    fontFamily: "'Public Sans', sans-serif",
-                  },
-                  "& .MuiTypography-body1": {
-                    fontWeight: 600,
-                    fontSize: 16,
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  },
-                }}
-                primary={user.name}
-                secondary="Rating: 4.8/5"
-              />
-            </ListItem>
-          );
-        })}
+                  ) : (
+                    user.name?.[0] || "U"
+                  )}
+                </Avatar>
+              </StyledBadge>
+            </ListItemAvatar>
+            <ListItemText
+              sx={{
+                "& .MuiTypography-root": {
+                  fontFamily: "'Public Sans', sans-serif",
+                },
+                "& .MuiTypography-body1": {
+                  fontWeight: 600,
+                  fontSize: 16,
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                },
+              }}
+              primary={`#${user.rank} ${user.name}`}
+              secondary={`Points: ${user.total_points}`}
+            />
+          </ListItem>
+        ))}
       </List>
-    </Paper>
+    </div>
   );
 }

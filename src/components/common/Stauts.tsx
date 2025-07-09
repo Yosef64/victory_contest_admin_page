@@ -1,6 +1,6 @@
 import { CircularProgress } from "@mui/material";
 
-export default function Eror() {
+export default function ErrorComponent() {
   return (
     <div className="flex h-full w-full items-center justify-center">
       <div className="flex flex-col gap-2">

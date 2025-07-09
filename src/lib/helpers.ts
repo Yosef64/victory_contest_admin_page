@@ -1,4 +1,4 @@
-import { Submission } from "@/comps/Admin/content/models";
+import { Submission } from "@/types/models";
 
 export function transformSubmission(submissions: Submission[]) {
   submissions.sort((a: Submission, b: Submission) =>

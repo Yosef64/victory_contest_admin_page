@@ -24,10 +24,10 @@ import {
 } from "@/components/ui/select";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
-import { filterStudentByCityAndGrade } from "../Actions/studentFilter";
-import { Student } from "../models";
+import { filterStudentByCityAndGrade } from "../../lib/studentFilter";
+import { Student } from "../../types/models";
 import { getAllStudents } from "@/lib/utils";
-import Eror, { Loading } from "../Stauts";
+import Eror, { Loading } from "../common/Stauts";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {

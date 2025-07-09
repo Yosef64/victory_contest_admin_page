@@ -16,8 +16,8 @@ import React, { useEffect, useState } from "react";
 
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
-import Eror, { Loading } from "@/comps/Admin/content/Stauts";
-import { Admin } from "@/comps/Admin/content/models";
+import Eror, { Loading } from "@/components/common/Stauts";
+import { Admin } from "@/types/models";
 import { approveAdmin, getAllAdmins } from "@/lib/utils";
 
 const headers = ["Name", "Email", "password", "status"];

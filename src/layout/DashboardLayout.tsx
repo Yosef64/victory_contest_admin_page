@@ -1,10 +1,10 @@
-import Sidebar from "./StaticComps/Sidebar.tsx";
+import Sidebar from "../components/common/Sidebar.tsx";
 import { Outlet, useNavigate } from "react-router-dom";
 
-import Appbar from "./StaticComps/Appbar.js";
+import Appbar from "../components/common/Appbar.js";
 import { useAuth } from "@/context/AuthContext.tsx";
 import { useEffect, useState } from "react";
-import { Loading } from "./content/Stauts.tsx";
+import { Loading } from "../components/common/Stauts.tsx";
 // import AppNavbar from "./StaticComps/Appbar.jsx";
 
 export default function Dashboard() {

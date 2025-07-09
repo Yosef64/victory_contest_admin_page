@@ -1,9 +1,9 @@
 import CustomizedDataGrid from "../home/CustomizedDataGrid";
 import { GridColDef, GridRowsProp } from "@mui/x-data-grid";
 import { getQuestions } from "@/lib/utils";
-import { Question } from "../models";
+import { Question } from "../../types/models";
 import { useEffect, useState } from "react";
-import { Loading } from "../Stauts";
+import { Loading } from "../common/Stauts";
 
 export const columns: GridColDef[] = [
   {

@@ -7,8 +7,8 @@ import { FormControl, MenuItem, OutlinedInput, Select } from "@mui/material";
 import QuestionTable from "./QuestionTable";
 import { grades, Subjects } from "./Data";
 import { getQuestions } from "@/lib/utils";
-import { Question } from "../models";
-import { Loading } from "../Stauts";
+import { Question } from "../../types/models";
+import { Loading } from "../common/Stauts";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;

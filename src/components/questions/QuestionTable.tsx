@@ -33,9 +33,9 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useNavigate } from "react-router-dom";
 
-import { Question } from "../models";
+import { Question } from "../../types/models";
 import { deleteQusetion } from "@/lib/utils";
-import { Loading } from "../Stauts";
+import { Loading } from "../common/Stauts";
 const header = ["Question", "Chapter", "Grade", "Subject"];
 
 export default function QuestionTable(props: any) {

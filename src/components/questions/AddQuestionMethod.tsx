@@ -149,6 +149,7 @@ export function AddQuestionManual() {
         onChange={(e) =>
           setFormData({ ...formData, question_text: e.target.value })
         }
+        value={formData.question_text} // Add this line
       ></textarea>
 
       <Box>

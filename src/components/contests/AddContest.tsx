@@ -33,6 +33,7 @@ export default function AddContest() {
     grade: "",
     subject: "",
     date: "",
+    prize: "",
   });
   const handleClose = (
     _event: React.SyntheticEvent | Event,
@@ -127,6 +128,13 @@ export default function AddContest() {
               setContest({ ...contest, description: e.target.value })
             }
           ></textarea>
+
+          <input
+  type="text"
+  className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
+  placeholder="Prize (e.g., $100, Medal, Trophy)"
+  onChange={(e) => setContest({ ...contest, prize: e.target.value })}
+/>
         </Box>
 
         <Typography
@@ -153,11 +161,11 @@ export default function AddContest() {
             }
           >
             <SelectTrigger className="w-[180px] h-[50px]">
-              <SelectValue placeholder="Select Chapter" />
+              <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Chapter</SelectLabel>
+                <SelectLabel>Subject</SelectLabel>
                 {Subjects.map((subject, index) => (
                   <SelectItem key={index} value={subject}>
                     {subject}

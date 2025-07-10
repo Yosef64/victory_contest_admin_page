@@ -4,7 +4,7 @@ import { getQuestions } from "@/lib/utils";
 import { Question } from "../../types/models";
 import { useEffect, useState } from "react";
 import { Loading } from "../common/Stauts";
-import { Select, MenuItem, FormControl, InputLabel, Input, SelectChangeEvent, TextField } from "@mui/material";
+import { Select, MenuItem, FormControl, InputLabel, TextField } from "@mui/material";
 
 export const columns: GridColDef[] = [
   {

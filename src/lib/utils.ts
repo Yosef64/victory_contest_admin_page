@@ -14,6 +14,9 @@ export async function getAllStudents(): Promise<Student[]> {
   return message;
 }
 export async function deleteContest(contest_id: string) {
+   if (!contest_id) {
+    throw new Error("Contest ID is missing");
+  }
   const res = await axios.delete(
     `${VITE_API_LINK}/api/contest/delete/${contest_id}`
   );

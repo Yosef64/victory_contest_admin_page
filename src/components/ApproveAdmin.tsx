@@ -20,7 +20,7 @@ import Eror, { Loading } from "@/components/common/Stauts";
 import { Admin } from "@/types/models";
 import { approveAdmin, getAllAdmins } from "@/lib/utils";
 
-const headers = ["Name", "Email", "password", "status"];
+const headers = ["Name", "Email", "Status"];
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.action.hover,
@@ -43,11 +43,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 export default function ApproveAdmin() {
   const [admins, setadmins] = useState<Admin[]>([]);
   const [status, setStatus] = useState("pending");
+  const [search, setSearch] = useState("");
   useEffect(() => {
     const fetchAdmins = async () => {
       try {
         const { admins } = await getAllAdmins();
-
         setadmins(admins);
         setStatus("success");
       } catch (error) {
@@ -56,6 +56,13 @@ export default function ApproveAdmin() {
     };
     fetchAdmins();
   }, []);
+
+  // Filter admins by search
+  const filteredAdmins = admins.filter(
+    (admin) =>
+      admin.name.toLowerCase().includes(search.toLowerCase()) ||
+      (admin.email && admin.email.toLowerCase().includes(search.toLowerCase()))
+  );
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
@@ -93,13 +100,13 @@ export default function ApproveAdmin() {
         <TextField
           label=""
           placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           id="outlined-start-adornment"
           sx={{
             m: 1,
             width: "25ch",
-            // height: 20,
             height: 50,
-
             "& .MuiOutlinedInput-root": {
               borderRadius: 3,
               "&.Mui-focused fieldset": {
@@ -169,7 +176,7 @@ export default function ApproveAdmin() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {admins.map((row, index) => (
+              {filteredAdmins.map((row, index) => (
                 <Row key={index} student={row} />
               ))}
             </TableBody>
@@ -201,15 +208,7 @@ function Row({ student }: { student: Admin }) {
           "&:hover": { backgroundColor: "#f7f7f5" },
         }}
       >
-        {/* <TableCell>
-          
-        </TableCell> */}
-
-        <StyledTableCell
-          // component="th"
-          scope="row"
-          align="right"
-        >
+        <StyledTableCell align="right">
           <Box
             sx={{
               width: "100%",
@@ -229,11 +228,6 @@ function Row({ student }: { student: Admin }) {
         <StyledTableCell align="right">
           <div>
             <p>{student.email}</p>
-          </div>
-        </StyledTableCell>
-        <StyledTableCell align="right">
-          <div>
-            <p>{student.password}</p>
           </div>
         </StyledTableCell>
         <StyledTableCell

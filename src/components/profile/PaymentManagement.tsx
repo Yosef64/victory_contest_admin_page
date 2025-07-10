@@ -18,7 +18,6 @@ import {
   Bell,
   Trash2,
   Calendar,
-  DollarSign,
   Clock,
   AlertTriangle,
   CheckCircle,
@@ -26,8 +25,6 @@ import {
   AlertCircle,
   Ban,
   Pause,
-  CreditCardIcon,
-  Trophy,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParams } from "react-router-dom";

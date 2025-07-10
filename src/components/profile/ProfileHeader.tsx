@@ -1,7 +1,5 @@
 import { User } from "@/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
   School,
@@ -26,22 +24,22 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
       .toUpperCase();
   };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "overdue":
-        return "bg-red-50 text-red-700 border-red-200";
-      case "pending":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "unpaid":
-        return "bg-red-50 text-red-700 border-red-200";
-      case "inactive":
-        return "bg-gray-50 text-gray-700 border-gray-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
-    }
-  };
+  // const getPaymentStatusColor = (status: string) => {
+  //   switch (status) {
+  //     case "active":
+  //       return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  //     case "overdue":
+  //       return "bg-red-50 text-red-700 border-red-200";
+  //     case "pending":
+  //       return "bg-amber-50 text-amber-700 border-amber-200";
+  //     case "unpaid":
+  //       return "bg-red-50 text-red-700 border-red-200";
+  //     case "inactive":
+  //       return "bg-gray-50 text-gray-700 border-gray-200";
+  //     default:
+  //       return "bg-gray-50 text-gray-700 border-gray-200";
+  //   }
+  // };
 
   return (
     <div className="mb-8">

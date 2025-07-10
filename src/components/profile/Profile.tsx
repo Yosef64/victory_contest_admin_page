@@ -20,7 +20,6 @@ function Profile() {
     const loadUserData = async () => {
       // Simulate API call delay
       const res: User = await getUserProfile(id);
-      console.log(res);
       setUser(res);
       setIsLoading(false);
     };

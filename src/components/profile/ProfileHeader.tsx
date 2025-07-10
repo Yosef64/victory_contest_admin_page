@@ -68,7 +68,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
               <AvatarImage
                 src={user.imgurl}
                 alt={user.name}
-                className="bg-contain"
+                className="object-cover"
               />
               <AvatarFallback className="text-2xl font-bold bg-white text-emerald-600">
                 {getInitials(user.name)}

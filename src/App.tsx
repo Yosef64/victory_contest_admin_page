@@ -13,6 +13,7 @@ import RootLayout from "./components/RootLoyout";
 import Register from "./components/auth/Register";
 import ApproveAdmin from "./components/ApproveAdmin";
 import LoaderFunction from "./LoaderFunction";
+import Profile from "./components/profile/Profile";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
           { path: "addquestion", element: <AddQuestions /> },
           { path: "addcontest", element: <AddContest /> },
           { path: "admins", element: <ApproveAdmin /> },
+          { path: "user/:id", element: <Profile /> },
         ],
       },
       { path: "/", element: <Login />, loader: LoaderFunction },

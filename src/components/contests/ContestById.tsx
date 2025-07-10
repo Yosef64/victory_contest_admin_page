@@ -15,7 +15,7 @@ import {
   IconButton,
   Avatar,
   Chip,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button
+  Dialog, DialogActions, DialogContent, DialogContentText, Button, DialogTitle
 } from "@mui/material";
 import {
   Select,
@@ -49,7 +49,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { CalendarDays } from "lucide-react";
 import QuestionTable from "../questions/QuestionTable";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 import { useParams } from "react-router-dom";
 import {
   addContest,
@@ -59,8 +59,9 @@ import {
   updateContest,
 } from "@/lib/utils";
 import { transformSubmission } from "@/lib/helpers";
-import { DialogBox } from "./Message";
+import { DialogBox } from "../common/DialogBox"; // Corrected import path for DialogBox
 import { Loading } from "../common/Stauts";
+import dayjs from "dayjs"; // Import dayjs for date formatting
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -93,13 +94,21 @@ function a11yProps(index: number) {
 
 export default function ContestById() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient(); // Initialize query client
   const [tabValue, setTabValue] = React.useState(0);
   const [school, setSchool] = useState("");
   const [city, setCity] = useState("");
   const [schools, setSchools] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const { id } = useParams();
-  
+
+  // State for controlling dialog visibility
+  const [announceDialogOpen, setAnnounceDialogOpen] = useState(false);
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
+  const [updateTimeDialogOpen, setUpdateTimeDialogOpen] = useState(false);
+  // Removed isMenubarOpen state as it's not directly controlling MenubarMenu
+
+
   // Fetch schools and cities
   useEffect(() => {
     const fetchData = async () => {
@@ -145,45 +154,55 @@ export default function ContestById() {
     action: string,
     time?: { start_time: string; end_time: string },
     info?: { title: string; description: string },
-    data?: { file: File; message: string }
+    data?: { file: File | null; message: string }
   ) => {
-    if (action === "announce") {
-      await announceContest(contest!, data!);
-    } else if (action === "clone") {
-      await addContest({ ...contest!, ...info! });
-    } else if (action === "update" && time) {
-      await updateContest(contest!, {
-        start_time: time.start_time,
-        end_time: time.end_time
-      });
+    if (!contest) return; // Ensure contest data is available
+
+    try {
+      if (action === "announce") {
+        await announceContest(contest, data!); // `data` will now contain file and message
+      } else if (action === "clone") {
+        await addContest({ ...contest, ...info! });
+      } else if (action === "update" && time) {
+        // Ensure the data object is passed directly, not wrapped in another 'data' key
+        await updateContest(contest, {
+          start_time: time.start_time,
+          end_time: time.end_time
+        });
+      }
+      // Invalidate and refetch contest data after successful action
+      queryClient.invalidateQueries({ queryKey: ['contest', id] });
+    } catch (error) {
+      console.error(`Error performing ${action} action:`, error);
+      // Optionally, show an error message to the user
     }
   };
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
-const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
+  const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
+  const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
 
-const handleConfirmDelete = async () => {
-  handleCloseDeleteDialog();
-  await handleDeleteContest();
-};
+  const handleConfirmDelete = async () => {
+    handleCloseDeleteDialog();
+    await handleDeleteContest();
+  };
 
   return (
-    
+
     <Box sx={{ gap: 10 }}>
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-  <DialogTitle>Delete Contest</DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      Are you sure you want to delete this contest? This action cannot be undone.
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-    <Button onClick={handleConfirmDelete} color="error">Delete</Button>
-  </DialogActions>
-</Dialog>
+        <DialogTitle>Delete Contest</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this contest? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
 
       <Box sx={{ mb: 5 }}>
         <Typography
@@ -266,7 +285,9 @@ const handleConfirmDelete = async () => {
                   <div className="flex items-center pt-2">
                     <CalendarDays className="mr-2 h-4 w-4 opacity-70 " />{" "}
                     <span className="text-xs text-muted-foreground ">
-                      Joined December 2021
+                      {status === "success" && contest?.date
+                        ? `Scheduled: ${dayjs(contest.date).format("MMM D, YYYY")}`
+                        : "Date not available"}
                     </span>
                   </div>
                   <div>
@@ -286,7 +307,7 @@ const handleConfirmDelete = async () => {
             </HoverCardContent>
           </HoverCard>
           <Menubar className="bg-inherit border-none cursor-pointer">
-            <MenubarMenu>
+            <MenubarMenu> {/* Removed open and onOpenChange here */}
               <MenubarTrigger className="cursor-pointer">
                 <MoreVertIcon sx={{ color: "black", fontSize: 18 }} />
               </MenubarTrigger>
@@ -294,30 +315,18 @@ const handleConfirmDelete = async () => {
                 style={{ fontFamily: "'Public Sans',sans-serif" }}
                 className="w-2"
               >
-                <MenubarItem asChild>
-                  <DialogBox action={"announce"} handler={handleActionMade}>
-                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-                      Announce Contest
-                    </button>
-                  </DialogBox>
+                <MenubarItem onClick={() => { setAnnounceDialogOpen(true); }}>
+                  Announce Contest
                 </MenubarItem>
-                <MenubarItem asChild>
-                  <DialogBox action={"clone"} handler={handleActionMade}>
-                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-                      Clone contest
-                    </button>
-                  </DialogBox>
+                <MenubarItem onClick={() => { setCloneDialogOpen(true); }}>
+                  Clone contest
                 </MenubarItem>
-                <MenubarItem asChild>
-  <DialogBox handler={handleActionMade} action="update" contest={contest}>
-    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-      update time
-    </button>
-  </DialogBox>
-</MenubarItem>
-                <MenubarItem 
+                <MenubarItem onClick={() => { setUpdateTimeDialogOpen(true); }}>
+                  Update time
+                </MenubarItem>
+                <MenubarItem
                   className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red-500"
-                  onClick={handleOpenDeleteDialog}
+                  onClick={() => { handleOpenDeleteDialog(); }}
                 >
                   Delete contest
                 </MenubarItem>
@@ -411,6 +420,28 @@ const handleConfirmDelete = async () => {
           <QuestionTable questions={contest?.questions} />
         </CustomTabPanel>
       </Box>
+      {/* Dialogs controlled by state */}
+      <DialogBox
+        action="announce"
+        open={announceDialogOpen}
+        onClose={() => setAnnounceDialogOpen(false)}
+        handler={handleActionMade}
+        contest={contest}
+      />
+      <DialogBox
+        action="clone"
+        open={cloneDialogOpen}
+        onClose={() => setCloneDialogOpen(false)}
+        handler={handleActionMade}
+        contest={contest}
+      />
+      <DialogBox
+        action="update"
+        open={updateTimeDialogOpen}
+        onClose={() => setUpdateTimeDialogOpen(false)}
+        handler={handleActionMade}
+        contest={contest}
+      />
     </Box>
   );
 }
@@ -426,7 +457,7 @@ interface StandingProps {
 function Standing({ school, city, contest }: StandingProps) {
   const { id } = useParams();
   const [studentsMap, setStudentsMap] = useState<Record<string, Student>>({});
-  
+
   // Fetch student data
   useEffect(() => {
     const fetchStudents = async () => {
@@ -444,33 +475,37 @@ function Standing({ school, city, contest }: StandingProps) {
     queryKey: ["submissions_by_contest", id],
     queryFn: async () => getSubmissionByContest(id!),
   });
-  
+
   if (status === "pending") {
     return <Loading />;
   }
-  
+
   if (status === "error") {
     return <div className="">Error</div>;
   }
-  
+
   const rows = transformSubmission(submissions);
-  
+
   // Filter submissions
   const filteredRows = rows.filter(row => {
-  const student = studentsMap[row.name];
+    const student = studentsMap[row.name];
     if (!student) return false;
-    
+
     const matchesSchool = !school || student.school === school;
     const matchesCity = !city || student.city === city;
-    
+
     return matchesSchool && matchesCity;
   });
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography>Start Time: {contest?.start_time}</Typography>
-        <Typography>End Time: {contest?.end_time}</Typography>
+        <Typography sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}>
+          Start Time: {contest?.start_time || 'N/A'}
+        </Typography>
+        <Typography sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}>
+          End Time: {contest?.end_time || 'N/A'}
+        </Typography>
       </Box>
       <TableContainer
         sx={{ backgroundColor: "inherit" }}

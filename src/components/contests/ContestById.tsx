@@ -309,12 +309,12 @@ const handleConfirmDelete = async () => {
                   </DialogBox>
                 </MenubarItem>
                 <MenubarItem asChild>
-                  <DialogBox handler={handleActionMade} action="update">
-                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-                      update time
-                    </button>
-                  </DialogBox>
-                </MenubarItem>
+  <DialogBox handler={handleActionMade} action="update" contest={contest}>
+    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
+      update time
+    </button>
+  </DialogBox>
+</MenubarItem>
                 <MenubarItem 
                   className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red-500"
                   onClick={handleOpenDeleteDialog}

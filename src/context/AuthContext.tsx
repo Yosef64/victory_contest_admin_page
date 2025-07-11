@@ -1,5 +1,5 @@
 import { loginUser, registerUser } from "@/lib/utils";
-import { getMe } from "@/services/api";
+import { getMe, userLogout } from "@/services/api";
 import {
   createContext,
   ReactNode,
@@ -8,7 +8,6 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import LoadingOverlay from "@/components/ui/LoadingOverlay";
 interface AuthContextType {
   user: any;
   login: (email: string, password: string) => Promise<void>;
@@ -18,6 +17,7 @@ interface AuthContextType {
     password: string;
     name: string;
   }) => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,9 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchMe();
   }, []); // Fetch user data on component mount
 
-  if (loading) {
-    return <LoadingOverlay />; // You can replace this with a loading spinner or skeleton
-  }
   const login = async (email: string, password: string) => {
     try {
       const res = await loginUser(email, password);
@@ -64,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Your are not approve by another admin. Please wait until you approved!"
         );
       }
-      navigate("/dashboard");
       window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
@@ -93,7 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await logout();
+      await userLogout();
+      window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
         throw new Error(err.message);
@@ -101,11 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Connection issue");
       }
     }
-    navigate("/");
+    window.location.reload();
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );

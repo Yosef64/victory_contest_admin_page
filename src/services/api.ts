@@ -10,4 +10,10 @@ export async function getMe() {
   });
   return response.data;
 }
+export async function userLogout() {
+  const response = await api.get("/api/admin/logout", {
+    withCredentials: true,
+  });
+  return response.data;
+}
 export default api;

@@ -37,7 +37,7 @@ export function AlertDialogBox({
   handler: Function;
 }) {
   const [open, setOpen] = useState(false);
-  const [isLoading, setisLoading] = useState(false);
+  const [_, setisLoading] = useState(false);
   
   const handleSave = async (action: string) => {
     setisLoading(true);

@@ -43,7 +43,7 @@ function Profile() {
 
   return (
     <div className="min-h-screen font-sans">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl">
         <ProfileHeader user={user} />
 
         <div className="px-8 pb-8">

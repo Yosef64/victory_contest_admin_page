@@ -119,9 +119,9 @@ export const MenuListItems: {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className="mr-4 h-5 w-5 align-middle"
       >
         <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
@@ -147,12 +147,7 @@ export const MenuListItems: {
       >
         <defs>
           <mask id="iconify-react-754">
-            <g
-              fill="none"
-              stroke="#fff"
-              stroke-linejoin="round"
-              stroke-width="4"
-            >
+            <g fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="4">
               <rect
                 width="36"
                 height="36"
@@ -161,7 +156,7 @@ export const MenuListItems: {
                 fill="#555"
                 rx="3"
               ></rect>
-              <path stroke-linecap="round" d="M24 16v16m-8-8h16"></path>
+              <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
             </g>
           </mask>
         </defs>
@@ -191,12 +186,7 @@ export const MenuListItems: {
       >
         <defs>
           <mask id="iconify-react-754">
-            <g
-              fill="none"
-              stroke="#fff"
-              stroke-linejoin="round"
-              stroke-width="4"
-            >
+            <g fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="4">
               <rect
                 width="36"
                 height="36"
@@ -205,7 +195,7 @@ export const MenuListItems: {
                 fill="#555"
                 rx="3"
               ></rect>
-              <path stroke-linecap="round" d="M24 16v16m-8-8h16"></path>
+              <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
             </g>
           </mask>
         </defs>

@@ -16,7 +16,7 @@ import ApproveAdmin from "./components/ApproveAdmin";
 import LoaderFunction from "./LoaderFunction";
 import { NotificationProvider } from "./context/NotificationContext";
 import SearchResults from "./components/dashboard/SearchResults"; // Import SearchResults
-
+import Profile from "./components/profile/Profile";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -39,6 +39,8 @@ const router = createBrowserRouter([
           { path: "addcontest", element: <AddContest /> },
           { path: "admins", element: <ApproveAdmin /> },
           { path: "search", element: <SearchResults /> }, // Add this new route for search results
+          { path: "user/:id", element: <Profile /> },
+
         ],
       },
       { path: "/", element: <Login />, loader: LoaderFunction },

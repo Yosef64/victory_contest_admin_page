@@ -45,7 +45,11 @@ export interface Payment {
   contest_id: string;
   payment_date: string;
   amount: number;
-  payment_method: string;
+  payment_status: "active" | "overdue" | "pending" | "unpaid" | "inactive";
+  payment_method?: "cash" | "bank_transfer" | "mobile_money";
+  transaction_id?: string;
+  receipt_url?: string;
+  notes?: string;
 }
 export interface Question {
   id?: string;

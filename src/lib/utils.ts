@@ -112,10 +112,14 @@ export async function getSubmissionByContest(
 //Admin
 
 export async function loginUser(email: string, password: string) {
-  const res = await axios.post(`${VITE_API_LINK}/api/admin/login`, {
-    email,
-    password,
-  });
+  const res = await axios.post(
+    `${VITE_API_LINK}/api/admin/login`,
+    {
+      email,
+      password,
+    },
+    { withCredentials: true }
+  );
   return res.data;
 }
 export async function registerUser(data: {

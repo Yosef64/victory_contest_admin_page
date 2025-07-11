@@ -1,7 +1,14 @@
 import { loginUser, registerUser } from "@/lib/utils";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { getMe } from "@/services/api";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
-
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 interface AuthContextType {
   user: any;
   login: (email: string, password: string) => Promise<void>;
@@ -16,13 +23,27 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState(null as any); // Initialize user state
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  if (!user) {
-    navigate("/");
+  useEffect(() => {
+    const fetchMe = async () => {
+      setLoading(true);
+      try {
+        const user = await getMe();
+        setUser(user);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMe();
+  }, []); // Fetch user data on component mount
+
+  if (loading) {
+    return <LoadingOverlay />; // You can replace this with a loading spinner or skeleton
   }
   const login = async (email: string, password: string) => {
     try {
@@ -43,10 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Your are not approve by another admin. Please wait until you approved!"
         );
       }
-      localStorage.setItem("user", JSON.stringify(message));
-
-      setUser(message);
       navigate("/dashboard");
+      window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
         throw new Error(err.message);
@@ -72,9 +91,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
+  const logout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(err.message);
+      } else {
+        throw new Error("Connection issue");
+      }
+    }
     navigate("/");
   };
 

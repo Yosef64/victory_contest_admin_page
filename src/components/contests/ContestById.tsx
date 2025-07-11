@@ -15,6 +15,7 @@ import {
   IconButton,
   Avatar,
   Chip,
+  Dialog, DialogActions, DialogContent, DialogContentText, Button, DialogTitle
 } from "@mui/material";
 import {
   Select,
@@ -25,9 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "@/services/api"; // Fixed import path
 import leetcodeImage from "../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
+import { deleteContest, getAllStudents } from "@/lib/utils";
+import { Student } from "@/types/models";
 import {
   Menubar,
   MenubarContent,
@@ -44,7 +49,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { CalendarDays } from "lucide-react";
 import QuestionTable from "../questions/QuestionTable";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 import { useParams } from "react-router-dom";
 import {
   addContest,
@@ -54,8 +59,10 @@ import {
   updateContest,
 } from "@/lib/utils";
 import { transformSubmission } from "@/lib/helpers";
-import { DialogBox } from "./Message";
+import { DialogBox } from "../common/DialogBox"; // Corrected import path for DialogBox
 import { Loading } from "../common/Stauts";
+import dayjs from "dayjs"; // Import dayjs for date formatting
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -84,46 +91,119 @@ function a11yProps(index: number) {
     "aria-controls": `simple-tabpanel-${index}`,
   };
 }
+
 export default function ContestById() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient(); // Initialize query client
   const [tabValue, setTabValue] = React.useState(0);
-  const [school, setschool] = React.useState("");
-  const [city, setcity] = React.useState("");
-  // const [snakOpen, setSnakOpen] = useState(false);
+  const [school, setSchool] = useState("");
+  const [city, setCity] = useState("");
+  const [schools, setSchools] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
   const { id } = useParams();
-  console.log(id, school, city);
+
+  // State for controlling dialog visibility
+  const [announceDialogOpen, setAnnounceDialogOpen] = useState(false);
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
+  const [updateTimeDialogOpen, setUpdateTimeDialogOpen] = useState(false);
+  // Removed isMenubarOpen state as it's not directly controlling MenubarMenu
+
+
+  // Fetch schools and cities
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get("/api/student/grades-and-schools");
+        setSchools(response.data.schools || []);
+        setCities(response.data.cities || []);
+      } catch (error) {
+        console.error("Error fetching schools and cities:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const { data: contest, status } = useQuery({
     queryKey: ["contest", id],
     queryFn: async () => await getContestById(id!),
   });
+
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-  const handleSelect = (value: any) => {
-    setschool(value);
-    console.log(value);
+
+  const handleSelect = (value: string) => {
+    setSchool(value);
   };
-  const handleSelectCity = (value: any) => {
-    setcity(value);
+
+  const handleSelectCity = (value: string) => {
+    setCity(value);
+  };
+
+  const handleDeleteContest = async () => {
+    if (!contest) return;
+    try {
+      await deleteContest(contest.id!);
+      navigate('/dashboard/contest');
+    } catch (error) {
+      console.error("Error deleting contest:", error);
+    }
   };
 
   const handleActionMade = async (
     action: string,
     time?: { start_time: string; end_time: string },
     info?: { title: string; description: string },
-    data?: { file: File; message: string }
+    data?: { file: File | null; message: string }
   ) => {
-    if (action === "announce") {
-      console.log();
-      await announceContest(contest!, data!);
-    } else if (action === "clone") {
-      await addContest({ ...contest!, ...info! });
-    } else {
-      await updateContest(contest!, time!);
+    if (!contest) return; // Ensure contest data is available
+
+    try {
+      if (action === "announce") {
+        await announceContest(contest, data!); // `data` will now contain file and message
+      } else if (action === "clone") {
+        await addContest({ ...contest, ...info! });
+      } else if (action === "update" && time) {
+        // Ensure the data object is passed directly, not wrapped in another 'data' key
+        await updateContest(contest, {
+          start_time: time.start_time,
+          end_time: time.end_time
+        });
+      }
+      // Invalidate and refetch contest data after successful action
+      queryClient.invalidateQueries({ queryKey: ['contest', id] });
+    } catch (error) {
+      console.error(`Error performing ${action} action:`, error);
+      // Optionally, show an error message to the user
     }
   };
-  //   const filteredSubmissons = filterContestByStudentData(questions,{school,city});
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
+  const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
+
+  const handleConfirmDelete = async () => {
+    handleCloseDeleteDialog();
+    await handleDeleteContest();
+  };
+
   return (
+
     <Box sx={{ gap: 10 }}>
+      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Delete Contest</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this contest? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
+
       <Box sx={{ mb: 5 }}>
         <Typography
           sx={{
@@ -156,7 +236,7 @@ export default function ContestById() {
             }}
             color="inherit"
           >
-            {status === "success" && contest.title}
+            {status === "success" && contest?.title}
           </Link>
         </Breadcrumbs>
       </Box>
@@ -189,7 +269,7 @@ export default function ContestById() {
                   cursor: "pointer",
                 }}
               >
-                {status === "success" && contest.title}
+                {status === "success" && contest?.title}
               </Typography>
             </HoverCardTrigger>
             <HoverCardContent className="w-[90]">
@@ -199,13 +279,15 @@ export default function ContestById() {
               >
                 <h4 className="text-sm font-semibold font-">@contest</h4>
                 <p className="text-sm font-semibold">
-                  {status === "success" && contest.description}
+                  {status === "success" && contest?.description}
                 </p>
                 <div className="flex items-center pt-2 justify-between">
                   <div className="flex items-center pt-2">
                     <CalendarDays className="mr-2 h-4 w-4 opacity-70 " />{" "}
                     <span className="text-xs text-muted-foreground ">
-                      Joined December 2021
+                      {status === "success" && contest?.date
+                        ? `Scheduled: ${dayjs(contest.date).format("MMM D, YYYY")}`
+                        : "Date not available"}
                     </span>
                   </div>
                   <div>
@@ -225,7 +307,7 @@ export default function ContestById() {
             </HoverCardContent>
           </HoverCard>
           <Menubar className="bg-inherit border-none cursor-pointer">
-            <MenubarMenu>
+            <MenubarMenu> {/* Removed open and onOpenChange here */}
               <MenubarTrigger className="cursor-pointer">
                 <MoreVertIcon sx={{ color: "black", fontSize: 18 }} />
               </MenubarTrigger>
@@ -233,28 +315,19 @@ export default function ContestById() {
                 style={{ fontFamily: "'Public Sans',sans-serif" }}
                 className="w-2"
               >
-                <MenubarItem asChild>
-                  <DialogBox action={"announce"} handler={handleActionMade}>
-                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-                      Announce Contest
-                    </button>
-                  </DialogBox>
+                <MenubarItem onClick={() => { setAnnounceDialogOpen(true); }}>
+                  Announce Contest
                 </MenubarItem>
-                <MenubarItem asChild>
-                  <DialogBox action={"clone"} handler={handleActionMade}>
-                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-                      Clone contest
-                    </button>
-                  </DialogBox>
+                <MenubarItem onClick={() => { setCloneDialogOpen(true); }}>
+                  Clone contest
                 </MenubarItem>
-                <MenubarItem asChild>
-                  <DialogBox handler={handleActionMade} action="update">
-                    <button className="p-2 hover:bg-gray-100 w-full text-left text-sm">
-                      update time
-                    </button>
-                  </DialogBox>
+                <MenubarItem onClick={() => { setUpdateTimeDialogOpen(true); }}>
+                  Update time
                 </MenubarItem>
-                <MenubarItem className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red- ">
+                <MenubarItem
+                  className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red-500"
+                  onClick={() => { handleOpenDeleteDialog(); }}
+                >
                   Delete contest
                 </MenubarItem>
               </MenubarContent>
@@ -263,38 +336,33 @@ export default function ContestById() {
         </Box>
         <Box sx={{ display: "flex", gap: 3 }}>
           <Select onValueChange={handleSelect}>
-            <SelectTrigger
-              style={{ fontFamily: "'Public Sans',sans-serif" }}
-              className="w-[180px]"
-            >
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select School" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel style={{ fontFamily: "'Public Sans',sans-serif" }}>
-                  School
-                </SelectLabel>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                <SelectLabel>School</SelectLabel>
+                {schools.map((school, index) => (
+                  <SelectItem key={index} value={school}>
+                    {school}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>
+
           <Select onValueChange={handleSelectCity}>
-            <SelectTrigger
-              style={{ fontFamily: "'Public Sans',sans-serif" }}
-              className="w-[180px]"
-            >
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select City" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel style={{ fontFamily: "'Public Sans',sans-serif" }}>
-                  School
-                </SelectLabel>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                <SelectLabel>City</SelectLabel>
+                {cities.map((city, index) => (
+                  <SelectItem key={index} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -346,32 +414,99 @@ export default function ContestById() {
           </Tabs>
         </Box>
         <CustomTabPanel value={tabValue} index={0}>
-          <Standing />
+          <Standing school={school} city={city} contest={contest} />
         </CustomTabPanel>
         <CustomTabPanel value={tabValue} index={1}>
           <QuestionTable questions={contest?.questions} />
         </CustomTabPanel>
       </Box>
+      {/* Dialogs controlled by state */}
+      <DialogBox
+        action="announce"
+        open={announceDialogOpen}
+        onClose={() => setAnnounceDialogOpen(false)}
+        handler={handleActionMade}
+        contest={contest}
+      />
+      <DialogBox
+        action="clone"
+        open={cloneDialogOpen}
+        onClose={() => setCloneDialogOpen(false)}
+        handler={handleActionMade}
+        contest={contest}
+      />
+      <DialogBox
+        action="update"
+        open={updateTimeDialogOpen}
+        onClose={() => setUpdateTimeDialogOpen(false)}
+        handler={handleActionMade}
+        contest={contest}
+      />
     </Box>
   );
 }
 
-const talbeHeader = ["Rank", "Contestant", "Solved", "Penality", "Time"];
-function Standing() {
+const tableHeader = ["Rank", "Contestant", "Solved", "Penality"];
+
+interface StandingProps {
+  school: string;
+  city: string;
+  contest?: any;
+}
+
+function Standing({ school, city, contest }: StandingProps) {
   const { id } = useParams();
+  const [studentsMap, setStudentsMap] = useState<Record<string, Student>>({});
+
+  // Fetch student data
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const students = await getAllStudents();
+      const map = students.reduce((acc: Record<string, Student>, student) => {
+        acc[student.telegram_id] = student;
+        return acc;
+      }, {});
+      setStudentsMap(map);
+    };
+    fetchStudents();
+  }, []);
+
   const { data: submissions = [], status } = useQuery({
-    queryKey: ["submissions_by_contest"],
+    queryKey: ["submissions_by_contest", id],
     queryFn: async () => getSubmissionByContest(id!),
   });
+
   if (status === "pending") {
     return <Loading />;
   }
+
   if (status === "error") {
     return <div className="">Error</div>;
   }
+
   const rows = transformSubmission(submissions);
+
+  // Filter submissions
+  const filteredRows = rows.filter(row => {
+    const student = studentsMap[row.name];
+    if (!student) return false;
+
+    const matchesSchool = !school || student.school === school;
+    const matchesCity = !city || student.city === city;
+
+    return matchesSchool && matchesCity;
+  });
+
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Typography sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}>
+          Start Time: {contest?.start_time || 'N/A'}
+        </Typography>
+        <Typography sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}>
+          End Time: {contest?.end_time || 'N/A'}
+        </Typography>
+      </Box>
       <TableContainer
         sx={{ backgroundColor: "inherit" }}
         elevation={0}
@@ -385,30 +520,29 @@ function Standing() {
             }}
           >
             <TableRow>
-              {talbeHeader.map((header) => {
-                return (
-                  <TableCell
-                    sx={{
-                      fontFamily: "'Public Sans',sans-serif",
-                      borderBottom: "none",
-                      fontWeight: 600,
-                      color: "rgb(99, 115, 129)",
-                    }}
-                    align={
-                      header == "Rank" || header == "Contestant"
-                        ? "left"
-                        : "right"
-                    }
-                  >
-                    {header}
-                  </TableCell>
-                );
-              })}
+              {tableHeader.map((header, index) => (
+                <TableCell
+                  key={index}
+                  sx={{
+                    fontFamily: "'Public Sans',sans-serif",
+                    borderBottom: "none",
+                    fontWeight: 600,
+                    color: "rgb(99, 115, 129)",
+                  }}
+                  align={
+                    header === "Rank" || header === "Contestant"
+                      ? "left"
+                      : "right"
+                  }
+                >
+                  {header}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row, index) => (
-              <Tablerow key={index} rank={{ ...row, index }} />
+            {filteredRows.map((row, index) => (
+              <TableRowComponent key={index} rank={{ ...row, index }} />
             ))}
           </TableBody>
         </Table>
@@ -417,8 +551,11 @@ function Standing() {
   );
 }
 
-function Tablerow(props: any) {
-  const { rank } = props;
+interface TableRowProps {
+  rank: any;
+}
+
+function TableRowComponent({ rank }: TableRowProps) {
   return (
     <TableRow sx={{ borderBottom: "none" }}>
       <TableCell
@@ -468,12 +605,6 @@ function Tablerow(props: any) {
         align="right"
       >
         {rank.penality}
-      </TableCell>
-      <TableCell
-        sx={{ fontFamily: "'Public Sans',sans-serif", borderBottom: "none" }}
-        align="right"
-      >
-        49:03
       </TableCell>
     </TableRow>
   );

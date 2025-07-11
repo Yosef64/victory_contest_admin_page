@@ -198,6 +198,7 @@ export function AddQuestionManual() {
           setFormData({ ...formData, question_text: e.target.value })
         }
         value={formData.question_text}
+
       ></textarea>
 
       <div className="w-100 mt-3">

@@ -33,6 +33,7 @@ export interface Contest {
   submissions?: Submission[];
   grade: string;
   subject: string;
+  prize: string; // Add this
 }
 export interface Payment {
   id?: string;
@@ -72,4 +73,5 @@ export interface Submission {
   submission_time: string;
   score: number;
   missed_question: Question[];
+  
 }

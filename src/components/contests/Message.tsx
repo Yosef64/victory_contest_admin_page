@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,10 +20,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import React, { ReactNode, useEffect, useState } from "react";
+import { TimePickerComponent } from "./DatePicker";
+import dayjs, { Dayjs } from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { Contest } from "../../types/models";
+import { Typography } from "@mui/material";
+
+dayjs.extend(customParseFormat);
 
 export function AlertDialogBox({
   children,
-
   handler,
 }: {
   children: ReactNode;
@@ -32,20 +37,18 @@ export function AlertDialogBox({
   handler: Function;
 }) {
   const [open, setOpen] = useState(false);
-  const [isLoading, setisLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [_, setisLoading] = useState(false);
+  
   const handleSave = async (action: string) => {
     setisLoading(true);
     try {
       await handler(action, null, null, null);
       setOpen(false);
-    } catch (error) {
-      setError(false);
     } finally {
       setisLoading(false);
     }
   };
-  console.log(isLoading, error);
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
@@ -53,8 +56,7 @@ export function AlertDialogBox({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the
-            contest and remove from our database.
+            This action cannot be undone. This will permanently delete the contest.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -75,18 +77,19 @@ export function DialogBox({
   children,
   action,
   handler,
+  contest,
 }: {
   children: ReactNode;
   action: string;
   handler: Function;
+  contest?: Contest;
 }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setisLoading] = useState(false);
   const [error, setError] = useState(false);
-  const handleTimeSave = async (time: {
-    start_time: string;
-    end_time: string;
-  }) => {
+
+  const handleTimeSave = async (time: { start_time: string; end_time: string }) => {
+    setisLoading(true);
     try {
       await handler(action, time, null, null);
       setOpen(false);
@@ -101,7 +104,6 @@ export function DialogBox({
     setisLoading(true);
     try {
       await handler(action, null, null, { file, message });
-
       setOpen(false);
     } catch (error) {
       setError(true);
@@ -109,10 +111,8 @@ export function DialogBox({
       setisLoading(false);
     }
   };
-  const handleForClone = async (info: {
-    title: string;
-    description: string;
-  }) => {
+
+  const handleForClone = async (info: { title: string; description: string }) => {
     setisLoading(true);
     try {
       await handler(action, null, info, null);
@@ -123,27 +123,26 @@ export function DialogBox({
       setisLoading(false);
     }
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {action === "update"
-              ? "Update Time"
-              : action === "clone"
-              ? "Update Info"
-              : "Choose Image"}
+            {action === "update" ? "Update Time" : 
+             action === "clone" ? "Update Info" : "Choose Image"}
           </DialogTitle>
           <DialogDescription>
             Make changes here. Click the button when you're done.
           </DialogDescription>
-          {error && <div className="">something Went wrong!</div>}
+          {error && <div className="text-red-500">Something went wrong!</div>}
         </DialogHeader>
         {action === "update" ? (
           <DialogContentForUpdateTime
             isLoading={isLoading}
             handleSubmit={handleTimeSave}
+            contest={contest}
           />
         ) : action === "clone" ? (
           <DialogContentForClone
@@ -164,54 +163,97 @@ export function DialogBox({
 function DialogContentForUpdateTime({
   handleSubmit,
   isLoading,
+  contest,
 }: {
-  handleSubmit: (time: {
-    start_time: string;
-    end_time: string;
-  }) => Promise<void>;
+  handleSubmit: (time: { start_time: string; end_time: string }) => Promise<void>;
   isLoading: boolean;
+  contest?: Contest;
 }) {
-  const [time, setTime] = useState({ start_time: "", end_time: "" });
+  const [startTime, setStartTime] = useState<Dayjs | null>(null);
+  const [endTime, setEndTime] = useState<Dayjs | null>(null);
+
+  const parseTime = (timeStr: string | undefined): Dayjs | null => {
+    if (!timeStr) return null;
+    const formats = ["hh:mm A", "HH:mm", "H:mm"];
+    for (const format of formats) {
+      const parsed = dayjs(timeStr, format, true);
+      if (parsed.isValid()) return parsed;
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (contest) {
+      setStartTime(parseTime(contest.start_time));
+      setEndTime(parseTime(contest.end_time));
+    } else {
+      setStartTime(null);
+      setEndTime(null);
+    }
+  }, [contest]);
+
+  const handleUpdateClick = () => {
+    if (!startTime || !endTime) return;
+    handleSubmit({
+      start_time: startTime.format("HH:mm"),
+      end_time: endTime.format("HH:mm"),
+    });
+  };
 
   return (
     <>
-      <div className="flex space-x-2 items-center justify-center">
-        <Input
-          onChange={(e) => setTime({ ...time, start_time: e.target.value })}
-          id="name"
-          placeholder="start time"
-          className=""
+      <div className="flex flex-col space-y-4">
+        <Typography
+          sx={{
+            color: "rgb(99, 115, 129)",
+            fontFamily: "'Public Sans',sans-serif",
+            fontSize: 14,
+          }}
+        >
+          Start Time
+        </Typography>
+        <TimePickerComponent
+          timeChangeHandler={setStartTime}
+          value={startTime}
+          format="hh:mm A"
         />
-
-        <Input
-          onChange={(e) => setTime({ ...time, end_time: e.target.value })}
-          id="username"
-          placeholder="end time"
+        <Typography
+          sx={{
+            color: "rgb(99, 115, 129)",
+            fontFamily: "'Public Sans',sans-serif",
+            fontSize: 14,
+          }}
+        >
+          End Time
+        </Typography>
+        <TimePickerComponent
+          timeChangeHandler={setEndTime}
+          value={endTime}
+          format="hh:mm A"
         />
       </div>
-
       <DialogFooter>
         <Button
           className="bg-[#00AB55] text-white font-bold hover:bg-[#00AB55]"
-          onClick={() => handleSubmit(time)}
+          onClick={handleUpdateClick}
+          disabled={isLoading || !startTime || !endTime}
         >
-          {isLoading ? "Updating" : "Update"}
+          {isLoading ? "Updating..." : "Update Time"}
         </Button>
       </DialogFooter>
     </>
   );
 }
+
 function DialogContentForClone({
   handleForClone,
   isLoading,
 }: {
-  handleForClone: (info: {
-    title: string;
-    description: string;
-  }) => Promise<void>;
+  handleForClone: (info: { title: string; description: string }) => Promise<void>;
   isLoading: boolean;
 }) {
   const [info, setInfo] = useState({ title: "", description: "" });
+
   return (
     <>
       <div className="flex flex-col space-y-2 items-center justify-center">
@@ -227,8 +269,8 @@ function DialogContentForClone({
         <textarea
           id="message"
           rows={4}
-          className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55]  focus:outline-none"
-          placeholder="Write descrition..."
+          className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55] focus:outline-none"
+          placeholder="Write description..."
           onChange={(e) => setInfo({ ...info, description: e.target.value })}
         ></textarea>
       </div>
@@ -236,20 +278,21 @@ function DialogContentForClone({
       <DialogFooter>
         <Button
           className="bg-[#00AB55] text-white font-bold hover:bg-[#00AB55]"
-          disabled={isLoading}
+          disabled={isLoading || !info.title}
           onClick={() => handleForClone(info)}
         >
-          {isLoading ? "Cloning" : "Clone"}
+          {isLoading ? "Cloning..." : "Clone Contest"}
         </Button>
       </DialogFooter>
     </>
   );
 }
+
 function DialogForAnnounce({
   handleContestAnnounce,
   isLoading,
 }: {
-  handleContestAnnounce: (file: File, message: string) => void; // Assuming this is the intended type
+  handleContestAnnounce: (file: File, message: string) => void;
   isLoading: boolean;
 }) {
   const [message, setMessage] = useState<string>("");
@@ -301,8 +344,7 @@ function DialogForAnnounce({
               />
             </svg>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-semibold">Click to upload</span> or drag and
-              drop
+              <span className="font-semibold">Click to upload</span> or drag and drop
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               SVG, PNG, JPG or GIF (MAX. 800x400px)
@@ -316,11 +358,11 @@ function DialogForAnnounce({
           />
         </label>
         {previewUrl && (
-          <div className="mt-4  flex justify-center">
+          <div className="mt-4 flex justify-center">
             <img
               src={previewUrl}
               alt="Selected preview"
-              className="w-12 h-12  rounded-full"
+              className="w-12 h-12 rounded-full"
             />
           </div>
         )}
@@ -328,20 +370,18 @@ function DialogForAnnounce({
       <textarea
         id="message"
         rows={4}
-        className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55]  focus:outline-none"
-        placeholder="Write descrition..."
-        onChange={(e) => {
-          setMessage(e.target.value), console.log(e.target.value);
-        }}
+        className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55] focus:outline-none"
+        placeholder="Write description..."
+        onChange={(e) => setMessage(e.target.value)}
       ></textarea>
 
       <DialogFooter>
         <Button
           className="bg-[#00AB55] text-white font-bold hover:bg-[#00AB55]"
-          disabled={isLoading}
+          disabled={isLoading || !file || !message}
           onClick={() => handleContestAnnounce(file!, message)}
         >
-          {isLoading ? "saving" : "Announce"}
+          {isLoading ? "Saving..." : "Announce Contest"}
         </Button>
       </DialogFooter>
     </>

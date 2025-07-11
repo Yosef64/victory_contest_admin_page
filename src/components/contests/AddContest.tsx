@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import dayjs from "dayjs"; // Import dayjs
 
 export default function AddContest() {
   const [selectedRows, setSelectedRows] = React.useState<Question[]>([]);
@@ -33,6 +34,7 @@ export default function AddContest() {
     grade: "",
     subject: "",
     date: "",
+    prize: "",
   });
   const handleClose = (
     _event: React.SyntheticEvent | Event,
@@ -44,11 +46,11 @@ export default function AddContest() {
 
     setSnakOpen(false);
   };
-  function timeChangeHandler(newValue: any, pos: string) {
+  function timeChangeHandler(newValue: dayjs.Dayjs | null, pos: string) {
     setContest({
       ...contest,
       [pos === "start" ? "start_time" : "end_time"]:
-        newValue!.format("hh:mm A"),
+        newValue ? newValue.format("hh:mm A") : "", // Ensure format only if newValue is not null
     });
   }
 
@@ -127,6 +129,13 @@ export default function AddContest() {
               setContest({ ...contest, description: e.target.value })
             }
           ></textarea>
+
+          <input
+            type="text"
+            className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
+            placeholder="Prize (e.g., $100, Medal, Trophy)"
+            onChange={(e) => setContest({ ...contest, prize: e.target.value })}
+          />
         </Box>
 
         <Typography
@@ -153,11 +162,11 @@ export default function AddContest() {
             }
           >
             <SelectTrigger className="w-[180px] h-[50px]">
-              <SelectValue placeholder="Select Chapter" />
+              <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Chapter</SelectLabel>
+                <SelectLabel>Subject</SelectLabel>
                 {Subjects.map((subject, index) => (
                   <SelectItem key={index} value={subject}>
                     {subject}
@@ -229,6 +238,8 @@ export default function AddContest() {
             timeChangeHandler={(newValue: any) =>
               timeChangeHandler(newValue, "start")
             }
+            // Pass the current start_time from contest state
+            value={contest.start_time ? dayjs(contest.start_time, "hh:mm A") : null}
           />
         </Grid>
         <Grid xs={12} md={3}>
@@ -245,6 +256,8 @@ export default function AddContest() {
             timeChangeHandler={(newValue: any) =>
               timeChangeHandler(newValue, "end")
             }
+            // Pass the current end_time from contest state
+            value={contest.end_time ? dayjs(contest.end_time, "hh:mm A") : null}
           />
         </Grid>
       </Grid>

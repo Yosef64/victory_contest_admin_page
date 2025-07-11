@@ -1,186 +1,380 @@
-import { AppBar, Avatar, Badge, Box, IconButton, Toolbar } from "@mui/material";
-import React from "react";
-import CssBaseline from "@mui/material/CssBaseline";
-import useScrollTrigger from "@mui/material/useScrollTrigger";
-import Slide from "@mui/material/Slide";
-import { styled } from "@mui/material/styles";
-import PropTypes from "prop-types";
-import { useAuth } from "@/context/AuthContext";
+// src/components/common/Appbar.tsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Badge,
+  Avatar,
+  Menu,
+  MenuItem,
+  InputBase,
+  Box,
+  Typography,
+  Divider,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
+  useMediaQuery,
+  useTheme,
+  Chip, // Import Chip for notification count
+} from '@mui/material';
+import { styled, alpha } from '@mui/material/styles';
+import {
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+  Logout as LogoutIcon,
+  Settings as SettingsIcon,
+  Person as PersonIcon,
+} from '@mui/icons-material';
+
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.1),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(3),
+    width: 'auto',
+    transition: theme.transitions.create(['background-color', 'border-color', 'box-shadow']),
+    '&:focus-within': {
+        borderColor: theme.palette.primary.main,
+        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
+    }
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '25ch',
+      '&:focus': {
+        width: '35ch',
+      },
+    },
+  },
+}));
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
-  "& .MuiBadge-badge": {
-    backgroundColor: "#44b700",
-    color: "#44b700",
+  '& .MuiBadge-badge': {
+    backgroundColor: '#44b700',
+    color: '#44b700',
     boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-    "&::after": {
-      position: "absolute",
+    '&::after': {
+      position: 'absolute',
       top: 0,
       left: 0,
-      width: "100%",
-      height: "100%",
-      borderRadius: "50%",
-
+      width: '100%',
+      height: '100%',
+      borderRadius: '50%',
+      animation: 'ripple 1.2s infinite ease-in-out',
+      border: '1px solid currentColor',
       content: '""',
     },
   },
-  "@keyframes ripple": {
-    "0%": {
-      transform: "scale(.8)",
+  '@keyframes ripple': {
+    '0%': {
+      transform: 'scale(.8)',
       opacity: 1,
     },
-    "100%": {
-      transform: "scale(2.4)",
+    '100%': {
+      transform: 'scale(2.4)',
       opacity: 0,
     },
   },
 }));
 
-function HideOnScroll(props: any) {
-  const { children, window } = props;
-  // Note that you normally won't need to set the window ref as useScrollTrigger
-  // will default to window.
-  // This is only being set here because the demo is in an iframe.
-  const trigger = useScrollTrigger({
-    target: window ? window() : undefined,
-  });
+export default function Appbar() {
+  const { user, logout } = useAuth();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const isMenuOpen = Boolean(anchorEl);
+  const isNotificationMenuOpen = Boolean(notificationAnchorEl);
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleNotificationMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationMenuClose = () => {
+    markAsRead();
+    setNotificationAnchorEl(null);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery('');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    handleMenuClose();
+  };
 
   return (
-    <Slide appear={false} direction="down" in={!trigger}>
-      {children ?? <div />}
-    </Slide>
-  );
-}
+    <AppBar
+      position="sticky"
+      elevation={2}
+      sx={{
+        backdropFilter: 'blur(20px)',
+        backgroundColor: alpha(theme.palette.background.paper, 0.8),
+        color: 'text.primary',
+        borderBottom: '1px solid',
+        borderColor: theme.palette.divider,
+      }}
+    >
+      <Toolbar>
+        {/* Search Bar */}
+        {isMobile ? (
+          <IconButton color="inherit" onClick={() => navigate('/dashboard/search')}>
+            <SearchIcon />
+          </IconButton>
+        ) : (
+          <Search>
+            <form onSubmit={handleSearch}>
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Search menus..."
+                inputProps={{ 'aria-label': 'search' }}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
+          </Search>
+        )}
 
-HideOnScroll.propTypes = {
-  children: PropTypes.element,
+        <Box sx={{ flexGrow: 1 }} />
 
-  window: PropTypes.func,
-};
-export default function Appbar(props: any) {
-  const { user } = useAuth();
-  return (
-    <React.Fragment>
-      <CssBaseline />
-      <HideOnScroll {...props}>
-        <AppBar
-          position="sticky"
-          elevation={0}
-          sx={{
-            backdropFilter: "blur(6px)",
-            bgcolor: "inherit",
-          }}
-        >
-          <Toolbar
+        {/* Notification Icon */}
+        <Tooltip title="Notifications">
+          <IconButton
+            size="large"
+            aria-label={`show ${unreadCount} new notifications`}
+            color="inherit"
+            onClick={handleNotificationMenuOpen}
             sx={{
-              display: "flex",
-              alignItems: "center",
-              color: "blue",
+              mr: 1,
+              transition: 'transform 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.1)',
+                color: theme.palette.primary.main,
+              },
             }}
           >
-            <Box sx={{ display: { md: "none", sm: "block" } }}>
-              <IconButton
-                size="small"
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                  role="img"
-                  width="1.em"
-                  height="1em"
-                  preserveAspectRatio="xMidYMid meet"
-                  viewBox="0 0 24 24"
-                  style={{ fill: "currentColor" }}
-                >
-                  <circle cx="4" cy="12" r="1" fill="currentColor" />
-                  <rect
-                    width="14"
-                    height="2"
-                    x="7"
-                    y="11"
-                    fill="currentColor"
-                    rx="0.94"
-                    ry="0.94"
-                  />
-                  <rect
-                    width="18"
-                    height="2"
-                    x="3"
-                    y="16"
-                    fill="currentColor"
-                    rx="0.94"
-                    ry="0.94"
-                  />
-                  <rect
-                    width="18"
-                    height="2"
-                    x="3"
-                    y="6"
-                    fill="currentColor"
-                    rx="0.94"
-                    ry="0.94"
-                  />
-                </svg>
-              </IconButton>
-            </Box>
-            <Box>
-              <IconButton sx={{ alignSelf: "flex-start" }}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                  role="img"
-                  width="0.9em"
-                  height="0.9em"
-                  preserveAspectRatio="xMidYMid meet"
-                  viewBox="0 0 24 24"
-                  style={{ fill: "currentColor" }}
-                >
-                  <path
-                    fill="currentColor"
-                    d="M20.71 19.29l-3.4-3.39A7.92 7.92 0 0 0 19 11a8 8 0 1 0-8 8a7.92 7.92 0 0 0 4.9-1.69l3.39 3.4a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42M5 11a6 6 0 1 1 6 6a6 6 0 0 1-6-6"
-                  />
-                </svg>
-              </IconButton>
-            </Box>
+            <Badge badgeContent={unreadCount} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        </Tooltip>
 
-            <Box
-              sx={{
-                ml: "auto",
-                display: "flex",
-                justifyContent: "space-around",
-                gap: 2,
-              }}
+        {/* Profile Avatar */}
+        <Tooltip title={user?.name || "Profile"}>
+          <IconButton
+            size="large"
+            edge="end"
+            aria-label="account of current user"
+            aria-controls="primary-search-account-menu"
+            aria-haspopup="true"
+            onClick={handleProfileMenuOpen}
+            color="inherit"
+            sx={{
+              transition: 'transform 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.1)',
+              },
+            }}
+          >
+            <StyledBadge
+              overlap="circular"
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              variant="dot"
             >
-              <IconButton>
-                <Badge color="secondary" badgeContent={2} overlap="circular">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    role="img"
-                    width="1em"
-                    height="1em"
-                    preserveAspectRatio="xMidYMid meet"
-                    viewBox="0 0 24 24"
-                    style={{ fill: "currentColor" }}
-                  >
-                    <path d="M20.52 15.21l-1.8-1.81V8.94a6.86 6.86 0 0 0-5.82-6.88a6.74 6.74 0 0 0-7.62 6.67v4.67l-1.8 1.81A1.64 1.64 0 0 0 4.64 18H8v.34A3.84 3.84 0 0 0 12 22a3.84 3.84 0 0 0 4-3.66V18h3.36a1.64 1.64 0 0 0 1.16-2.79M14 18.34A1.88 1.88 0 0 1 12 20a1.88 1.88 0 0 1-2-1.66V18h4Z" />
-                  </svg>
-                </Badge>
-              </IconButton>
-              <StyledBadge
-                overlap="circular"
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                variant="dot"
+              <Avatar alt={user?.name} src={user?.imgurl} sx={{ width: 32, height: 32 }} />
+            </StyledBadge>
+          </IconButton>
+        </Tooltip>
+
+        {/* Notification Menu */}
+        <Menu
+          anchorEl={notificationAnchorEl}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          open={isNotificationMenuOpen}
+          onClose={handleNotificationMenuClose}
+          PaperProps={{
+            sx: {
+              width: 380,
+              maxHeight: 440,
+              overflow: 'auto',
+              mt: 1.5,
+              borderRadius: theme.shape.borderRadius * 2,
+              boxShadow: theme.shadows[6],
+            },
+          }}
+        >
+          <MenuItem disabled sx={{ pb: 0, pt: 1.5 }}>
+            <Typography variant="h6" fontWeight="bold">Notifications</Typography>
+            {unreadCount > 0 && (
+              <Chip
+                label={`${unreadCount} new`}
+                color="primary"
+                size="small"
+                sx={{ ml: 1, fontWeight: 'bold' }}
+              />
+            )}
+          </MenuItem>
+          <Divider sx={{ my: 1 }} />
+
+          {Array.isArray(notifications) && notifications.length > 0 ? (
+            notifications.map((notification) => (
+              <MenuItem
+                key={notification.id}
+                onClick={handleNotificationMenuClose}
+                sx={{
+                  backgroundColor: !notification.read ? alpha(theme.palette.primary.light, 0.1) : 'inherit',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.8),
+                    boxShadow: theme.shadows[1],
+                  },
+                  py: 1.5,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  borderRadius: theme.shape.borderRadius,
+                  mx: 1,
+                  mb: 0.5,
+                }}
               >
-                {" "}
-                <Avatar alt="Remy Sharp" src={user.imgurl} />
-              </StyledBadge>
-            </Box>
-          </Toolbar>
-        </AppBar>
-      </HideOnScroll>
-    </React.Fragment>
+                <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
+                  <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 36, height: 36 }}>
+                    <NotificationsIcon fontSize="small" sx={{ color: theme.palette.common.white }} />
+                  </Avatar>
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Typography variant="body2" fontWeight={!notification.read ? 'medium' : 'normal'} component="div">
+                      {notification.message}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDistanceToNow(new Date(notification.createdAt)) + ' ago'}
+                    </Typography>
+                  }
+                  sx={{ ml: 1 }}
+                />
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled sx={{ justifyContent: 'center', py: 2 }}>
+              <ListItemText primary={
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  No new notifications
+                </Typography>
+              } />
+            </MenuItem>
+          )}
+        </Menu>
+
+        {/* Profile Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          open={isMenuOpen}
+          onClose={handleMenuClose}
+          PaperProps={{
+            sx: {
+              width: 220,
+              overflow: 'visible',
+              mt: 1.5,
+              borderRadius: theme.shape.borderRadius * 2,
+              boxShadow: theme.shadows[6],
+            },
+          }}
+        >
+          <MenuItem onClick={() => { navigate('/dashboard/profile'); handleMenuClose(); }}
+            sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.light, 0.5) } }}
+          >
+            <ListItemIcon>
+              <PersonIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Profile</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => { navigate('/dashboard/settings'); handleMenuClose(); }}
+            sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.light, 0.5) } }}
+          >
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Settings</ListItemText>
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={handleLogout}
+            sx={{ '&:hover': { bgcolor: alpha(theme.palette.error.light, 0.2) } }}
+          >
+            <ListItemIcon>
+              <LogoutIcon fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText>Logout</ListItemText>
+          </MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
   );
 }

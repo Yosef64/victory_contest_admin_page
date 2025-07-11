@@ -14,6 +14,9 @@ export async function getAllStudents(): Promise<Student[]> {
   return message;
 }
 export async function deleteContest(contest_id: string) {
+   if (!contest_id) {
+    throw new Error("Contest ID is missing");
+  }
   const res = await axios.delete(
     `${VITE_API_LINK}/api/contest/delete/${contest_id}`
   );
@@ -28,65 +31,140 @@ export async function addContest(contest: Contest) {
   const res = await axios.post(`${VITE_API_LINK}/api/contest/add`, { contest });
   return res.data;
 }
-export async function getContestById(contest_id: string): Promise<Contest> {
-  const res = await axios.get(`${VITE_API_LINK}/api/contest/${contest_id}`);
-  const { contest }: { contest: Contest } = res.data;
+export async function getContestById(id: string): Promise<Contest> {
+  const res = await axios.get(`${VITE_API_LINK}/api/contest/${id}`);
+  const { contest } = res.data;
   return contest;
 }
-export async function announceContest(
-  contest: Contest,
-  data: { file: File | null; message: string }
-) {
+
+// Updated updateContest function to send data directly
+export async function updateContest(contest: Contest, data: { start_time?: string; end_time?: string }) {
+  // Ensure the data is sent directly as the request body, not wrapped in another 'data' object
+  const res = await axios.patch(`${VITE_API_LINK}/api/contest/${contest.id}`, data);
+  return res.data;
+}
+
+export async function announceContest(contest: Contest, data: { file: File | null; message: string }) {
   const formData = new FormData();
-  formData.append("file", data.file!);
-  formData.append("contest", JSON.stringify(contest));
-  formData.append("message", data.message);
-  const res = await axios.post(
-    `${VITE_API_LINK}/api/contest/announce`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      timeout: 10000,
-    }
-  );
-  return res.data;
-}
-export async function updateContest(contest: Contest, data: Object) {
-  const { id } = contest;
-  const res = await axios.patch(`${VITE_API_LINK}/api/contest/${id}`, { data });
+  formData.append('contest', JSON.stringify(contest)); // Stringify contest object
+  formData.append('message', data.message);
+  if (data.file) {
+    formData.append('file', data.file);
+  }
+
+  const res = await axios.post(`${VITE_API_LINK}/api/contest/announce`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return res.data;
 }
 
-//Action question
 
-export async function addOneQuestion(question: Question): Promise<void> {
+//Question Action
+export async function getQuestions() {
+  const res = await axios.get(`${VITE_API_LINK}/api/question/`);
+  const { questions } = res.data;
+  return questions;
+}
+export async function addQuestion(question: Question) {
+  // This function is used for adding a single question
   const res = await axios.post(`${VITE_API_LINK}/api/question/addquestion`, {
     question,
   });
   return res.data;
 }
+
+// New function to add multiple questions
 export async function addMultipleQuestions(questions: Question[]) {
-  const res = await axios.post(`${VITE_API_LINK}/api/question/addQuestions`, {
-    questions,
-  });
-  return res.data;
-}
-export async function getQuestions(): Promise<Question[]> {
-  const res = await axios.get(`${VITE_API_LINK}/api/question/`);
-  const { questions } = res.data;
-  return questions;
-}
-export async function updateQuestion(question: Question) {
-  const { id } = question;
-  if (!id) {
-    throw new Error("Id not found");
+  // Assuming your backend's /api/question/addquestion endpoint can handle single questions
+  // We will iterate and send each question individually.
+  // If you have a dedicated bulk upload endpoint on your backend, this logic should be changed.
+  const results = [];
+  for (const question of questions) {
+    try {
+      // Create a FormData for each question if it contains files (images)
+      // Otherwise, send as JSON.
+      // For simplicity, assuming question objects might contain image files,
+      // and the backend's addquestion endpoint expects FormData for images.
+      // If your backend expects JSON for questions without images, adjust this.
+
+      const formData = new FormData();
+      // Append all question fields
+      Object.entries(question).forEach(([key, value]) => {
+        if (key === "multiple_choice" && Array.isArray(value)) {
+          value.forEach((v) => {
+            if (v !== null && v !== undefined) {
+              formData.append(`multiple_choice`, v.toString());
+            }
+          });
+        } else if (value !== null && value !== undefined) {
+          // Assuming 'question_image' and 'explanation_image' are directly on the question object
+          if (key === "question_image" && value instanceof File) {
+            formData.append("question_image", value);
+          } else if (key === "explanation_image" && value instanceof File) {
+            formData.append("explanation_image", value);
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+
+      // If the question object itself has image properties (e.g., question.question_image),
+      // ensure they are appended as File objects. The ProcessFile function should handle this.
+      // If ProcessFile gives you a Question object *with* File objects for images,
+      // the above loop will handle it. If it gives base64 or URLs, you'd need different logic.
+
+      const res = await axios.post(`${VITE_API_LINK}/api/question/addquestion`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Ensure correct content type for FormData
+        },
+      });
+      results.push(res.data);
+    } catch (error) {
+      console.error("Error adding single question in bulk upload:", error);
+      // Depending on requirements, you might want to throw an error,
+      // or collect failed results. For now, just log and continue.
+      results.push({ status: 'failed', error: error });
+    }
   }
+  return results; // Return results for all additions
+}
+
+
+export async function updateQuestion(question: Question) {
+  // Assuming question.id exists for updates
+  if (!question.id) {
+    throw new Error("Question ID is missing for update.");
+  }
+
+  const formData = new FormData();
+  // Append all question fields, similar to addQuestion
+  Object.entries(question).forEach(([key, value]) => {
+    if (key === "multiple_choice" && Array.isArray(value)) {
+      value.forEach((v) => {
+        if (v !== null && v !== undefined) {
+          formData.append(`multiple_choice`, v.toString());
+        }
+      });
+    } else if (value !== null && value !== undefined) {
+      if (key === "question_image" && value instanceof File) {
+        formData.append("question_image", value);
+      } else if (key === "explanation_image" && value instanceof File) {
+        formData.append("explanation_image", value);
+      } else if (key !== "id") { // Don't append the ID itself to the form data for a PUT/PATCH body
+        formData.append(key, value.toString());
+      }
+    }
+  });
+
   const res = await axios.put(
-    `${VITE_API_LINK}/api/question/updatequestion/${id}`,
+    `${VITE_API_LINK}/api/question/updatequestion/${question.id}`,
+    formData, // Send as FormData
     {
-      question,
+      headers: {
+        'Content-Type': 'multipart/form-data', // Ensure correct content type for FormData
+      },
     }
   );
   return res.data;
@@ -136,19 +214,11 @@ export async function approveAdmin(
   return res.data;
 }
 export async function getAllAdmins() {
-  const res = await axios.get(`${VITE_API_LINK}/api/admin`);
-  return res.data;
+  const res = await axios.get(`${VITE_API_LINK}/api/admin/`);
+  const { admins } = res.data;
+  return admins;
 }
-//Third Party
-
-export async function uploadImage(file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await axios.post(
-    "https://api.cloudinary.com/v1_1/dud4t1ptn/image/upload",
-    formData
-  );
-  const { url } = res.data;
-  return url;
+export async function deleteAdmin(email: string) {
+  const res = await axios.delete(`${VITE_API_LINK}/api/admin/${email}`);
+  return res.data;
 }

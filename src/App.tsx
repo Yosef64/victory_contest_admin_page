@@ -1,3 +1,4 @@
+// App.tsx
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Dashboard from "./layout/DashboardLayout";
@@ -13,6 +14,8 @@ import RootLayout from "./components/RootLoyout";
 import Register from "./components/auth/Register";
 import ApproveAdmin from "./components/ApproveAdmin";
 import LoaderFunction from "./LoaderFunction";
+import { NotificationProvider } from "./context/NotificationContext";
+import SearchResults from "./components/dashboard/SearchResults"; // Import SearchResults
 import Profile from "./components/profile/Profile";
 const router = createBrowserRouter([
   {
@@ -21,7 +24,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
-        element: <Dashboard />,
+        element: (
+          <NotificationProvider>
+            <Dashboard />
+          </NotificationProvider>
+        ),
         children: [
           { path: "", element: <Home /> },
           { path: "contest", element: <Contest /> },
@@ -31,7 +38,9 @@ const router = createBrowserRouter([
           { path: "addquestion", element: <AddQuestions /> },
           { path: "addcontest", element: <AddContest /> },
           { path: "admins", element: <ApproveAdmin /> },
+          { path: "search", element: <SearchResults /> }, // Add this new route for search results
           { path: "user/:id", element: <Profile /> },
+
         ],
       },
       { path: "/", element: <Login />, loader: LoaderFunction },

@@ -28,8 +28,8 @@ import {
   Search as SearchIcon,
   Notifications as NotificationsIcon,
   Logout as LogoutIcon,
-  Settings as SettingsIcon,
-  Person as PersonIcon,
+  //Settings as SettingsIcon,
+  //Person as PersonIcon,
 } from '@mui/icons-material';
 
 const Search = styled('div')(({ theme }) => ({
@@ -348,22 +348,7 @@ export default function Appbar() {
             },
           }}
         >
-          <MenuItem onClick={() => { navigate('/dashboard/profile'); handleMenuClose(); }}
-            sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.light, 0.5) } }}
-          >
-            <ListItemIcon>
-              <PersonIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Profile</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={() => { navigate('/dashboard/settings'); handleMenuClose(); }}
-            sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.light, 0.5) } }}
-          >
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Settings</ListItemText>
-          </MenuItem>
+  
           <Divider />
           <MenuItem onClick={handleLogout}
             sx={{ '&:hover': { bgcolor: alpha(theme.palette.error.light, 0.2) } }}

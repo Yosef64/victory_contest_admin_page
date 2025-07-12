@@ -1,7 +1,13 @@
 import { loginUser, registerUser } from "@/lib/utils";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { getMe, userLogout } from "@/services/api";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
-
 interface AuthContextType {
   user: any;
   login: (email: string, password: string) => Promise<void>;
@@ -11,19 +17,31 @@ interface AuthContextType {
     password: string;
     name: string;
   }) => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState(null as any); // Initialize user state
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  if (!user) {
-    navigate("/");
-  }
+  useEffect(() => {
+    const fetchMe = async () => {
+      setLoading(true);
+      try {
+        const user = await getMe();
+        setUser(user);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMe();
+  }, []); // Fetch user data on component mount
+
   const login = async (email: string, password: string) => {
     try {
       const res = await loginUser(email, password);
@@ -43,10 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Your are not approve by another admin. Please wait until you approved!"
         );
       }
-      localStorage.setItem("user", JSON.stringify(message));
-
-      setUser(message);
-      navigate("/dashboard");
+      window.location.reload();
     } catch (err) {
       if (err instanceof Error) {
         throw new Error(err.message);
@@ -72,14 +87,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    navigate("/");
+  const logout = async () => {
+    try {
+      await userLogout();
+      window.location.reload();
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(err.message);
+      } else {
+        throw new Error("Connection issue");
+      }
+    }
+    window.location.reload();
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );

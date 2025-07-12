@@ -13,7 +13,6 @@ import Login from "./components/auth/Login";
 import RootLayout from "./components/RootLoyout";
 import Register from "./components/auth/Register";
 import ApproveAdmin from "./components/ApproveAdmin";
-import LoaderFunction from "./LoaderFunction";
 import { NotificationProvider } from "./context/NotificationContext";
 import SearchResults from "./components/dashboard/SearchResults"; // Import SearchResults
 import Profile from "./components/profile/Profile";
@@ -48,9 +47,10 @@ const router = createBrowserRouter([
           {path: "feedback", element: <FeedbackManagement />},
           {path: "analytics", element: <FeedbackAnalytics />},
         
+
         ],
       },
-      { path: "/", element: <Login />, loader: LoaderFunction },
+      { path: "/", element: <Login /> },
       { path: "/register", element: <Register /> },
     ],
   },

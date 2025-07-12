@@ -35,34 +35,69 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(even)": {
     backgroundColor: theme.palette.action.hover,
   },
-  // hide last border
   "&:last-child td, &:last-child th": {
     border: 0,
   },
 }));
+
 export default function ApproveAdmin() {
-  const [admins, setadmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<Admin[]>([]);
   const [status, setStatus] = useState("pending");
   const [search, setSearch] = useState("");
+
+  const fetchAdmins = async () => {
+    try {
+      const response = await getAllAdmins();
+      // --- DEBUGGING: Log the raw response from getAllAdmins() ---
+      console.log("Raw response from getAllAdmins:", response);
+
+      // ✨ CRITICAL CHANGE HERE: Use response directly, as it's already the array
+      const fetchedAdmins = response || []; // No need for '.admins'
+
+      // --- DEBUGGING: Log the extracted fetchedAdmins array ---
+      console.log("Extracted fetchedAdmins (before processing):", fetchedAdmins);
+
+      const processedAdmins = fetchedAdmins.map((admin: Admin) => ({
+        ...admin,
+        isApproved: admin.isApproved ?? false,
+      }));
+      // --- DEBUGGING: Log the processedAdmins array ---
+      console.log("Processed Admins (with isApproved ensured):", processedAdmins);
+
+      setAdmins(processedAdmins);
+      setStatus("success");
+    } catch (error) {
+      console.error("Failed to fetch admins:", error);
+      setStatus("error");
+    }
+  };
+
   useEffect(() => {
-    const fetchAdmins = async () => {
-      try {
-        const { admins } = await getAllAdmins();
-        setadmins(admins);
-        setStatus("success");
-      } catch (error) {
-        setStatus("error");
-      }
-    };
     fetchAdmins();
   }, []);
 
-  // Filter admins by search
+  const handleAdminApproval = async (email: string, isApproved: boolean) => {
+    try {
+      await approveAdmin(email, { isApproved });
+      setAdmins((prevAdmins) =>
+        prevAdmins.map((admin) =>
+          admin.email === email ? { ...admin, isApproved: true } : admin
+        )
+      );
+    } catch (error) {
+      console.error("Failed to approve admin:", error);
+    }
+  };
+
   const filteredAdmins = admins.filter(
     (admin) =>
-      admin.name.toLowerCase().includes(search.toLowerCase()) ||
-      (admin.email && admin.email.toLowerCase().includes(search.toLowerCase()))
+      admin.isApproved &&
+      (admin.name.toLowerCase().includes(search.toLowerCase()) ||
+        (admin.email && admin.email.toLowerCase().includes(search.toLowerCase())))
   );
+  // --- DEBUGGING: Log the final filteredAdmins array that should be displayed ---
+  console.log("Final filteredAdmins (should be displayed):", filteredAdmins);
+
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
@@ -91,7 +126,6 @@ export default function ApproveAdmin() {
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          // bgcolor: "gray",
           alignItems: "center",
           width: "100%",
           mt: 3,
@@ -146,8 +180,6 @@ export default function ApproveAdmin() {
           }}
         />
       </Box>
-      {/* <Box> */}
-
       <TableContainer
         elevation={0}
         component={Paper}
@@ -168,7 +200,7 @@ export default function ApproveAdmin() {
                       fontFamily: "'Public Sans',sans-serif",
                       fontSize: "0.9rem",
                     }}
-                    align={header == "Name" ? "left" : "right"}
+                    align={header === "Name" ? "left" : "right"}
                   >
                     {header}
                   </StyledTableCell>
@@ -177,7 +209,7 @@ export default function ApproveAdmin() {
             </TableHead>
             <TableBody>
               {filteredAdmins.map((row, index) => (
-                <Row key={index} student={row} />
+                <Row key={index} student={row} onApprove={handleAdminApproval} />
               ))}
             </TableBody>
           </Table>
@@ -187,19 +219,20 @@ export default function ApproveAdmin() {
           <Eror />
         )}
       </TableContainer>
-      {/* </Box> */}
     </Box>
   );
 }
 
-function Row({ student }: { student: Admin }) {
-  const [approved, setApproved] = useState(false);
+interface RowProps {
+  student: Admin;
+  onApprove: (email: string, isApproved: boolean) => void;
+}
+
+function Row({ student, onApprove }: RowProps) {
   const handleApprove = async () => {
-    try {
-      await approveAdmin(student.email, { isApproved: true });
-      setApproved(true);
-    } catch (error) {}
+    await onApprove(student.email, true);
   };
+
   return (
     <React.Fragment>
       <StyledTableRow
@@ -234,7 +267,7 @@ function Row({ student }: { student: Admin }) {
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
           align="right"
         >
-          {student.isApproved || approved ? (
+          {student.isApproved ? (
             "Approved"
           ) : (
             <div>

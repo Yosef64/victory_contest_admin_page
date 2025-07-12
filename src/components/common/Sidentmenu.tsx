@@ -70,7 +70,7 @@ export const MenuListItems: {
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
         viewBox="0 0 256 256"
-        style={{ fill: "currentColor" }} // Use style for any specific styles you need
+        style={{ fill: "currentColor" }}
       >
         <g fill="currentColor">
           <path
@@ -96,7 +96,7 @@ export const MenuListItems: {
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
         viewBox="0 0 24 24"
-        style={{ fill: "currentColor" }} // Use style for any specific styles you need
+        style={{ fill: "currentColor" }}
       >
         <circle cx="12" cy="6" r="4" fill="currentColor"></circle>
         <path
@@ -104,6 +104,53 @@ export const MenuListItems: {
           d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5"
           opacity=".5"
         ></path>
+      </svg>
+    ),
+  },
+  {
+    id: 7,
+    title: "Feedback",
+    path: "/dashboard/feedback",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="mr-4 h-5 w-5 align-middle"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        <path d="M8 10h.01"></path>
+        <path d="M12 10h.01"></path>
+        <path d="M16 10h.01"></path>
+      </svg>
+    ),
+  },
+  {
+    id: 8,
+    title: "Analytics",
+    path: "/dashboard/analytics",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="mr-4 h-5 w-5 align-middle"
+      >
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
       </svg>
     ),
   },
@@ -119,9 +166,9 @@ export const MenuListItems: {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className="mr-4 h-5 w-5 align-middle"
       >
         <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
@@ -143,15 +190,15 @@ export const MenuListItems: {
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
         viewBox="0 0 48 48"
-        style={{ fill: "currentColor" }} // Use style for any specific styles you need
+        style={{ fill: "currentColor" }}
       >
         <defs>
           <mask id="iconify-react-754">
             <g
               fill="none"
               stroke="#fff"
-              stroke-linejoin="round"
-              stroke-width="4"
+              strokeLinejoin="round"
+              strokeWidth="4"
             >
               <rect
                 width="36"
@@ -161,7 +208,7 @@ export const MenuListItems: {
                 fill="#555"
                 rx="3"
               ></rect>
-              <path stroke-linecap="round" d="M24 16v16m-8-8h16"></path>
+              <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
             </g>
           </mask>
         </defs>
@@ -187,15 +234,15 @@ export const MenuListItems: {
         height="1.5em"
         preserveAspectRatio="xMidYMid meet"
         viewBox="0 0 48 48"
-        style={{ fill: "currentColor" }} // Use style for any specific styles you need
+        style={{ fill: "currentColor" }}
       >
         <defs>
           <mask id="iconify-react-754">
             <g
               fill="none"
               stroke="#fff"
-              stroke-linejoin="round"
-              stroke-width="4"
+              strokeLinejoin="round"
+              strokeWidth="4"
             >
               <rect
                 width="36"
@@ -205,7 +252,7 @@ export const MenuListItems: {
                 fill="#555"
                 rx="3"
               ></rect>
-              <path stroke-linecap="round" d="M24 16v16m-8-8h16"></path>
+              <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
             </g>
           </mask>
         </defs>

@@ -194,6 +194,7 @@ export const MenuListItems: {
       >
         <defs>
           <mask id="iconify-react-754">
+            <g fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="4"/>
             <g
               fill="none"
               stroke="#fff"
@@ -208,6 +209,7 @@ export const MenuListItems: {
                 fill="#555"
                 rx="3"
               ></rect>
+              <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
               <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
             </g>
           </mask>
@@ -238,6 +240,7 @@ export const MenuListItems: {
       >
         <defs>
           <mask id="iconify-react-754">
+            <g fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="4"/>
             <g
               fill="none"
               stroke="#fff"
@@ -252,6 +255,7 @@ export const MenuListItems: {
                 fill="#555"
                 rx="3"
               ></rect>
+              <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
               <path strokeLinecap="round" d="M24 16v16m-8-8h16"></path>
             </g>
           </mask>

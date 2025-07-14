@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // Import useParams
 import api from "@/services/api"; // Fixed import path
 import leetcodeImage from "../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
@@ -50,7 +50,6 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { CalendarDays } from "lucide-react";
 import QuestionTable from "../questions/QuestionTable";
 import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
-import { useParams } from "react-router-dom";
 import {
   addContest,
   announceContest,
@@ -446,12 +445,13 @@ export default function ContestById() {
   );
 }
 
-const tableHeader = ["Rank", "Contestant", "Solved", "Penality"];
+// Updated tableHeader to include "Time Taken" and "Prize"
+const tableHeader = ["Rank", "Contestant", "Solved", "Penalty", "Time Taken", "Prize"];
 
 interface StandingProps {
   school: string;
   city: string;
-  contest?: any;
+  contest?: any; // Consider defining a more specific type for contest if possible
 }
 
 function Standing({ school, city, contest }: StandingProps) {
@@ -484,6 +484,8 @@ function Standing({ school, city, contest }: StandingProps) {
     return <div className="">Error</div>;
   }
 
+  // Assuming transformSubmission now also calculates and includes 'time_taken'
+  // and that 'prize' will be passed from the contest object.
   const rows = transformSubmission(submissions);
 
   // Filter submissions
@@ -542,7 +544,11 @@ function Standing({ school, city, contest }: StandingProps) {
           </TableHead>
           <TableBody>
             {filteredRows.map((row, index) => (
-              <TableRowComponent key={index} rank={{ ...row, index }} />
+              <TableRowComponent
+                key={index}
+                rank={{ ...row, index }}
+                contestPrize={contest?.prize || 'N/A'} // Pass contest prize to each row
+              />
             ))}
           </TableBody>
         </Table>
@@ -552,10 +558,17 @@ function Standing({ school, city, contest }: StandingProps) {
 }
 
 interface TableRowProps {
-  rank: any;
+  rank: {
+    index: number;
+    name: string;
+    solved: number;
+    penalty: number; // Changed from 'penality' to 'penalty'
+    time_taken?: string; // Assuming transformSubmission provides this
+  };
+  contestPrize: string; // Prize from the contest object
 }
 
-function TableRowComponent({ rank }: TableRowProps) {
+function TableRowComponent({ rank, contestPrize }: TableRowProps) {
   return (
     <TableRow sx={{ borderBottom: "none" }}>
       <TableCell
@@ -604,7 +617,21 @@ function TableRowComponent({ rank }: TableRowProps) {
         sx={{ fontFamily: "'Public Sans',sans-serif", borderBottom: "none" }}
         align="right"
       >
-        {rank.penality}
+        {rank.penalty} {/* Changed from 'rank.penality' to 'rank.penalty' */}
+      </TableCell>
+      {/* New TableCell for Time Taken */}
+      <TableCell
+        sx={{ fontFamily: "'Public Sans',sans-serif", borderBottom: "none" }}
+        align="right"
+      >
+        {rank.time_taken || 'N/A'} {/* Display time_taken if available, otherwise 'N/A' */}
+      </TableCell>
+      {/* New TableCell for Prize */}
+      <TableCell
+        sx={{ fontFamily: "'Public Sans',sans-serif", borderBottom: "none" }}
+        align="right"
+      >
+        {contestPrize}
       </TableCell>
     </TableRow>
   );

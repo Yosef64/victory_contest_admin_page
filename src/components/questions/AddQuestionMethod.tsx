@@ -61,7 +61,7 @@ export function AddQuestionManual() {
     : {
         question_text: "",
         multiple_choice: ["", ""],
-        answer: "",
+        answer: null,
         grade: "",
         subject: "",
         chapter: "",
@@ -87,7 +87,6 @@ export function AddQuestionManual() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    // Validate required fields
     if (Object.values(formData).some((value) => !value)) {
       setSnakOpen(true);
       setAddStatus(500);
@@ -95,16 +94,12 @@ export function AddQuestionManual() {
       return;
     }
     try {
-      // console.log("formData before formDatatosend", formData);
       const formDataToSend = new FormData();
-      // console.log("formData after to send", formData);
-      // Append all question fields
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "multiple_choice" && Array.isArray(value)) {
           value.forEach((v, i) => {
             if (v !== null && v !== undefined) {
               formDataToSend.append(`multiple_choice`, v.toString());
-              console.log(`Appended multiple_choice[${i}]:`, v); // Debug each append
             }
           });
         } else if (value !== null && value !== undefined) {
@@ -112,11 +107,9 @@ export function AddQuestionManual() {
         }
       });
       console.log("question image", questionImage);
-      // Append images if selected
       if (questionImage) formDataToSend.append("question_image", questionImage);
       if (explanationImage)
         formDataToSend.append("explanation_image", explanationImage);
-      console.log("FormDataToSend contents:");
       for (const [key, value] of formDataToSend.entries()) {
         console.log(`${key}:`, value instanceof File ? value.name : value);
       }
@@ -171,24 +164,7 @@ export function AddQuestionManual() {
         handleClose={handleClose}
         addStatus={addStatus}
       />
-      {/* Question Image Input */}
-      {/* <Box sx={{ mb: 2 }}>
-        <Button
-          variant="outlined"
-          onClick={() => questionImageInputRef.current?.click()}
-          sx={{ mb: 1 }}
-        >
-          Select Question Image
-        </Button>
-        <input
-          type="file"
-          accept="image/*"
-          ref={questionImageInputRef}
-          style={{ display: "none" }}
-          onChange={(e) => setQuestionImage(e.target.files?.[0] || null)}
-        />
-        {questionImage && <span>{questionImage.name}</span>}
-      </Box> */}
+
       <textarea
         id="message"
         rows={4}
@@ -198,7 +174,6 @@ export function AddQuestionManual() {
           setFormData({ ...formData, question_text: e.target.value })
         }
         value={formData.question_text}
-
       ></textarea>
 
       <div className="w-100 mt-3">
@@ -250,13 +225,13 @@ export function AddQuestionManual() {
         <div>
           <p className="font-sans my-5 font-semibold text-lg">Value</p>
           <input
-            type="text"
+            type="number"
             id="answer"
-            value={formData.answer}
+            value={formData.answer!}
             className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-[20%] p-2.5 focus:outline-none"
             placeholder="Answer"
             onChange={(e) =>
-              setFormData({ ...formData, answer: e.target.value })
+              setFormData({ ...formData, answer: Number(e.target.value) })
             }
             required
           />
@@ -541,7 +516,7 @@ export function UploadQuestonsComponent() {
                     }}
                   >
                     <Checkbox
-                      checked={question.answer === String.fromCharCode(65 + i)} // A=65, B=66, etc.
+                      checked={question.answer === i + 1} // A=65, B=66, etc.
                       sx={{
                         "&.Mui-checked": {
                           color: "#00AB55",

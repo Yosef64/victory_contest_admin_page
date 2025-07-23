@@ -24,7 +24,7 @@ interface TimePickerComponentProps {
 export function TimePickerComponent({
   timeChangeHandler,
   value,
-  format = "hh:mm A"
+  format = "hh:mm A",
 }: TimePickerComponentProps) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -32,6 +32,7 @@ export function TimePickerComponent({
         onChange={timeChangeHandler}
         value={value}
         format={format}
+        ampm={true}
         slotProps={{
           textField: {
             sx: {

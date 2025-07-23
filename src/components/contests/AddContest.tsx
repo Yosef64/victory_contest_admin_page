@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import dayjs from "dayjs"; // Import dayjs
+import dayjs from "dayjs";
+import { toast } from "sonner";
 
 export default function AddContest() {
   const [selectedRows, setSelectedRows] = React.useState<Question[]>([]);
@@ -35,7 +36,10 @@ export default function AddContest() {
     subject: "",
     date: "",
     prize: "",
+    type: "free",
+    status: "inactive",
   });
+
   const handleClose = (
     _event: React.SyntheticEvent | Event,
     reason?: SnackbarCloseReason
@@ -43,14 +47,31 @@ export default function AddContest() {
     if (reason === "clickaway") {
       return;
     }
-
     setSnakOpen(false);
   };
+
   function timeChangeHandler(newValue: dayjs.Dayjs | null, pos: string) {
+    if (!contest.date || !newValue) {
+      toast.error("Please select a date first.", {
+        style: {
+          background: "#f44336",
+          color: "#fff",
+        },
+      });
+      return;
+    }
+
+    const selectedDate = dayjs(contest.date);
+    const combinedDateTime = selectedDate
+      .hour(newValue.hour())
+      .minute(newValue.minute())
+      .second(newValue.second());
+    const formattedDateTime = combinedDateTime.format("YYYY-MM-DDTHH:mm:ss");
+
+    // Update the state with the formatted string.
     setContest({
       ...contest,
-      [pos === "start" ? "start_time" : "end_time"]:
-        newValue ? newValue.format("hh:mm A") : "", // Ensure format only if newValue is not null
+      [pos === "start" ? "start_time" : "end_time"]: formattedDateTime,
     });
   }
 
@@ -59,7 +80,6 @@ export default function AddContest() {
       const isAlreadySelected = prevSelectedRows.some(
         (row: Question) => row.id === newSelection.id
       );
-      console.log(newSelection);
 
       if (isAlreadySelected) {
         return prevSelectedRows.filter(
@@ -72,12 +92,12 @@ export default function AddContest() {
   };
 
   async function handleSubmitContest() {
-    console.log("from handle submit function", contest.date);
     const contestData: Contest = {
       ...contest,
       questions: selectedRows,
     };
     setIsLoading(true);
+    console.log("Submitting Contest Data:", contestData); // The times here will now be in the correct format.
     try {
       await addContest(contestData);
       setaddStatus(200);
@@ -132,7 +152,7 @@ export default function AddContest() {
 
           <input
             type="text"
-            className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
+            className="bg-gray-50 h-12 border mt-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
             placeholder="Prize (e.g., $100, Medal, Trophy)"
             onChange={(e) => setContest({ ...contest, prize: e.target.value })}
           />
@@ -152,7 +172,6 @@ export default function AddContest() {
       </Box>
       <div className="flex flex-col mb-8">
         <div className="font-sans text-gray-500 mb-3 text-[17px] font-semibold">
-          {" "}
           Info
         </div>
         <div className="flex gap-4">
@@ -193,6 +212,22 @@ export default function AddContest() {
               </SelectGroup>
             </SelectContent>
           </Select>
+          <Select
+            onValueChange={(value) =>
+              setContest({ ...contest, type: (value as "free") || "premium" })
+            }
+          >
+            <SelectTrigger className="w-[180px] h-[50px]">
+              <SelectValue placeholder="Select Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Type</SelectLabel>
+                <SelectItem value="free">Free</SelectItem>
+                <SelectItem value="premium">Premium</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <Typography
@@ -211,6 +246,7 @@ export default function AddContest() {
         alignItems={"center"}
         justifyContent={"space-between"}
         sx={{ mb: 3 }}
+        spacing={2}
       >
         <Grid item xs={12} md={3}>
           <Typography
@@ -218,6 +254,7 @@ export default function AddContest() {
               color: "rgb(99, 115, 129)",
               fontFamily: "'Public Sans',sans-serif",
               fontSize: 14,
+              mb: 1,
             }}
           >
             Date
@@ -230,6 +267,7 @@ export default function AddContest() {
               color: "rgb(99, 115, 129)",
               fontFamily: "'Public Sans',sans-serif",
               fontSize: 14,
+              mb: 1,
             }}
           >
             Start Time
@@ -238,16 +276,18 @@ export default function AddContest() {
             timeChangeHandler={(newValue: any) =>
               timeChangeHandler(newValue, "start")
             }
-            // Pass the current start_time from contest state
-            value={contest.start_time ? dayjs(contest.start_time, "hh:mm A") : null}
+            // Pass the current start_time from contest state.
+            // dayjs can parse the "YYYY-MM-DDTHH:mm:ss" format directly.
+            value={contest.start_time ? dayjs(contest.start_time) : null}
           />
         </Grid>
-        <Grid xs={12} md={3}>
+        <Grid item xs={12} md={3}>
           <Typography
             sx={{
               color: "rgb(99, 115, 129)",
               fontFamily: "'Public Sans',sans-serif",
               fontSize: 14,
+              mb: 1,
             }}
           >
             End Time
@@ -256,8 +296,8 @@ export default function AddContest() {
             timeChangeHandler={(newValue: any) =>
               timeChangeHandler(newValue, "end")
             }
-            // Pass the current end_time from contest state
-            value={contest.end_time ? dayjs(contest.end_time, "hh:mm A") : null}
+            // Pass the current end_time from contest state.
+            value={contest.end_time ? dayjs(contest.end_time) : null}
           />
         </Grid>
       </Grid>

@@ -97,7 +97,7 @@ export function AddQuestionManual() {
       const formDataToSend = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "multiple_choice" && Array.isArray(value)) {
-          value.forEach((v, i) => {
+          value.forEach((v, _) => {
             if (v !== null && v !== undefined) {
               formDataToSend.append(`multiple_choice`, v.toString());
             }

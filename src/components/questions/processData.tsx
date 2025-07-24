@@ -34,7 +34,7 @@ function parseQuestionsWithChoices(text: string): Question[] {
       currentQuestion = {
         question_text: questionMatch[1].trim(),
         multiple_choice: [],
-        answer: "",
+        answer: null,
         explanation: "",
         grade: currentGrade,
         subject: currentSubject,
@@ -45,7 +45,7 @@ function parseQuestionsWithChoices(text: string): Question[] {
       currentQuestion.multiple_choice.push(choiceMatch[2].trim());
       currentChange = { question: false, choice: true, exp: false };
     } else if (answerMatch && currentQuestion) {
-      currentQuestion.answer = answerMatch[1].trim();
+      currentQuestion.answer = Number(answerMatch[1].trim());
     } else if (expMatch && currentQuestion) {
       const explanation = line.replace("Explanation:", "").trim();
       currentQuestion.explanation += explanation;

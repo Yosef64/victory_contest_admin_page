@@ -15,10 +15,8 @@ function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams() as { id: string }; // Assuming the user ID is passed as a URL parameter
 
-  // Simulate loading user data
   useEffect(() => {
     const loadUserData = async () => {
-      // Simulate API call delay
       const res: User = await getUserProfile(id);
       setUser(res);
       setIsLoading(false);
@@ -29,12 +27,10 @@ function Profile() {
 
   const handleDeleteUser = () => {
     console.log("Deleting user:", user.id);
-    // In a real app, you would make an API call here
   };
 
   const handleNotifyUser = () => {
     console.log("Notifying user:", user.id);
-    // In a real app, you would make an API call here
   };
 
   if (isLoading) {

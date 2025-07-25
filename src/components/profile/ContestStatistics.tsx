@@ -62,12 +62,12 @@ export function ContestStatistics({ user }: ContestStatisticsProps) {
     >();
 
     user.contestSubmissions.forEach((submission) => {
-      const existing = gradeMap.get(submission.contest.grade) || {
+      const existing = gradeMap.get(Number(submission.contest.grade)) || {
         total: 0,
         correct: 0,
         missed: 0,
       };
-      gradeMap.set(submission.contest.grade, {
+      gradeMap.set(Number(submission.contest.grade), {
         total: existing.total + submission.totalQuestions,
         correct: existing.correct + submission.correctAnswers,
         missed: existing.missed + submission.missedQuestions,

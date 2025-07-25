@@ -21,7 +21,7 @@ export interface Payment {
 }
 export interface ContestSubmission {
   id: string;
-  contest: { title: string; subject: string; grade: number };
+  contest: { title: string; subject: string; grade: string };
   totalQuestions: number;
   correctAnswers: number;
   missedQuestions: number;

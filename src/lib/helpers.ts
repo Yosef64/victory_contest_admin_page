@@ -11,7 +11,7 @@ export function transformSubmission(submissions: Submission[]) {
     return {
       name: sub.student.name,
       rank: index + 1,
-      penalty: sub.missed_question.length,
+      penalty: sub.missed_questions.length,
       solved: sub.score,
     };
   });

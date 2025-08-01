@@ -94,7 +94,7 @@ export default function AddContest() {
   async function handleSubmitContest() {
     const contestData: Contest = {
       ...contest,
-      questions: selectedRows,
+      questions: selectedRows.map((q) => q.id!) || [],
     };
     setIsLoading(true);
     console.log("Submitting Contest Data:", contestData); // The times here will now be in the correct format.

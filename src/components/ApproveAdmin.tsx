@@ -54,17 +54,7 @@ export default function ApproveAdmin() {
       // ✨ CRITICAL CHANGE HERE: Use response directly, as it's already the array
       const fetchedAdmins = response || []; // No need for '.admins'
 
-      // --- DEBUGGING: Log the extracted fetchedAdmins array ---
-      console.log("Extracted fetchedAdmins (before processing):", fetchedAdmins);
-
-      const processedAdmins = fetchedAdmins.map((admin: Admin) => ({
-        ...admin,
-        isApproved: admin.isApproved ?? false,
-      }));
-      // --- DEBUGGING: Log the processedAdmins array ---
-      console.log("Processed Admins (with isApproved ensured):", processedAdmins);
-
-      setAdmins(processedAdmins);
+      setAdmins(fetchedAdmins);
       setStatus("success");
     } catch (error) {
       console.error("Failed to fetch admins:", error);
@@ -91,13 +81,11 @@ export default function ApproveAdmin() {
 
   const filteredAdmins = admins.filter(
     (admin) =>
-      admin.isApproved &&
-      (admin.name.toLowerCase().includes(search.toLowerCase()) ||
-        (admin.email && admin.email.toLowerCase().includes(search.toLowerCase())))
+      admin.name.toLowerCase().includes(search.toLowerCase()) ||
+      (admin.email && admin.email.toLowerCase().includes(search.toLowerCase()))
   );
   // --- DEBUGGING: Log the final filteredAdmins array that should be displayed ---
   console.log("Final filteredAdmins (should be displayed):", filteredAdmins);
-
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
@@ -209,7 +197,11 @@ export default function ApproveAdmin() {
             </TableHead>
             <TableBody>
               {filteredAdmins.map((row, index) => (
-                <Row key={index} student={row} onApprove={handleAdminApproval} />
+                <Row
+                  key={index}
+                  student={row}
+                  onApprove={handleAdminApproval}
+                />
               ))}
             </TableBody>
           </Table>
@@ -267,7 +259,7 @@ function Row({ student, onApprove }: RowProps) {
           sx={{ fontFamily: "'Public Sans',sans-serif" }}
           align="right"
         >
-          {student.isApproved ? (
+          {student.is_approved ? (
             "Approved"
           ) : (
             <div>

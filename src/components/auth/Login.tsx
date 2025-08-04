@@ -24,6 +24,7 @@ export default function Login() {
     }
     setStatus("pending");
     try {
+      console.log(formData);
       await login(formData.email, formData.password);
       setStatus("success");
     } catch (err) {

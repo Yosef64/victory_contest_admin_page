@@ -12,9 +12,8 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getContests } from "@/lib/utils";
 import ErrorComponent, { Loading } from "../common/Stauts";
-import { getRankings } from "@/services/contestServices";
+import { getContests, getRankings } from "@/services/contestServices";
 import { StyledBadge } from "../ui/styled-badge";
 import { CalendarIcon, Circle } from "lucide-react";
 
@@ -189,11 +188,11 @@ export function ListOfContest({ grade, subject }: ListOfContestProps) {
 
 export function Rankings({}) {
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["student-rankings"],
+    queryKey: ["leaderboard"],
     queryFn: async () => {
       const res = await getRankings();
       // getRankings returns { rankings: Rank[] }
-      return res.rankings;
+      return res.leaderboard;
     },
   });
 
@@ -224,7 +223,7 @@ export function Rankings({}) {
       </div>
       <List>
         {ranking.map((user) => (
-          <ListItem key={user.telegram_id}>
+          <ListItem key={user.user_id}>
             <ListItemAvatar>
               <StyledBadge
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
@@ -235,13 +234,13 @@ export function Rankings({}) {
                   {user.imgurl ? (
                     <img
                       src={user.imgurl}
-                      alt={user.name}
+                      alt={user.user_name}
                       style={{ objectFit: "contain" }}
                       width="100%"
                       height="100%"
                     />
                   ) : (
-                    user.name?.[0] || "U"
+                    user.user_name?.[0] || "U"
                   )}
                 </Avatar>
               </StyledBadge>
@@ -258,8 +257,8 @@ export function Rankings({}) {
                   whiteSpace: "nowrap",
                 },
               }}
-              primary={`${user.name}`}
-              secondary={`Points: ${user.total_points}`}
+              primary={`${user.user_name}`}
+              secondary={`Points: ${user.score}`}
             />
           </ListItem>
         ))}

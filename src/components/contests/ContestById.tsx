@@ -15,7 +15,12 @@ import {
   IconButton,
   Avatar,
   Chip,
-  Dialog, DialogActions, DialogContent, DialogContentText, Button, DialogTitle
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  Button,
+  DialogTitle,
 } from "@mui/material";
 import {
   Select,
@@ -31,7 +36,7 @@ import { useNavigate, useParams } from "react-router-dom"; // Import useParams
 import api from "@/services/api"; // Fixed import path
 import leetcodeImage from "../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
-import { deleteContest, getAllStudents } from "@/lib/utils";
+import { deleteContest } from "@/lib/utils";
 import { Student } from "@/types/models";
 import {
   Menubar,
@@ -51,7 +56,6 @@ import { CalendarDays } from "lucide-react";
 import QuestionTable from "../questions/QuestionTable";
 import { useQuery, useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 import {
-  addContest,
   announceContest,
   getContestById,
   getSubmissionByContest,
@@ -61,6 +65,8 @@ import { transformSubmission } from "@/lib/helpers";
 import { DialogBox } from "../common/DialogBox"; // Corrected import path for DialogBox
 import { Loading } from "../common/Stauts";
 import dayjs from "dayjs"; // Import dayjs for date formatting
+import { addContest } from "@/services/contestServices";
+import { getAllStudents } from "@/services/studentServices";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -107,7 +113,6 @@ export default function ContestById() {
   const [updateTimeDialogOpen, setUpdateTimeDialogOpen] = useState(false);
   // Removed isMenubarOpen state as it's not directly controlling MenubarMenu
 
-
   // Fetch schools and cities
   useEffect(() => {
     const fetchData = async () => {
@@ -143,7 +148,7 @@ export default function ContestById() {
     if (!contest) return;
     try {
       await deleteContest(contest.id!);
-      navigate('/dashboard/contest');
+      navigate("/dashboard/contest");
     } catch (error) {
       console.error("Error deleting contest:", error);
     }
@@ -166,11 +171,11 @@ export default function ContestById() {
         // Ensure the data object is passed directly, not wrapped in another 'data' key
         await updateContest(contest, {
           start_time: time.start_time,
-          end_time: time.end_time
+          end_time: time.end_time,
         });
       }
       // Invalidate and refetch contest data after successful action
-      queryClient.invalidateQueries({ queryKey: ['contest', id] });
+      queryClient.invalidateQueries({ queryKey: ["contest", id] });
     } catch (error) {
       console.error(`Error performing ${action} action:`, error);
       // Optionally, show an error message to the user
@@ -188,18 +193,20 @@ export default function ContestById() {
   };
 
   return (
-
     <Box sx={{ gap: 10 }}>
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Delete Contest</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this contest? This action cannot be undone.
+            Are you sure you want to delete this contest? This action cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-          <Button onClick={handleConfirmDelete} color="error">Delete</Button>
+          <Button onClick={handleConfirmDelete} color="error">
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -285,7 +292,9 @@ export default function ContestById() {
                     <CalendarDays className="mr-2 h-4 w-4 opacity-70 " />{" "}
                     <span className="text-xs text-muted-foreground ">
                       {status === "success" && contest?.date
-                        ? `Scheduled: ${dayjs(contest.date).format("MMM D, YYYY")}`
+                        ? `Scheduled: ${dayjs(contest.date).format(
+                            "MMM D, YYYY"
+                          )}`
                         : "Date not available"}
                     </span>
                   </div>
@@ -306,7 +315,9 @@ export default function ContestById() {
             </HoverCardContent>
           </HoverCard>
           <Menubar className="bg-inherit border-none cursor-pointer">
-            <MenubarMenu> {/* Removed open and onOpenChange here */}
+            <MenubarMenu>
+              {" "}
+              {/* Removed open and onOpenChange here */}
               <MenubarTrigger className="cursor-pointer">
                 <MoreVertIcon sx={{ color: "black", fontSize: 18 }} />
               </MenubarTrigger>
@@ -314,18 +325,32 @@ export default function ContestById() {
                 style={{ fontFamily: "'Public Sans',sans-serif" }}
                 className="w-2"
               >
-                <MenubarItem onClick={() => { setAnnounceDialogOpen(true); }}>
+                <MenubarItem
+                  onClick={() => {
+                    setAnnounceDialogOpen(true);
+                  }}
+                >
                   Announce Contest
                 </MenubarItem>
-                <MenubarItem onClick={() => { setCloneDialogOpen(true); }}>
+                <MenubarItem
+                  onClick={() => {
+                    setCloneDialogOpen(true);
+                  }}
+                >
                   Clone contest
                 </MenubarItem>
-                <MenubarItem onClick={() => { setUpdateTimeDialogOpen(true); }}>
+                <MenubarItem
+                  onClick={() => {
+                    setUpdateTimeDialogOpen(true);
+                  }}
+                >
                   Update time
                 </MenubarItem>
                 <MenubarItem
                   className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red-500"
-                  onClick={() => { handleOpenDeleteDialog(); }}
+                  onClick={() => {
+                    handleOpenDeleteDialog();
+                  }}
                 >
                   Delete contest
                 </MenubarItem>
@@ -446,7 +471,14 @@ export default function ContestById() {
 }
 
 // Updated tableHeader to include "Time Taken" and "Prize"
-const tableHeader = ["Rank", "Contestant", "Solved", "Penalty", "Time Taken", "Prize"];
+const tableHeader = [
+  "Rank",
+  "Contestant",
+  "Solved",
+  "Penalty",
+  "Time Taken",
+  "Prize",
+];
 
 interface StandingProps {
   school: string;
@@ -489,7 +521,7 @@ function Standing({ school, city, contest }: StandingProps) {
   const rows = transformSubmission(submissions);
 
   // Filter submissions
-  const filteredRows = rows.filter(row => {
+  const filteredRows = rows.filter((row) => {
     const student = studentsMap[row.name];
     if (!student) return false;
 
@@ -501,12 +533,16 @@ function Standing({ school, city, contest }: StandingProps) {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}>
-          Start Time: {contest?.start_time || 'N/A'}
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Typography
+          sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}
+        >
+          Start Time: {contest?.start_time || "N/A"}
         </Typography>
-        <Typography sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}>
-          End Time: {contest?.end_time || 'N/A'}
+        <Typography
+          sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}
+        >
+          End Time: {contest?.end_time || "N/A"}
         </Typography>
       </Box>
       <TableContainer
@@ -547,7 +583,7 @@ function Standing({ school, city, contest }: StandingProps) {
               <TableRowComponent
                 key={index}
                 rank={{ ...row, index }}
-                contestPrize={contest?.prize || 'N/A'} // Pass contest prize to each row
+                contestPrize={contest?.prize || "N/A"} // Pass contest prize to each row
               />
             ))}
           </TableBody>
@@ -624,7 +660,8 @@ function TableRowComponent({ rank, contestPrize }: TableRowProps) {
         sx={{ fontFamily: "'Public Sans',sans-serif", borderBottom: "none" }}
         align="right"
       >
-        {rank.time_taken || 'N/A'} {/* Display time_taken if available, otherwise 'N/A' */}
+        {rank.time_taken || "N/A"}{" "}
+        {/* Display time_taken if available, otherwise 'N/A' */}
       </TableCell>
       {/* New TableCell for Prize */}
       <TableCell

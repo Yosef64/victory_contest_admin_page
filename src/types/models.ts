@@ -17,7 +17,7 @@ export interface Admin {
   password?: string;
   email: string;
   imgurl?: string;
-  isApproved?: boolean;
+  is_approved?: boolean;
 }
 export interface ExtendedContestSubmission extends Student {}
 

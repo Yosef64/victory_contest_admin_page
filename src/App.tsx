@@ -18,7 +18,7 @@ import SearchResults from "./components/dashboard/SearchResults"; // Import Sear
 import Profile from "./components/profile/Profile";
 import FeedbackManagement from "./components/admin/FeedbackManagement";
 import FeedbackAnalytics from "./components/analytics/FeedbackAnalytics";
-
+import { PaymentsPage } from "./components/payment/Payment";
 
 const router = createBrowserRouter([
   {
@@ -44,10 +44,9 @@ const router = createBrowserRouter([
           { path: "search", element: <SearchResults /> }, // Add this new route for search results
           { path: "user/:id", element: <Profile /> },
 
-          {path: "feedback", element: <FeedbackManagement />},
-          {path: "analytics", element: <FeedbackAnalytics />},
-        
-
+          { path: "feedback", element: <FeedbackManagement /> },
+          { path: "analytics", element: <FeedbackAnalytics /> },
+          { path: "payment", element: <PaymentsPage /> },
         ],
       },
       { path: "/", element: <Login /> },

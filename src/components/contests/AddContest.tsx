@@ -4,9 +4,9 @@ import { DatePickerDemo, TimePickerComponent } from "./DatePicker";
 import LoadingButton from "@mui/lab/LoadingButton";
 import SnackBar from "../questions/Snackbar";
 import { Contest, Question } from "../../types/models";
-import { addContest } from "@/lib/utils";
 import Questions from "./Questions";
 import { grades, Subjects } from "../questions/Data";
+import { addContest } from "@/services/contestServices";
 import {
   Select,
   SelectContent,
@@ -99,6 +99,7 @@ export default function AddContest() {
     setIsLoading(true);
     console.log("Submitting Contest Data:", contestData); // The times here will now be in the correct format.
     try {
+      console.log("Contest",contestData)
       await addContest(contestData);
       setaddStatus(200);
     } catch (error) {

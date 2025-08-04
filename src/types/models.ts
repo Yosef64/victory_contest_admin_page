@@ -17,7 +17,7 @@ export interface Admin {
   password?: string;
   email: string;
   imgurl?: string;
-  isApproved?: boolean;
+  is_approved?: boolean;
 }
 export interface ExtendedContestSubmission extends Student {}
 
@@ -26,7 +26,7 @@ export interface Contest {
   date: string | Date;
   title: string;
   description?: string;
-  questions: Question[];
+  questions: string[];
   start_time: string;
   end_time: string;
   active_contenstants?: Student[];
@@ -76,5 +76,5 @@ export interface Submission {
   contest_id: string;
   submission_time: string;
   score: number;
-  missed_question: Question[];
+  missed_questions: Question[];
 }

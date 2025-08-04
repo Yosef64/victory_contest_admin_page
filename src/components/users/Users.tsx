@@ -28,7 +28,7 @@ import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import { styled } from "@mui/material/styles";
 import { filterStudentByCityAndGrade } from "../../lib/studentFilter";
 import { Student } from "../../types/models";
-import { getAllStudents } from "@/lib/utils";
+import { getAllStudents } from "../../services/studentServices";
 import { Loading } from "../common/Stauts";
 import { Tooltip } from "@mui/material";
 import ErrorComponent from "../common/Stauts";

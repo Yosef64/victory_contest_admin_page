@@ -39,18 +39,23 @@ interface PollOption {
   requiresContact: boolean;
 }
 
+interface QuestionResponse {
+  question_id: string;
+  selected_option: string;
+}
+
 interface FeedbackResponse {
   id: string;
   studentId: string;
   studentName: string;
-  questionResponses: { [questionId: string]: string };
+  questionResponses: { [questionId: string]: QuestionResponse };
   comment: string;
   pollResponse: string;
   contactInfo?: {
     score: number;
     phoneNumber: string;
+    language: string;
   };
-  language: 'english' | 'amharic';
   submittedAt: string;
 }
 
@@ -87,7 +92,7 @@ export default function FeedbackManagement() {
   });
 
   // Use the API base URL from your environment or shared config (e.g., api.ts)
-  const API_BASE_URL = import.meta.env.VITE_API_URL;
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "https://txnfqqn7-8081.euw.devtunnels.ms";
 
   useEffect(() => {
     fetchQuestions();
@@ -97,13 +102,14 @@ export default function FeedbackManagement() {
 
   const fetchQuestions = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/feedback/questions`);
+      const response = await axios.get(`${API_BASE_URL}/api/feedback-question/`);
+      console.log('Questions response:', response.data);
       const fetchedQuestions: FeedbackQuestion[] = response.data.questions.map((q: any) => ({
         id: q.id,
         question: q.question,
         options: q.options || [],
-        isActive: q.isActive,
-        createdAt: q.createdAt
+        isActive: q.is_active,
+        createdAt: q.created_at
       }));
       setQuestions(fetchedQuestions);
     } catch (error) {
@@ -114,13 +120,14 @@ export default function FeedbackManagement() {
 
   const fetchPollOptions = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/feedback/poll-options`);
-      const fetchedPollOptions: PollOption[] = response.data.poll_options.map((po: any) => ({
+      const response = await axios.get(`${API_BASE_URL}/api/poll-option/`);
+      console.log('Poll options response:', response.data);
+      const fetchedPollOptions: PollOption[] = response.data.options.map((po: any) => ({
         id: po.id,
         label: po.label,
-        minScore: po.minScore,
-        maxScore: po.maxScore,
-        requiresContact: po.requiresContact
+        minScore: po.min_score,
+        maxScore: po.max_score,
+        requiresContact: po.requires_contact
       }));
       setPollOptions(fetchedPollOptions);
     } catch (error) {
@@ -136,44 +143,35 @@ export default function FeedbackManagement() {
 
   const fetchResponses = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/feedback/responses`);
-      const fetchedResponses: FeedbackResponse[] = response.data.responses.map((r: any) => ({
-        id: r.id,
-        studentId: r.studentId,
-        studentName: r.studentName,
-        questionResponses: r.questionResponses,
-        comment: r.comment,
-        pollResponse: r.pollResponse,
-        contactInfo: r.contactInfo,
-        language: r.language,
-        submittedAt: r.submittedAt
-      }));
+      const response = await axios.get(`${API_BASE_URL}/api/feedback-response/`);
+      console.log('Responses response:', response.data);
+      console.log('Raw responses array:', response.data.responses);
+
+      const fetchedResponses: FeedbackResponse[] = response.data.responses.map((r: any) => {
+        console.log('Processing response:', r);
+        console.log('Contact info:', r.contact_info);
+
+        return {
+          id: r.id,
+          studentId: r.student_id,
+          studentName: r.student_name,
+          questionResponses: r.question_responses || {},
+          comment: r.comment || '',
+          pollResponse: r.poll_response,
+          contactInfo: r.contact_info ? {
+            score: r.contact_info.score,
+            phoneNumber: r.contact_info.phone_number, // Transform from snake_case to camelCase
+            language: r.contact_info.language
+          } : undefined,
+          submittedAt: r.submitted_at
+        };
+      });
+
+      console.log('Transformed responses:', fetchedResponses);
       setResponses(fetchedResponses);
     } catch (error) {
       console.error('Error fetching responses:', error);
-      setResponses([ // Fallback or initial data
-        {
-          id: 'r1',
-          studentId: 's1',
-          studentName: 'John Doe',
-          questionResponses: { '1': 'Excellent', '2': 'Good' },
-          comment: 'Great course, very helpful!',
-          pollResponse: 'Between 500-600',
-          contactInfo: { score: 580, phoneNumber: '+1234567890' },
-          language: 'english',
-          submittedAt: '2024-07-10T09:00:00Z'
-        },
-        {
-          id: 'r2',
-          studentId: 's2',
-          studentName: 'Jane Smith',
-          questionResponses: { '1': 'Good', '2': 'Average' },
-          comment: '',
-          pollResponse: 'Less than 400',
-          language: 'english',
-          submittedAt: '2024-07-09T14:00:00Z'
-        }
-      ]);
+      setResponses([]); // Set to empty array on error
     }
   };
 
@@ -183,12 +181,13 @@ export default function FeedbackManagement() {
         question: newQuestion.question,
         options: newQuestion.options.filter(opt => opt.trim() !== ''),
         admin_id: "admin_user_id", // Placeholder: Replace with actual admin ID from auth context
+        is_active: true
       };
 
       if (editingQuestion) {
-        await axios.put(`${API_BASE_URL}/api/feedback/questions/${editingQuestion.id}`, questionData);
+        await axios.put(`${API_BASE_URL}/api/feedback-question/${editingQuestion.id}`, questionData);
       } else {
-        await axios.post(`${API_BASE_URL}/api/feedback/questions`, questionData);
+        await axios.post(`${API_BASE_URL}/api/feedback-question/`, questionData);
       }
 
       setOpenDialog(false);
@@ -217,15 +216,15 @@ export default function FeedbackManagement() {
     try {
       switch (itemToDeleteType) {
         case 'question':
-          await axios.delete(`${API_BASE_URL}/api/feedback/questions/${itemToDeleteId}`);
+          await axios.delete(`${API_BASE_URL}/api/feedback-question/${itemToDeleteId}`);
           fetchQuestions();
           break;
         case 'pollOption':
-          await axios.delete(`${API_BASE_URL}/api/feedback/poll-options/${itemToDeleteId}`);
+          await axios.delete(`${API_BASE_URL}/api/poll-option/${itemToDeleteId}`);
           fetchPollOptions();
           break;
         case 'response':
-          await axios.delete(`${API_BASE_URL}/api/feedback/responses/${itemToDeleteId}`);
+          await axios.delete(`${API_BASE_URL}/api/feedback-response/${itemToDeleteId}`);
           fetchResponses();
           break;
         default:
@@ -248,7 +247,22 @@ export default function FeedbackManagement() {
 
   const toggleQuestionStatus = async (id: string, isActive: boolean) => {
     try {
-      await axios.put(`${API_BASE_URL}/api/feedback/questions/${id}/status`, { isActive });
+      // Find the current question to get all its data
+      const currentQuestion = questions.find(q => q.id === id);
+      if (!currentQuestion) {
+        console.error('Question not found');
+        return;
+      }
+
+      // Send the complete question data with updated is_active status
+      const updateData = {
+        question: currentQuestion.question,
+        options: currentQuestion.options,
+        admin_id: "admin_user_id", // Use the same admin_id as when creating
+        is_active: isActive
+      };
+
+      await axios.put(`${API_BASE_URL}/api/feedback-question/${id}`, updateData);
       fetchQuestions();
     } catch (error) {
       console.error('Error toggling question status:', error);
@@ -265,9 +279,9 @@ export default function FeedbackManagement() {
       };
 
       if (editingPoll) {
-        await axios.put(`${API_BASE_URL}/api/feedback/poll-options/${editingPoll.id}`, pollOptionData);
+        await axios.put(`${API_BASE_URL}/api/poll-option/${editingPoll.id}`, pollOptionData);
       } else {
-        await axios.post(`${API_BASE_URL}/api/feedback/poll-options`, pollOptionData);
+        await axios.post(`${API_BASE_URL}/api/poll-option/`, pollOptionData);
       }
       setPollDialog(false);
       setEditingPoll(null);
@@ -291,6 +305,11 @@ export default function FeedbackManagement() {
     confirmDelete(id, 'response');
   };
 
+  // Helper function to get question text by ID
+  const getQuestionText = (questionId: string) => {
+    const question = questions.find(q => q.id === questionId);
+    return question ? question.question : `Question ${questionId}`;
+  };
 
   const TabPanel = ({ children, value, index }: { children: React.ReactNode; value: number; index: number }) => (
     <div hidden={value !== index}>
@@ -312,7 +331,7 @@ export default function FeedbackManagement() {
       {/* Tab Navigation */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          
+
           {['Questions', 'Poll Options', 'Responses'].map((tab: string, index: number) => (
             <Button
               key={tab}
@@ -487,59 +506,100 @@ export default function FeedbackManagement() {
           <Button
             variant="outlined"
             startIcon={<BarChart />}
-            onClick={() => navigate('../analytics')} 
+            onClick={() => navigate('../analytics')}
           >
             View Analytics
           </Button>
         </Box>
 
         <Grid container spacing={3}>
-          {responses.map((response) => (
-            <Grid item xs={12} key={response.id}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6">{response.studentName}</Typography>
-                    <Chip
-                      label={response.language === 'english' ? 'English' : 'Amharic'}
-                      size="small"
-                    />
-                  </Box>
-
-                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                    Submitted: {new Date(response.submittedAt).toLocaleDateString()}
-                  </Typography>
-
-                  {response.comment && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="body2">{response.comment}</Typography>
+          {responses.length > 0 ? (
+            responses.map((response) => (
+              <Grid item xs={12} key={response.id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6">{response.studentName}</Typography>
+                      <Chip
+                        label={response.contactInfo?.language === 'amharic' ? 'Amharic' : 'English'}
+                        size="small"
+                      />
                     </Box>
-                  )}
 
-                  {response.contactInfo && (
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                      Submitted: {new Date(response.submittedAt).toLocaleDateString()}
+                    </Typography>
+
+                    {/* Question Responses */}
+                    {Object.keys(response.questionResponses).length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Question Responses:</Typography>
+                        {Object.entries(response.questionResponses).map(([questionId, questionResponse]) => (
+                          <Box key={questionId} sx={{ mb: 1, pl: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              {getQuestionText(questionId)}:
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: 'text.secondary', ml: 2 }}>
+                              {questionResponse.selected_option}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+
+                    {/* Poll Response */}
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle2">Contact Info:</Typography>
-                      <Typography variant="body2">
-                        Score: {response.contactInfo.score} | Phone: {response.contactInfo.phoneNumber}
+                      <Typography variant="subtitle2">Score Range:</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        {response.pollResponse}
                       </Typography>
                     </Box>
-                  )}
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                    <IconButton
-                      onClick={() => handleDeleteResponse(response.id)} // Calls confirmation
-                      color="error"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Box>
+
+                    {/* Contact Info */}
+                    {response.contactInfo && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2">Contact Information:</Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Score: {response.contactInfo.score} | Phone: {response.contactInfo.phoneNumber}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Comment */}
+                    {response.comment && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2">Additional Comment:</Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          {response.comment}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                      <IconButton
+                        onClick={() => handleDeleteResponse(response.id)} // Calls confirmation
+                        color="error"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="body1" sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                    No feedback responses available yet.
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid>
-          ))}
+          )}
         </Grid>
       </TabPanel>
-
-
 
       {/* Question Dialog (Existing) */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>

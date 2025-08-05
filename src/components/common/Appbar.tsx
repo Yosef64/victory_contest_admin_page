@@ -47,8 +47,8 @@ const Search = styled('div')(({ theme }) => ({
     width: 'auto',
     transition: theme.transitions.create(['background-color', 'border-color', 'box-shadow']),
     '&:focus-within': {
-        borderColor: theme.palette.primary.main,
-        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
     }
   },
 }));
@@ -135,8 +135,13 @@ export default function Appbar() {
   };
 
   const handleNotificationMenuClose = () => {
-    markAsRead();
     setNotificationAnchorEl(null);
+  };
+
+  const handleNotificationClick = async (notification: any) => {
+    if (!notification.is_read) {
+      await markAsRead(notification.id);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -279,9 +284,9 @@ export default function Appbar() {
             notifications.map((notification) => (
               <MenuItem
                 key={notification.id}
-                onClick={handleNotificationMenuClose}
+                onClick={() => handleNotificationClick(notification)}
                 sx={{
-                  backgroundColor: !notification.read ? alpha(theme.palette.primary.light, 0.1) : 'inherit',
+                  backgroundColor: !notification.is_read ? alpha(theme.palette.primary.light, 0.1) : 'inherit',
                   '&:hover': {
                     backgroundColor: alpha(theme.palette.action.hover, 0.8),
                     boxShadow: theme.shadows[1],
@@ -301,14 +306,19 @@ export default function Appbar() {
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography variant="body2" fontWeight={!notification.read ? 'medium' : 'normal'} component="div">
-                      {notification.message}
+                    <Typography variant="body2" fontWeight={!notification.is_read ? 'medium' : 'normal'} component="div">
+                      {notification.title}
                     </Typography>
                   }
                   secondary={
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDistanceToNow(new Date(notification.createdAt)) + ' ago'}
-                    </Typography>
+                    <>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        {notification.message}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDistanceToNow(new Date(notification.sent_at)) + ' ago'}
+                      </Typography>
+                    </>
                   }
                   sx={{ ml: 1 }}
                 />
@@ -348,7 +358,7 @@ export default function Appbar() {
             },
           }}
         >
-  
+
           <Divider />
           <MenuItem onClick={handleLogout}
             sx={{ '&:hover': { bgcolor: alpha(theme.palette.error.light, 0.2) } }}

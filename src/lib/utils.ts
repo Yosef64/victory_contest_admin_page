@@ -143,9 +143,7 @@ export async function updateQuestion(question: Question) {
   return res.data;
 }
 export async function deleteQusetion(id: string) {
-  const res = await axios.delete(
-    `${VITE_API_LINK}/api/question/deletequestion/${id}`
-  );
+  const res = await axios.delete(`${VITE_API_LINK}/api/question/delete/${id}`);
   return res.data;
 }
 

@@ -1,391 +1,310 @@
-import {
-  Box,
-  IconButton,
-  InputAdornment,
-  Paper,
-  TableBody,
-  Table,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  Avatar,
-  Chip,
-} from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+
+// Your services and data
+import { getAllStudents } from "@/services/studentServices";
+
+// Shadcn/ui & Lucide Icons
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
-import { styled } from "@mui/material/styles";
-import { filterStudentByCityAndGrade } from "../../lib/studentFilter";
-import { Student } from "../../types/models";
-import { getAllStudents } from "../../services/studentServices";
-import { Loading } from "../common/Stauts";
-import { Tooltip } from "@mui/material";
-import ErrorComponent from "../common/Stauts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Search, Info, AlertTriangle } from "lucide-react";
+import { DataTablePagination } from "../questions/QuestionTable";
+import { Student } from "@/types/models";
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.action.hover,
-    color: theme.palette.common.black,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
-}));
+// Type definitions
+type Status = "pending" | "success" | "error";
+interface Filters {
+  search: string;
+  grade: string;
+  city: string;
+  school: string;
+}
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(even)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  // hide last border
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
-
-const header = ["Name", "Grade", "City", "Gender"];
 const grades = ["Grade 12", "Grade 11", "Grade 10", "Default"];
-const cities = ["Adama", "Addis Ababa", "Dire Dewa", "Bishoftu", "Default"];
-const schools = [
-  "Hawas",
-  "Kebena secondary School",
-  "Excel secondary school",
-  "Default",
-];
-export default function Users() {
-  const [selectedGrade, setSelectedGrade] = React.useState("default");
-  const [selectedCity, setselectedCity] = React.useState("default");
-  const [selectedSchool, setselectedSchool] = React.useState("default");
-  const [students, setStudent] = useState<Student[]>([]);
-  const [status, setStatus] = useState("pending");
-  const [search, setSearch] = useState("");
 
+const cities = ["Adama", "Addis Ababa", "Dire Dewa", "Bishoftu", "Default"];
+
+// Helper function for better readability
+const getPaymentStatus = (
+  student: Student
+): { label: string; variant: "default" | "secondary" | "destructive" } => {
+  if (!student.payment?.payment_date) {
+    return { label: "Unpaid", variant: "destructive" };
+  }
+  const paymentDate = new Date(student.payment.payment_date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  paymentDate.setHours(0, 0, 0, 0);
+
+  if (paymentDate >= today) {
+    return { label: "Paid", variant: "default" };
+  } else {
+    return { label: "Expired", variant: "destructive" };
+  }
+};
+
+export default function UserListPage() {
+  const navigate = useNavigate();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [status, setStatus] = useState<Status>("pending");
+  const [filters, setFilters] = useState<Filters>({
+    search: "",
+    grade: "default",
+    city: "default",
+    school: "default",
+  });
+
+  // Data fetching
   useEffect(() => {
     const fetchStudents = async () => {
       setStatus("pending");
       try {
-        const students = await getAllStudents();
-        setStudent(students);
+        const studentData = await getAllStudents();
+        setStudents(studentData);
         setStatus("success");
       } catch (error) {
+        console.error("Failed to fetch students:", error);
         setStatus("error");
       }
     };
     fetchStudents();
   }, []);
 
-  const handleGradeChange = (value: string) => {
-    setSelectedGrade(value);
+  // Handlers for updating filters
+  const handleFilterChange = (filterName: keyof Filters, value: string) => {
+    setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
-  const handleSchoolChange = (value: string) => {
-    setselectedSchool(value);
-  };
-  const handlecityChange = (value: string) => {
-    setselectedCity(value);
-  };
-  // Add search filter
-  const filteredStudents = filterStudentByCityAndGrade(students, {
-    selectedCity,
-    selectedGrade,
-    selectedSchool,
-  }).filter((student) =>
-    student.name.toLowerCase().includes(search.toLowerCase())
-  );
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
-      <Box sx={{}}>
-        <Typography
-          sx={{
-            fontFamily: '"Public Sans", sans-serif',
-            fontSize: 25,
-            fontWeight: 700,
-            mb: 1,
-          }}
-        >
-          Users
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: "0.875rem",
-            color: "rgb(145, 158, 171)",
-            fontFamily: '"Public Sans", sans-serif',
-          }}
-        >
-          All
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          // bgcolor: "gray",
-          alignItems: "center",
-          width: "100%",
-          mt: 3,
-        }}
-      >
-        <TextField
-          label=""
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          id="outlined-start-adornment"
-          sx={{
-            m: 1,
-            width: "25ch",
-            height: 50,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 3,
-              "&.Mui-focused fieldset": {
-                border: "1px solid gray",
-                width: 300,
-              },
-            },
-          }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                      role="img"
-                      width="0.7em"
-                      height="0.7em"
-                      preserveAspectRatio="xMidYMid meet"
-                      viewBox="0 0 24 24"
-                      style={{ fill: "currentColor" }}
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M20.71 19.29l-3.4-3.39A7.92 7.92 0 0 0 19 11a8 8 0 1 0-8 8a7.92 7.92 0 0 0 4.9-1.69l3.39 3.4a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42M5 11a6 6 0 1 1 6 6a6 6 0 0 1-6-6"
-                      />
-                    </svg>
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: { height: 50 },
-            },
-          }}
-          inputProps={{
-            style: { fontFamily: '"Public Sans",sans-serif' },
-          }}
-        />
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Select onValueChange={handleGradeChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a grade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {grades.map((grade: string, index: number) => {
-                  return (
-                    <SelectItem key={index} value={grade.toLowerCase()}>
-                      {grade}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={handlecityChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a City" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {cities.map((grade: string, index: number) => {
-                  return (
-                    <SelectItem key={index} value={grade.toLowerCase()}>
-                      {grade}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={handleSchoolChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a school" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {schools.map((grade: string, index: number) => {
-                  return (
-                    <SelectItem key={index} value={grade.toLowerCase()}>
-                      {grade}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Box>
-      </Box>
-      {/* <Box> */}
 
-      <TableContainer
-        elevation={0}
-        component={Paper}
-        sx={{
-          flex: 1,
-          borderRadius: 3,
-          width: "99%",
-        }}
-      >
-        {status === "success" ? (
-          <Table>
-            <TableHead>
-              <TableRow>
-                {[...header, "Payment", "Info"].map((header, index) => (
-                  <StyledTableCell
-                    key={index}
-                    sx={{
-                      fontFamily: "'Public Sans',sans-serif",
-                      fontSize: "0.9rem",
-                    }}
-                    align={header == "Name" ? "left" : "right"}
+  // Memoized filtering for performance
+  const filteredStudents = useMemo(() => {
+    return (
+      students
+        .filter(
+          (student) =>
+            filters.grade === "default" ||
+            student.grade.toString().toLowerCase() === filters.grade
+        )
+        .filter(
+          (student) =>
+            filters.city === "default" ||
+            (student.city ?? "").toLowerCase() === filters.city
+        )
+        // .filter(student => filters.school === 'default' || student.school.toLowerCase() === filters.school) // Add school to your Student type if needed
+        .filter((student) =>
+          student.name.toLowerCase().includes(filters.search.toLowerCase())
+        )
+    );
+  }, [students, filters]);
+
+  // Pagination State
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const pageCount = Math.ceil(filteredStudents.length / pageSize);
+  const paginatedStudents = useMemo(() => {
+    const start = pageIndex * pageSize;
+    return filteredStudents.slice(start, start + pageSize);
+  }, [filteredStudents, pageIndex, pageSize]);
+
+  // Render different states: Loading, Error, Success
+  const renderTableContent = () => {
+    if (status === "pending") {
+      return [...Array(pageSize)].map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-4 w-32" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-16" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-24" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-12" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="h-8 w-8 ml-auto" />
+          </TableCell>
+        </TableRow>
+      ));
+    }
+
+    if (status === "error") {
+      return (
+        <TableRow>
+          <TableCell colSpan={6}>
+            <Alert variant="destructive" className="my-8">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Error Fetching Data</AlertTitle>
+              <AlertDescription>
+                There was a problem retrieving the user list. Please try again
+                later.
+              </AlertDescription>
+            </Alert>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return paginatedStudents.map((student) => {
+      const payment = getPaymentStatus(student);
+      return (
+        <TableRow key={student.id}>
+          <TableCell>
+            <div className="flex items-center gap-4">
+              <Avatar>
+                <AvatarImage src={student.imgurl} alt={student.name} />
+                <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{student.name}</span>
+            </div>
+          </TableCell>
+          <TableCell>{student.grade}</TableCell>
+          <TableCell>{student.city}</TableCell>
+          <TableCell>{student.sex}</TableCell>
+          <TableCell>
+            <Badge variant={payment.variant}>{payment.label}</Badge>
+          </TableCell>
+          <TableCell className="text-right">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      navigate(`/dashboard/user/${student.telegram_id}`)
+                    }
                   >
-                    {header}
-                  </StyledTableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredStudents.map((row, index) => (
-                <Row key={index} student={row} />
-              ))}
-            </TableBody>
-          </Table>
-        ) : status === "pending" ? (
-          <Loading />
-        ) : (
-          <ErrorComponent />
-        )}
-      </TableContainer>
-      {/* </Box> */}
-    </Box>
-  );
-}
+                    <Info className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View Profile</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </TableCell>
+        </TableRow>
+      );
+    });
+  };
 
-function Row({ student }: { student: Student }) {
-  const navigate = useNavigate();
   return (
-    <React.Fragment>
-      <StyledTableRow
-        sx={{
-          cursor: "pointer",
-          "&:hover": { backgroundColor: "#f7f7f5" },
-        }}
-      >
-        <StyledTableCell align="right">
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <IconButton aria-label="expand row" size="small">
-              <Avatar src={student.imgurl} />
-            </IconButton>
-            <Tooltip
-              title="Go to profile"
-              sx={{ fontFamily: '"Public Sans",sans-serif' }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: "'Public Sans',sans-serif",
-                  color: "black",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                }}
-                onClick={() =>
-                  navigate(`/dashboard/user/${student.telegram_id}`)
-                }
-              >
-                {student.name}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </StyledTableCell>
-        <StyledTableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="right"
-        >
-          {student.grade}
-        </StyledTableCell>
-        <TableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="right"
-        >
-          {student.city}
-        </TableCell>
-        <TableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          align="right"
-        >
-          {student.sex}
-        </TableCell>
-        <TableCell align="right">
-          {(() => {
-            const paymentDate = student.payment?.payment_date
-              ? new Date(student.payment.payment_date)
-              : null;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            let label = "Unpaid";
-            let color: "success" | "error" | "default" = "error";
-            if (paymentDate) {
-              paymentDate.setHours(0, 0, 0, 0);
-              if (paymentDate >= today) {
-                label = "Paid";
-                color = "success";
-              } else {
-                label = "Expired";
-                color = "error";
-              }
-            }
-            return (
-              <Chip
-                label={label}
-                color={color}
-                size="small"
-                sx={{ fontWeight: 600, fontFamily: '"Public Sans",sans-serif' }}
+    <div className="container mx-auto p-4 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+        <p className="text-muted-foreground">
+          Search, filter, and manage all registered students.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-between">
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name..."
+                className="pl-9"
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
               />
-            );
-          })()}
-        </TableCell>
-        <TableCell align="right">
-          <Tooltip title="View Info">
-            <IconButton
-              onClick={() => navigate(`/dashboard/user/${student.telegram_id}`)}
-            >
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path
-                  fill="#00AB55"
-                  d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm0-7a1 1 0 0 1-1-1V9a1 1 0 1 1 2 0v3a1 1 0 0 1-1 1Zm0 4a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"
-                />
-              </svg>
-            </IconButton>
-          </Tooltip>
-        </TableCell>
-      </StyledTableRow>
-    </React.Fragment>
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              {[
+                {
+                  name: "grade",
+                  placeholder: "Filter by grade",
+                  options: grades,
+                },
+                {
+                  name: "city",
+                  placeholder: "Filter by city",
+                  options: cities,
+                },
+                // { name: 'school', placeholder: 'Filter by school', options: schools },
+              ].map((filter) => (
+                <Select
+                  key={filter.name}
+                  onValueChange={(value) =>
+                    handleFilterChange(filter.name as keyof Filters, value)
+                  }
+                >
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder={filter.placeholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {filter.options.map((option) => (
+                        <SelectItem key={option} value={option.toLowerCase()}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-1/3">Name</TableHead>
+                  <TableHead>Grade</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Gender</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead className="text-right">Info</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>{renderTableContent()}</TableBody>
+            </Table>
+          </div>
+          <DataTablePagination
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            pageSize={pageSize}
+            setPageIndex={setPageIndex}
+            setPageSize={setPageSize}
+            itemCount={filteredStudents.length}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

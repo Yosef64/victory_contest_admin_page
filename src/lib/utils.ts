@@ -1,4 +1,4 @@
-import { Contest, Question, Student, Submission } from "@/types/models";
+import { Contest, Question, Submission } from "@/types/models";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import axios from "axios";
@@ -143,9 +143,7 @@ export async function updateQuestion(question: Question) {
   return res.data;
 }
 export async function deleteQusetion(id: string) {
-  const res = await axios.delete(
-    `${VITE_API_LINK}/api/question/deletequestion/${id}`
-  );
+  const res = await axios.delete(`${VITE_API_LINK}/api/question/delete/${id}`);
   return res.data;
 }
 

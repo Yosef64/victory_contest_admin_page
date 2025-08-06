@@ -1,570 +1,753 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Checkbox,
-  Grid,
-  Typography,
-} from "@mui/material";
 import { useState } from "react";
-import SnackBar from "./Snackbar";
-import cloud from "../../assets/cloud.svg";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { chapters, grades, Subjects } from "./Data";
-import LoadingButton from "@mui/lab/LoadingButton";
+import { grades, Subjects } from "./Data";
 import { ProcessFile } from "./processData";
 import { addMultipleQuestions, updateQuestion } from "@/lib/utils";
 import { Question } from "../../types/models";
 import { useSearchParams } from "react-router-dom";
 import { addQuestion } from "@/services/questionServices";
+import * as React from "react";
+import { z } from "zod";
+import { toast } from "sonner";
+import { FileIcon, PlusCircle, Trash2, UploadCloud, X } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-function Option({
-  index,
-  handleChangeOptions,
-  value,
-}: {
-  index: number;
-  handleChangeOptions: (index: number, value: string) => void;
-  value: string;
-}) {
-  return (
-    <input
-      type="text"
-      className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
-      placeholder={`Option ${index + 1}`}
-      onChange={(e) => handleChangeOptions(index, e.target.value)}
-      value={value}
-      required
-    />
-  );
-}
+import { Textarea } from "@/components/ui/textarea";
 
-export function AddQuestionManual() {
+const questionSchema = z.object({
+  question_text: z
+    .string()
+    .min(10, "Question text must be at least 10 characters."),
+  multiple_choice: z
+    .array(z.string().min(1, "Option cannot be empty."))
+    .min(2, "Must have at least two options."),
+  answer: z.string().min(1, "You must select a correct answer."),
+  grade: z.string().min(1, "Please select a grade."),
+  subject: z.string().min(1, "Please select a subject."),
+  chapter: z.string().min(1, "Please select a chapter."),
+  explanation: z.string().optional(),
+  question_image: z.instanceof(File).optional(),
+  explanation_image: z.instanceof(File).optional(),
+});
+
+type FormState = Omit<
+  Question,
+  "id" | "answer" | "question_image" | "explanation_image"
+> & {
+  answer: string;
+  question_image?: File | string;
+  explanation_image?: File | string;
+};
+
+type Action =
+  | {
+      type: "UPDATE_FIELD";
+      field: keyof FormState;
+      value: string | File | null;
+    }
+  | { type: "ADD_OPTION" }
+  | { type: "REMOVE_OPTION"; index: number }
+  | { type: "UPDATE_OPTION"; index: number; value: string }
+  | { type: "RESET_FORM"; payload: FormState };
+
+// 2. The reducer is now fully type-safe
+const formReducer = (state: FormState, action: Action): FormState => {
+  switch (action.type) {
+    case "UPDATE_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "ADD_OPTION":
+      return { ...state, multiple_choice: [...state.multiple_choice, ""] };
+    case "REMOVE_OPTION":
+      const newOptions = state.multiple_choice.filter(
+        (_, i) => i !== action.index
+      );
+      const isAnswerRemoved =
+        state.answer === state.multiple_choice[action.index];
+      return {
+        ...state,
+        multiple_choice: newOptions,
+        answer: isAnswerRemoved ? "" : state.answer,
+      };
+    case "UPDATE_OPTION":
+      const updatedOptions = [...state.multiple_choice];
+      updatedOptions[action.index] = action.value;
+      return { ...state, multiple_choice: updatedOptions };
+    case "RESET_FORM":
+      return action.payload;
+    default:
+      return state;
+  }
+};
+
+export function AddQuestionManual(): JSX.Element {
   const [searchParams] = useSearchParams();
 
-  const questionString = searchParams.get("question");
-  const isEditing = searchParams.get("edit");
+  const isEditing = !!searchParams.get("edit");
+  const questionToEdit = React.useMemo(() => {
+    const qStr = searchParams.get("question");
+    return qStr ? (JSON.parse(qStr) as Question) : null;
+  }, [searchParams]);
 
-  const question: Question = questionString
-    ? JSON.parse(questionString)
-    : {
-        question_text: "",
-        multiple_choice: ["", ""],
-        answer: null,
-        grade: "",
-        subject: "",
-        chapter: "",
-        explanation: "",
-      };
+  const initialState: FormState = {
+    question_text: questionToEdit?.question_text ?? "",
+    multiple_choice: questionToEdit?.multiple_choice ?? ["", ""],
+    answer:
+      questionToEdit?.answer !== undefined && questionToEdit?.answer !== null
+        ? String(questionToEdit.answer)
+        : "",
+    grade: questionToEdit?.grade ?? "",
+    subject: questionToEdit?.subject ?? "",
+    chapter: questionToEdit?.chapter ?? "",
+    explanation: questionToEdit?.explanation ?? "",
+    question_image: undefined,
+    explanation_image: undefined,
+  };
 
-  const [loading, setLoading] = useState(false);
-  const [addStatus, setAddStatus] = useState(200);
-  const [snakOpen, setSnakOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    ...question,
-  });
-  const [questionImage, setQuestionImage] = useState<File | null>(null);
-  const [explanationImage, setExplanationImage] = useState<File | null>(null);
+  const [state, dispatch] = React.useReducer(formReducer, initialState);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleClose = (
-    _event: React.SyntheticEvent | Event,
-    reason?: string
+  // 3. Event handlers are typed
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "question_image" | "explanation_image"
   ) => {
-    if (reason === "clickaway") return;
-    setSnakOpen(false);
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    if (Object.values(formData).some((value) => !value)) {
-      setSnakOpen(true);
-      setAddStatus(500);
-      setLoading(false);
-      return;
-    }
-    try {
-      const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "multiple_choice" && Array.isArray(value)) {
-          value.forEach((v, _) => {
-            if (v !== null && v !== undefined) {
-              formDataToSend.append(`multiple_choice`, v.toString());
-            }
-          });
-        } else if (value !== null && value !== undefined) {
-          formDataToSend.append(key, value.toString());
-        }
-      });
-      console.log("question image", questionImage);
-      if (questionImage) formDataToSend.append("question_image", questionImage);
-      if (explanationImage)
-        formDataToSend.append("explanation_image", explanationImage);
-      for (const [key, value] of formDataToSend.entries()) {
-        console.log(`${key}:`, value instanceof File ? value.name : value);
-      }
-
-      await addQuestion(formDataToSend);
-      setAddStatus(200);
-    } catch (error) {
-      console.log(error);
-      setAddStatus(500);
-    } finally {
-      setLoading(false);
-      setSnakOpen(true);
-    }
-  };
-
-  const handleChangeOptions = (index: number, value: string) => {
-    setFormData((prevData) => {
-      const newOptions = [...prevData.multiple_choice];
-      newOptions[index] = value;
-      return { ...prevData, multiple_choice: newOptions };
+    dispatch({
+      type: "UPDATE_FIELD",
+      field,
+      value: e.target.files?.[0] ?? null,
     });
   };
 
-  const handleAddOption = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      multiple_choice: [...prevData.multiple_choice, ""],
-    }));
-  };
-  const handleEditQueston = async () => {
-    setLoading(true);
-    console.log(formData);
-    if (Object.values(formData).some((value) => !value)) {
-      setSnakOpen(true);
-      setAddStatus(500);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+
+    const validationResult = questionSchema.safeParse(state);
+    if (!validationResult.success) {
+      validationResult.error.issues.forEach((err) => toast.error(err.message));
+      setIsLoading(false);
+      return;
     }
-    try {
-      await updateQuestion(formData);
-      setAddStatus(200);
-    } catch (error) {
-      setAddStatus(500);
-      console.error(error);
+
+    const formData: FormData = new FormData();
+    Object.entries(validationResult.data).forEach(([key, value]) => {
+      if (key === "multiple_choice" && Array.isArray(value)) {
+        value.forEach((opt: string) => formData.append(key, opt));
+      } else if (value instanceof File) {
+        formData.append(key, value);
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
     }
-    setLoading(false);
-    setSnakOpen(true);
+
+    if (isEditing && questionToEdit?.id) {
+      formData.append("id", questionToEdit.id);
+    }
+
+    const action = isEditing ? updateQuestion : addQuestion;
+
+    const promise = action(formData as any);
+    toast.promise(promise, {
+      loading: isEditing ? "Updating question..." : "Adding question...",
+      success: () => {
+        return `Question ${isEditing ? "updated" : "added"} successfully!`;
+      },
+      error: (err: Error) => `Operation failed: ${err.message}`,
+      finally: () => setIsLoading(false),
+    });
   };
 
   return (
-    <Box>
-      <SnackBar
-        snakOpen={snakOpen}
-        handleClose={handleClose}
-        addStatus={addStatus}
-      />
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* ... The rest of your beautiful, clean JSX ... */}
 
-      <textarea
-        id="message"
-        rows={4}
-        className="block p-2.5 text-sm w-[50%] text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55] focus:outline-none"
-        placeholder="Write the question..."
-        onChange={(e) =>
-          setFormData({ ...formData, question_text: e.target.value })
-        }
-        value={formData.question_text}
-      ></textarea>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[16px] font-bold">
+                Question Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="question_text">Question</Label>
+                <Textarea
+                  id="question_text"
+                  placeholder="e.g., What is the powerhouse of the cell?"
+                  value={state.question_text}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      field: "question_text",
+                      value: e.target.value,
+                    })
+                  }
+                  className="min-h-[120px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="question_image">
+                  Question Image (Optional)
+                </Label>
+                <Input
+                  id="question_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "question_image")}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-      <div className="w-100 mt-3">
-        <label
-          className="block mb-2 text-[14px] font-medium font-sans text-gray-900 dark:text-white"
-          htmlFor="file_input"
-        >
-          Question Image (optional)
-        </label>
-        <input
-          className="block text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-          id="file_input"
-          type="file"
-          onChange={(e) => setQuestionImage(e.target.files?.[0] || null)}
-        />
-      </div>
-
-      <Box sx={{ marginTop: "10px" }}>
-        <Box sx={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <Typography sx={{ my: 3, fontWeight: 600, fontSize: 17 }}>
-            Options
-          </Typography>
-          <Button
-            variant="text"
-            sx={{
-              backgroundColor: "#00AB5514",
-              color: "#00AB55",
-              fontWeight: 600,
-            }}
-            onClick={handleAddOption}
-          >
-            {}
-            {"Add Option"}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Multiple Choice Options</CardTitle>
+                <CardDescription>
+                  Provide the possible answers. Select the correct one.
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => dispatch({ type: "ADD_OPTION" })}
+              >
+                <PlusCircle className="h-4 w-4 mr-2" /> Add Option
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup
+                value={state.answer}
+                onValueChange={(value) =>
+                  dispatch({ type: "UPDATE_FIELD", field: "answer", value })
+                }
+                className="space-y-4"
+              >
+                {state.multiple_choice.map((option, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <RadioGroupItem
+                      value={(index + 1).toString()}
+                      id={`option-${index}`}
+                    />
+                    <Label htmlFor={`option-${index}`} className="sr-only">
+                      Select option {index + 1}
+                    </Label>
+                    <Input
+                      value={option}
+                      placeholder={`Option ${index + 1}`}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "UPDATE_OPTION",
+                          index,
+                          value: e.target.value,
+                        })
+                      }
+                      className="flex-grow"
+                    />
+                    {state.multiple_choice.length > 2 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          dispatch({ type: "REMOVE_OPTION", index })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </RadioGroup>
+            </CardContent>
+          </Card>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading
+              ? "Saving..."
+              : isEditing
+              ? "Save Changes"
+              : "Add Question"}
           </Button>
-        </Box>
-
-        <Grid container spacing={4}>
-          {formData.multiple_choice.map((option, index) => (
-            <Grid item xs={12} sm={6} key={index}>
-              <Option
-                index={index}
-                handleChangeOptions={handleChangeOptions}
-                value={option}
-              />
-            </Grid>
-          ))}
-        </Grid>
-
-        <div>
-          <p className="font-sans my-5 font-semibold text-lg">Value</p>
-          <input
-            type="number"
-            id="answer"
-            value={formData.answer!}
-            className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-[20%] p-2.5 focus:outline-none"
-            placeholder="Answer"
-            onChange={(e) =>
-              setFormData({ ...formData, answer: Number(e.target.value) })
-            }
-            required
-          />
-          {/* Explanation Image Input */}
-          {/* <Box sx={{ mb: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => explanationImageInputRef.current?.click()}
-              sx={{ mb: 1 }}
-            >
-              Select Explanation Image
-            </Button>
-            <input
-              type="file"
-              accept="image/*"
-              ref={explanationImageInputRef}
-              style={{ display: "none" }}
-              onChange={(e) => setExplanationImage(e.target.files?.[0] || null)}
-            />
-            {explanationImage && <span>{explanationImage.name}</span>}
-          </Box> */}
-          <textarea
-            id="explanation"
-            rows={4}
-            className="block p-2.5 text-sm w-[50%] text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55] focus:outline-none"
-            placeholder="Explanation..."
-            onChange={(e) =>
-              setFormData({ ...formData, explanation: e.target.value })
-            }
-            value={formData.explanation}
-          ></textarea>
-          <div className="w-100 mt-3">
-            <label
-              className="block mb-2 text-[14px] font-medium font-sans text-gray-900 dark:text-white"
-              htmlFor="file_input"
-            >
-              Explanation Image(optional)
-            </label>
-            <input
-              className="block text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-              id="file_input"
-              type="file"
-              onChange={(e) => setExplanationImage(e.target.files?.[0] || null)}
-            />
-          </div>
         </div>
 
-        <div className="flex flex-col">
-          <div className="font-sans my-5 font-semibold text-lg">Info</div>
-          <div className="flex gap-6">
-            <Select
-              onValueChange={(value) =>
-                setFormData({ ...formData, grade: value })
-              }
-            >
-              <SelectTrigger className="w-[180px] h-[50px]">
-                <SelectValue placeholder="Select Grade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Grade</SelectLabel>
-                  {grades.map((grad) => (
-                    <SelectItem key={grad} value={grad.split(" ")[1]}>
-                      {grad}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+        <div className="lg:col-span-1 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Metadata</CardTitle>
+              <CardDescription>Categorize this question.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(["grade", "subject"] as const).map((field) => (
+                <div key={field} className="space-y-2">
+                  <Label className="capitalize">{field}</Label>
+                  <Select
+                    value={state[field]}
+                    onValueChange={(value) =>
+                      dispatch({ type: "UPDATE_FIELD", field, value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={`Select a ${field}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {{
+                        grade: grades,
+                        subject: Subjects,
+                      }[field].map((item: string) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+              <div className="space-y-2">
+                <Label className="capitalize">Chapter</Label>
+                <Input
+                  placeholder="e.g., Algebra"
+                  value={state.chapter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      field: "chapter",
+                      value: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Select
-              onValueChange={(value) =>
-                setFormData({ ...formData, subject: value })
-              }
-            >
-              <SelectTrigger className="w-[180px] h-[50px]">
-                <SelectValue placeholder="Select Subject" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Subject</SelectLabel>
-                  {Subjects.map((subject) => (
-                    <SelectItem key={subject} value={subject}>
-                      {subject}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-
-            <Select
-              onValueChange={(value) =>
-                setFormData({ ...formData, chapter: value })
-              }
-            >
-              <SelectTrigger className="w-[180px] h-[50px]">
-                <SelectValue placeholder="Select Chapter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Chapter</SelectLabel>
-                  {chapters.map((chapter) => (
-                    <SelectItem key={chapter} value={chapter.split(" ")[1]}>
-                      {chapter}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Explanation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="explanation">Explanation Text</Label>
+                <Textarea
+                  id="explanation"
+                  placeholder="Explain why the selected answer is correct."
+                  value={state.explanation}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      field: "explanation",
+                      value: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="explanation_image">
+                  Explanation Image (Optional)
+                </Label>
+                <Input
+                  id="explanation_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "explanation_image")}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </Box>
-
-      <div className="mt-7">
-        {!isEditing ? (
-          <LoadingButton
-            loading={loading}
-            onClick={handleSubmit}
-            sx={{
-              backgroundColor: "#00AB55",
-              borderRadius: 2,
-              width: 100,
-              fontSize: 15,
-              fontWeight: 600,
-            }}
-            variant="contained"
-          >
-            Add
-          </LoadingButton>
-        ) : (
-          <LoadingButton
-            loading={loading}
-            sx={{
-              backgroundColor: "#00AB55",
-              borderRadius: 2,
-              width: 100,
-              fontSize: 15,
-              fontWeight: 600,
-              color: "white",
-            }}
-            onClick={handleEditQueston}
-          >
-            Edit
-          </LoadingButton>
-        )}
       </div>
-    </Box>
+    </form>
   );
 }
 
-export function UploadQuestonsComponent() {
+const ITEMS_PER_PAGE = 5;
+
+export function EnhancedUploadQuestions() {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [addStatus, setAddStatus] = useState(200);
-  const [snakOpen, setSnakOpen] = useState(false);
-  const handleFileChange = async (e: any) => {
-    const file = e.target.files[0];
-    ProcessFile(file)
-      .then((value: Question[]) => {
-        setQuestions(value);
-      })
-      .catch((err) => console.log(err));
+  const [file, setFile] = useState<File | null>(null);
+  const [isFileProcessing, setIsFileProcessing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleFileSelect = async (selectedFile: File | null) => {
+    if (!selectedFile) return;
+    setFile(selectedFile);
+    setIsFileProcessing(true);
+
+    const promise = ProcessFile(selectedFile);
+
+    toast.promise(promise, {
+      loading: "Processing file... This may take a moment.",
+      success: (processedQuestions: Question[]) => {
+        setQuestions(processedQuestions);
+        setCurrentPage(1); // Reset to first page
+        return `${processedQuestions.length} questions processed successfully!`;
+      },
+      error: "Failed to process file. Please check the format.",
+      finally: () => setIsFileProcessing(false),
+    });
   };
-  const handleSubmitQuestions = async () => {
-    setLoading(true);
-    try {
-      await addMultipleQuestions(questions);
-      setAddStatus(200);
-    } catch (error) {
-      setAddStatus(500);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleClose = (
-    _event: React.SyntheticEvent | Event,
-    reason?: string
+  const handleUpdateQuestion = (
+    indexToUpdate: number,
+    updatedQuestion: Question
   ) => {
-    if (reason === "clickaway") return;
-    setSnakOpen(false);
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q, i) => (i === indexToUpdate ? updatedQuestion : q))
+    );
+    toast.success("Question updated locally. Remember to submit all changes.");
   };
+
+  const handleClear = () => {
+    setFile(null);
+    setQuestions([]);
+  };
+
+  const handleSubmit = async () => {
+    if (questions.length === 0) {
+      toast.error(
+        "No questions to submit. Please upload and process a file first."
+      );
+      return;
+    }
+    setIsSubmitting(true);
+    const promise = addMultipleQuestions(questions);
+
+    toast.promise(promise, {
+      loading: "Submitting questions to the database...",
+      success: () => {
+        handleClear(); // Clear state on success
+        return "All questions added successfully!";
+      },
+      error: "An error occurred while submitting questions.",
+      finally: () => setIsSubmitting(false),
+    });
+  };
+
+  // Pagination Logic
+  const totalPages = Math.ceil(questions.length / ITEMS_PER_PAGE);
+  const currentQuestions = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return questions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [questions, currentPage]);
 
   return (
-    <Box>
-      <SnackBar
-        snakOpen={snakOpen}
-        handleClose={handleClose}
-        addStatus={addStatus}
-      />
-      <Box sx={{ display: "flex", alignItems: "center", gap: 7 }}>
-        <Typography
-          sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}
-        >
-          Upload :{" "}
-        </Typography>
-        <Box
-          sx={{
-            height: 90,
-            border: "1px gray dashed",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 3,
-            borderRadius: 3,
-            cursor: "pointer",
-          }}
-          component={"label"}
-        >
-          <img src={cloud} alt="cloud" />
-          <Typography
-            sx={{
-              fontFamily: "'Public Sans',sans-serif",
-              fontSize: 13,
-              color: "",
-            }}
+    <div className="container mx-auto p-4 space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Bulk Upload Questions
+        </h1>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleClear}
+            disabled={!file || isFileProcessing || isSubmitting}
           >
-            Click to upload the document
-          </Typography>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            accept=".doc,.docx,.pdf,.txt"
-            style={{ display: "none" }}
-          />
-        </Box>
-      </Box>
-      <Box sx={{ mt: 8 }}>
-        <Typography
-          sx={{
-            fontFamily: "'Public Sans',sans-serif",
-            fontWeight: 600,
-            mb: 4,
-          }}
-        >
-          Proccessed Questions
-        </Typography>
-        <Box>
-          {questions.map((question: Question, index: number) => (
-            <Card
-              key={index}
-              elevation={0}
-              sx={{
-                my: 0.8,
-                borderRadius: 3,
-                boxShadow: "0 0 1px #9c9898",
-              }}
-            >
-              <CardHeader
-                title={"Q. " + question.question_text}
-                action={
-                  <Button
-                    sx={{
-                      fontFamily: "'Public Sans',sans-serif",
-                      textTransform: "none",
-                      backgroundColor: "#00AB5514",
-                      color: "#00AB55",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Edit
-                  </Button>
-                }
-                sx={{
-                  "& .MuiCardHeader-title": {
-                    fontFamily: "'Public Sans',sans-serif",
-                    fontWeight: 600,
-                    lineHeight: 1.57143,
-                    fontSize: 15,
-                    textOverflow: "ellipsis",
-                  },
-                }}
-              />
-              <CardContent>
-                {question.multiple_choice.map((choice: string, i: number) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: 0,
-                    }}
-                  >
-                    <Checkbox
-                      checked={question.answer === i + 1} // A=65, B=66, etc.
-                      sx={{
-                        "&.Mui-checked": {
-                          color: "#00AB55",
-                        },
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontFamily: '"Public Sans",sans-serif',
-                      }}
-                    >
-                      {choice}
-                    </Typography>
-                  </Box>
-                ))}
-              </CardContent>
-              <CardActions
-                sx={{
-                  backgroundColor: "#00AB5514",
-                  fontFamily: "'Public Sans',sans-serif",
-                  fontSize: 14,
-                }}
-              >
-                <Box>
-                  <span style={{ color: "#00AB55", fontWeight: 600 }}>
-                    Explanation
-                  </span>
-                  : {question.explanation}
-                </Box>
-              </CardActions>
-            </Card>
-          ))}
-        </Box>
-        <Button
-          disabled={loading}
-          sx={{
-            backgroundColor: "#00AB55",
-            borderRadius: 2,
+            Clear All
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={
+              questions.length === 0 || isFileProcessing || isSubmitting
+            }
+          >
+            {isSubmitting
+              ? "Submitting..."
+              : `Submit ${questions.length} Questions`}
+          </Button>
+        </div>
+      </div>
 
-            fontSize: 15,
-            fontWeight: 600,
-            color: "white",
-          }}
-          onClick={handleSubmitQuestions}
-        >
-          {loading ? "Adding..." : "Add Questions"}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload Document</CardTitle>
+          <CardDescription>
+            Select a file containing questions. The system will automatically
+            process and list them for review.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FileDropzone
+            file={file}
+            onFileSelect={handleFileSelect}
+            onClear={handleClear}
+          />
+        </CardContent>
+      </Card>
+
+      {questions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Processed Questions</CardTitle>
+            <CardDescription>
+              Review the questions below. You can edit individual questions or
+              submit them all at once.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* UPDATED: Pass the new prop to QuestionItem */}
+            {currentQuestions.map((q, i) => {
+              const originalIndex = (currentPage - 1) * ITEMS_PER_PAGE + i;
+              return (
+                <QuestionItem
+                  key={originalIndex}
+                  question={q}
+                  index={originalIndex}
+                  onUpdateQuestion={handleUpdateQuestion}
+                />
+              );
+            })}
+          </CardContent>
+          {totalPages > 1 && (
+            <Pagination className="p-4">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === i + 1}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </Card>
+      )}
+    </div>
+  );
+}
+
+interface FileDropzoneProps {
+  file: File | null;
+  onFileSelect: (file: File | null) => void;
+  onClear: () => void;
+  acceptedFileTypes?: string;
+}
+
+export function FileDropzone({
+  file,
+  onFileSelect,
+  onClear,
+  acceptedFileTypes,
+}: FileDropzoneProps) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onFileSelect(e.target.files ? e.target.files[0] : null);
+  };
+
+  if (file) {
+    return (
+      <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
+        <div className="flex items-center gap-3">
+          <FileIcon className="h-6 w-6 text-primary" />
+          <div>
+            <p className="font-semibold text-sm">{file.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {(file.size / 1024).toFixed(2)} KB
+            </p>
+          </div>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClear}>
+          <X className="h-5 w-5" />
         </Button>
-      </Box>
-    </Box>
+      </div>
+    );
+  }
+
+  return (
+    <label className="flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+      <UploadCloud className="w-12 h-12 text-muted-foreground" />
+      <p className="mt-4 font-semibold">Click to upload or drag & drop</p>
+      <p className="text-sm text-muted-foreground">
+        Supports: DOC, DOCX, PDF, TXT
+      </p>
+      <input
+        type="file"
+        onChange={handleFileChange}
+        accept={acceptedFileTypes || ".doc,.docx,.pdf,.txt"}
+        className="hidden"
+      />
+    </label>
+  );
+}
+
+interface QuestionItemProps {
+  question: Question;
+  index: number;
+  onUpdateQuestion: (index: number, updatedQuestion: Question) => void;
+}
+
+export function QuestionItem({
+  question,
+  index,
+  onUpdateQuestion,
+}: QuestionItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableQuestion, setEditableQuestion] = useState<Question>(question);
+
+  const handleFieldChange = (field: keyof Question, value: string) => {
+    setEditableQuestion((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOptionChange = (optionIndex: number, value: string) => {
+    const newOptions = [...editableQuestion.multiple_choice];
+    newOptions[optionIndex] = value;
+    handleFieldChange("multiple_choice", newOptions as any);
+  };
+
+  const handleSave = () => {
+    onUpdateQuestion(index, editableQuestion);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditableQuestion(question); // Reset changes
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    // EDIT MODE UI
+    return (
+      <Card className="bg-muted/30 border-primary/50 border-2">
+        <CardHeader>
+          <Label htmlFor={`qtext-${index}`} className="text-sm font-semibold">
+            Question Text
+          </Label>
+          <Textarea
+            id={`qtext-${index}`}
+            value={editableQuestion.question_text}
+            onChange={(e) => handleFieldChange("question_text", e.target.value)}
+            className="text-base"
+          />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-sm font-semibold">
+              Options & Correct Answer
+            </Label>
+            <RadioGroup
+              value={editableQuestion.answer?.toString() ?? ""}
+              onValueChange={(value) => handleFieldChange("answer", value)}
+              className="mt-2 space-y-2"
+            >
+              {editableQuestion.multiple_choice.map((choice, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <RadioGroupItem
+                    value={choice}
+                    id={`edit-q${index}-opt${i}`}
+                  />
+                  <Input
+                    value={choice}
+                    onChange={(e) => handleOptionChange(i, e.target.value)}
+                    className="flex-grow"
+                  />
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+          <div>
+            <Label htmlFor={`exp-${index}`} className="text-sm font-semibold">
+              Explanation
+            </Label>
+            <Textarea
+              id={`exp-${index}`}
+              value={editableQuestion.explanation}
+              onChange={(e) => handleFieldChange("explanation", e.target.value)}
+              placeholder="Provide an explanation for the correct answer..."
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="justify-end gap-2">
+          <Button variant="ghost" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Save Changes</Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // VIEW MODE UI (Original Component)
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <CardTitle className="text-base font-semibold leading-relaxed pr-4">
+          {`Q${index + 1}: ${question.question_text}`}
+        </CardTitle>
+        <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+          Edit
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <RadioGroup value={question.answer?.toString() ?? ""} disabled>
+          {question.multiple_choice.map((choice, i) => (
+            <div key={i} className="flex items-center space-x-2">
+              <RadioGroupItem value={choice} id={`q${index}-opt${i}`} />
+              <Label htmlFor={`q${index}-opt${i}`}>{choice}</Label>
+            </div>
+          ))}
+        </RadioGroup>
+        {question.explanation && (
+          <Accordion type="single" collapsible className="w-full mt-4">
+            <AccordionItem value="explanation">
+              <AccordionTrigger>View Explanation</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {question.explanation}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+      </CardContent>
+    </Card>
   );
 }

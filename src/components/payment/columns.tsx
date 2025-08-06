@@ -257,7 +257,6 @@ export const getApprovedColumns = (handlers: ActionHandlerForUndo) => {
       cell: function Cell({ row }) {
         const [loading, setloading] = useState(false);
         const [isRejecting, setIsRejecting] = useState(false);
-        const [rejectionReason, setRejectionReason] = useState("");
         const payment = row.original;
         const handleRejectConfirm = async () => {
           toast.warning("Sending Notification...", {
@@ -288,29 +287,21 @@ export const getApprovedColumns = (handlers: ActionHandlerForUndo) => {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Are you sure you want to reject this payment?
+                    Are you sure you want to undo this payment?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone. Please provide a reason for
                     rejection.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div className="grid gap-2">
-                  <Label htmlFor="reason">Rejection Reason</Label>
-                  <Input
-                    id="reason"
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="e.g., Unclear receipt image"
-                  />
-                </div>
+
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-green-600 hover:bg-green-400"
                     onClick={handleRejectConfirm}
                   >
-                    Confirm Rejection
+                    Confirm
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

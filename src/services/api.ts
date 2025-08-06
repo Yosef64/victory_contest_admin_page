@@ -1,5 +1,4 @@
 import axios from "axios";
-import { PaymentRequest } from "../types/payment";
 
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 

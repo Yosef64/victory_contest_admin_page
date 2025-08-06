@@ -24,7 +24,7 @@ export const mockUser: User = {
       contest: {
         title: "Math Olympics 2024",
         subject: "Mathematics",
-        grade: 10,
+        grade: "10",
       },
       totalQuestions: 50,
       correctAnswers: 42,
@@ -34,7 +34,7 @@ export const mockUser: User = {
     },
     {
       id: "2",
-      contest: { title: "Science Challenge", subject: "Physics", grade: 10 },
+      contest: { title: "Science Challenge", subject: "Physics", grade: "10" },
       totalQuestions: 40,
       correctAnswers: 35,
       missedQuestions: 5,
@@ -43,7 +43,7 @@ export const mockUser: User = {
     },
     {
       id: "3",
-      contest: { title: "Chemistry Quiz", subject: "Chemistry", grade: 10 },
+      contest: { title: "Chemistry Quiz", subject: "Chemistry", grade: "10" },
       totalQuestions: 30,
       correctAnswers: 24,
       missedQuestions: 6,
@@ -52,7 +52,7 @@ export const mockUser: User = {
     },
     {
       id: "4",
-      contest: { title: "Literature Contest", subject: "English", grade: 10 },
+      contest: { title: "Literature Contest", subject: "English", grade: "10" },
       totalQuestions: 35,
       correctAnswers: 28,
       missedQuestions: 7,
@@ -61,7 +61,7 @@ export const mockUser: User = {
     },
     {
       id: "5",
-      contest: { title: "History Quiz", subject: "History", grade: 10 },
+      contest: { title: "History Quiz", subject: "History", grade: "10" },
       totalQuestions: 25,
       correctAnswers: 20,
       missedQuestions: 5,
@@ -70,7 +70,7 @@ export const mockUser: User = {
     },
     {
       id: "6",
-      contest: { title: "Advanced Math", subject: "Mathematics", grade: 11 },
+      contest: { title: "Advanced Math", subject: "Mathematics", grade: "11" },
       totalQuestions: 45,
       correctAnswers: 38,
       missedQuestions: 7,

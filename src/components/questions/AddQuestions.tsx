@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   AddQuestionManual,
-  UploadQuestonsComponent,
+  EnhancedUploadQuestions,
 } from "./AddQuestionMethod";
 
 export default function AddQuestions() {
@@ -76,7 +76,7 @@ export default function AddQuestions() {
         <AddQuestionManual />
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
-        <UploadQuestonsComponent />
+        <EnhancedUploadQuestions />
       </CustomTabPanel>
     </Box>
   );

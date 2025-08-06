@@ -1,4 +1,4 @@
-import { Contest, Question, Student, Submission } from "@/types/models";
+import { Contest, Question, Submission } from "@/types/models";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import axios from "axios";

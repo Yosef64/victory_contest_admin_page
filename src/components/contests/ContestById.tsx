@@ -197,6 +197,7 @@ export default function ContestById() {
   };
   // THIS IS THE NEW FUNCTION TO HANDLE DELETION
   const handleQuestionDeleted = (deletedQuestionId: string) => {
+    console.log(deletedQuestionId);
     // setQuestions((prev) => prev.filter((q) => q.id !== deletedQuestionId));
   };
 

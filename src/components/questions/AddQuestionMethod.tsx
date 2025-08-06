@@ -10,7 +10,7 @@ import { grades, Subjects } from "./Data";
 import { ProcessFile } from "./processData";
 import { addMultipleQuestions, updateQuestion } from "@/lib/utils";
 import { Question } from "../../types/models";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { addQuestion } from "@/services/questionServices";
 import * as React from "react";
 import { z } from "zod";
@@ -111,7 +111,6 @@ const formReducer = (state: FormState, action: Action): FormState => {
 };
 
 export function AddQuestionManual(): JSX.Element {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const isEditing = !!searchParams.get("edit");

@@ -16,6 +16,7 @@ export const notifyUser = async (
   userId: string,
   paymentId: string
 ): Promise<{ success: boolean }> => {
+  console.log(userId, paymentId);
   await new Promise((resolve) => setTimeout(resolve, 700));
   return { success: true };
 };

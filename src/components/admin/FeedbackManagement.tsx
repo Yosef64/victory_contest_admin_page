@@ -18,7 +18,7 @@ import {
   DialogActions,
   Switch
 } from '@mui/material';
-import { Add, Edit, Delete, BarChart } from '@mui/icons-material';
+import { Add, Edit, Delete, BarChart, Star } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -504,11 +504,18 @@ export default function FeedbackManagement() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h6">Student Responses</Typography>
           <Button
-            variant="outlined"
-            startIcon={<BarChart />}
-            onClick={() => navigate('../analytics')}
+            variant="contained"
+            startIcon={<Star />}
+            onClick={() => navigate('../high-scorers')}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+              }
+            }}
           >
-            View Analytics
+            High Scorers Contact List
           </Button>
         </Box>
 

@@ -1,7 +1,6 @@
 import axios from "axios";
-import { PaymentRequest } from "../types/payment";
 
-const VITE_API_URL = import.meta.env.VITE_API_URL;
+const VITE_API_URL = import.meta.env.VITE_API_URL || "https://txnfqqn7-8081.euw.devtunnels.ms";
 
 const api = axios.create({
   baseURL: VITE_API_URL,

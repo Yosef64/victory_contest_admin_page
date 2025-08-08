@@ -64,7 +64,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   }, [user]);
 
   return (
-    <NotificationContext.Provider 
+    <NotificationContext.Provider
       value={{ notifications, unreadCount, fetchNotifications, markAsRead, addNotification }}
     >
       {children}

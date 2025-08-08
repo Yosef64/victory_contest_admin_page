@@ -17,7 +17,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import SearchResults from "./components/dashboard/SearchResults"; // Import SearchResults
 import Profile from "./components/profile/Profile";
 import FeedbackManagement from "./components/admin/FeedbackManagement";
-import FeedbackAnalytics from "./components/analytics/FeedbackAnalytics";
+import HighScorersContactList from "./components/admin/HighScorersContactList";
 import { PaymentsPage } from "./components/payment/Payment";
 
 const router = createBrowserRouter([
@@ -45,7 +45,7 @@ const router = createBrowserRouter([
           { path: "user/:id", element: <Profile /> },
 
           { path: "feedback", element: <FeedbackManagement /> },
-          { path: "analytics", element: <FeedbackAnalytics /> },
+          { path: "high-scorers", element: <HighScorersContactList /> },
           { path: "payment", element: <PaymentsPage /> },
         ],
       },

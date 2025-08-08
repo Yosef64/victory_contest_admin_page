@@ -37,7 +37,7 @@ import api from "@/services/api"; // Fixed import path
 import leetcodeImage from "../../assets/leetcode.jpg";
 import CircleIcon from "@mui/icons-material/Circle";
 import { deleteContest } from "@/lib/utils";
-import { Student } from "@/types/models";
+import { APIContest, Student } from "@/types/models";
 import {
   Menubar,
   MenubarContent,
@@ -160,13 +160,17 @@ export default function ContestById() {
     info?: { title: string; description: string },
     data?: { file: File | null; message: string }
   ) => {
-    if (!contest) return; // Ensure contest data is available
+    if (!contest) return;
 
     try {
+      const contestToSend: APIContest = {
+        ...contest,
+        questions: contest.questions.map((q) => q.id!),
+      };
       if (action === "announce") {
-        await announceContest(contest, data!); // `data` will now contain file and message
+        await announceContest(contest, data!);
       } else if (action === "clone") {
-        await addContest({ ...contest, ...info! });
+        await addContest({ ...contestToSend, ...info! });
       } else if (action === "update" && time) {
         // Ensure the data object is passed directly, not wrapped in another 'data' key
         await updateContest(contest, {
@@ -190,6 +194,11 @@ export default function ContestById() {
   const handleConfirmDelete = async () => {
     handleCloseDeleteDialog();
     await handleDeleteContest();
+  };
+  // THIS IS THE NEW FUNCTION TO HANDLE DELETION
+  const handleQuestionDeleted = (deletedQuestionId: string) => {
+    console.log(deletedQuestionId);
+    // setQuestions((prev) => prev.filter((q) => q.id !== deletedQuestionId));
   };
 
   return (
@@ -441,7 +450,10 @@ export default function ContestById() {
           <Standing school={school} city={city} contest={contest} />
         </CustomTabPanel>
         <CustomTabPanel value={tabValue} index={1}>
-          <QuestionTable questions={contest?.questions} />
+          <QuestionTable
+            questions={contest?.questions ?? []}
+            onQuestionDeleted={handleQuestionDeleted}
+          />
         </CustomTabPanel>
       </Box>
       {/* Dialogs controlled by state */}

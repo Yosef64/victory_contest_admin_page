@@ -1,25 +1,53 @@
 import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Checkbox,
-  Collapse,
-  IconButton,
-  Paper,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
-  TablePagination,
+  TableHeader,
   TableRow,
-  Typography,
-} from "@mui/material";
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Eye,
+} from "lucide-react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -28,296 +56,291 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import React, { ReactNode } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { useNavigate } from "react-router-dom";
-
-import { Question } from "../../types/models";
+import { Question } from "@/types/models";
 import { deleteQusetion } from "@/lib/utils";
-import { Loading } from "../common/Stauts";
-const header = ["Question", "Chapter", "Grade", "Subject"];
 
-export default function QuestionTable(props: any) {
-  const { questions, status }: { questions: Question[]; status: string } =
-    props;
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  console.log(questions);
+interface QuestionTableProps {
+  questions: Question[];
+  onQuestionDeleted: (questionId: string) => void;
+}
 
-  const handleChangePage = (_event: any, newPage: number) => {
-    setPage(newPage);
-  };
-  const handleChangeRowsPerPage = (event: any) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
+export default function QuestionTable({
+  questions,
+  onQuestionDeleted,
+}: QuestionTableProps) {
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
 
-  if (status === "pending") {
-    <Loading />;
-  }
+  const pageCount = Math.ceil(questions.length / pageSize);
+
+  const paginatedQuestions = React.useMemo(() => {
+    const start = pageIndex * pageSize;
+    return questions.slice(start, start + pageSize);
+  }, [questions, pageIndex, pageSize]);
 
   return (
-    <Box>
-      <TableContainer
-        elevation={0}
-        component={Paper}
-        sx={{
-          // flex: 1,
-          borderRadius: 3,
-          width: "99%",
-          backgroundColor: "inherit",
-        }}
-      >
-        <Table stickyHeader aria-label="collapsible table">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#c7c7c7 " }}>
-              <TableCell />
-              {header.map((header, index) => (
-                <TableCell
-                  key={index}
-                  sx={{
-                    fontFamily: "'Public Sans',sans-serif",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  {header}
-                </TableCell>
-              ))}
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[60%]">Question</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead>Grade</TableHead>
+              <TableHead>Chapter</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
-            {questions
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row: any, index: any) => (
-                <Row key={index} row={row} />
-              ))}
+            {paginatedQuestions.map((question) => (
+              <TableRow key={question.id}>
+                <TableCell className="font-medium truncate max-w-sm">
+                  {question.question_text}
+                </TableCell>
+                <TableCell>{question.subject}</TableCell>
+                <TableCell>{question.grade}</TableCell>
+                <TableCell>{question.chapter}</TableCell>
+                <TableCell className="text-right">
+                  <QuestionActions
+                    question={question}
+                    onQuestionDeleted={onQuestionDeleted}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[2, 10, 25, 100]}
-        component="div"
-        count={questions?.length ?? 0}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          ".MuiTablePagination-selectLabel": {
-            fontFamily: "'Public Sans',sans-serif",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-          },
-          overflow: "hidden",
-          fontFamily: "'Public Sans',sans-serif",
-          // "&.MuiList-root": {
-          //   margin: 10,
-          //   backgroundColor: "black !important",
-          // },
-        }}
+      </div>
+      <DataTablePagination
+        pageIndex={pageIndex}
+        pageCount={pageCount}
+        pageSize={pageSize}
+        setPageIndex={setPageIndex}
+        setPageSize={setPageSize}
+        itemCount={questions.length}
       />
-    </Box>
+    </div>
   );
 }
+interface QuestionActionsProps {
+  question: Question;
+  onQuestionDeleted: (questionId: string) => void;
+}
 
-function Row(props: any) {
-  const { row }: { row: Question } = props;
-  const [open, setOpen] = React.useState(false);
-  const [snakOpen, setSnakOpen] = React.useState(false);
+export function QuestionActions({
+  question,
+  onQuestionDeleted,
+}: QuestionActionsProps) {
   const navigate = useNavigate();
-  const handleNavigate = (row: any) => {
-    const jsonString = encodeURIComponent(JSON.stringify(row));
-    navigate(`/dashboard/addquestion?edit=true&question=${jsonString}`);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const handleEdit = () => {
+    const params = new URLSearchParams();
+    params.set("edit", "true");
+    params.set("question", JSON.stringify(question));
+    navigate(`/dashboard/addquestion?${params.toString()}`);
+  };
+
+  const handleDelete = async () => {
+    if (!question.id) return;
+    setIsDeleting(true);
+    const promise = deleteQusetion(question.id);
+
+    toast.promise(promise, {
+      loading: "Deleting question...",
+      success: () => {
+        onQuestionDeleted(question.id!);
+        return "Question deleted successfully.";
+      },
+      error: "Failed to delete question.",
+      finally: () => setIsDeleting(false),
+    });
   };
 
   return (
-    <React.Fragment>
-      <TableRow
-        sx={{
-          "& > *": { borderBottom: "unset" },
-          cursor: "pointer",
-          "&:hover": { backgroundColor: "#f7f7f5" },
-        }}
-        onClick={() => setOpen(!open)}
-      >
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-          component="th"
-          scope="row"
-        >
-          {row.question_text}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.chapter}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.grade}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Public Sans',sans-serif" }} align="left">
-          {row.subject}
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Card
-              elevation={0}
-              sx={{ my: 0.8, borderRadius: 3, boxShadow: "0 0 1px #9c9898" }}
+    <Dialog>
+      <AlertDialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+            {/* NEW: View Details Item */}
+            <DialogTrigger asChild>
+              <DropdownMenuItem>
+                <Eye className="mr-2 h-4 w-4" />
+                <span>View Details</span>
+              </DropdownMenuItem>
+            </DialogTrigger>
+
+            <DropdownMenuItem onClick={handleEdit}>
+              <Pencil className="mr-2 h-4 w-4" />
+              <span>Edit</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              question.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              <CardHeader
-                title={"Q. " + row.question_text}
-                action={
-                  <div>
-                    <Button
-                      onClick={() => handleNavigate(row)}
-                      sx={{
-                        fontFamily: "'Public Sans',sans-serif",
-                        textTransform: "none",
-                        // backgroundColor: "#00AB5514",
-                        color: "#00AB55",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <AlertForDelete
-                      open={snakOpen}
-                      setOpen={setSnakOpen}
-                      question_id={row.id}
-                    >
-                      <button className="text-red-600 px-4 py-2 hover:bg-gray-200 rounded-lg font-sans font-semibold">
-                        Delete
-                      </button>
-                    </AlertForDelete>
-                  </div>
-                }
-                sx={{
-                  "& .MuiCardHeader-title": {
-                    fontFamily: "'Public Sans', sans-seri",
-                    fontWeight: 600,
-                    lineHeight: 1.57143,
-                    fontSize: 15,
-                    textOverflow: "ellipsis",
-                  },
-                }}
-              />
-              <CardContent>
-                {row.multiple_choice.map((choice: string, index) => {
-                  return (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        padding: 0,
-                      }}
-                    >
-                      <Checkbox
-                        checked={true}
-                        sx={{
-                          "&.Mui-checked": {
-                            color: "#00AB55",
-                          },
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          fontFamily: '"Public Sans",sans-serif',
-                        }}
-                      >
-                        {choice}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </CardContent>
-              <CardActions
-                sx={{
-                  backgroundColor: "#00AB5514",
-                  fontFamily: "'Public Sans',sans-serif",
-                }}
-              >
-                <Box>
-                  <span
-                    style={{
-                      color: "#00AB55",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Explanation
-                  </span>{" "}
-                  : {row.explanation}
-                </Box>
-              </CardActions>
-            </Card>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
-  );
-}
-function AlertForDelete({
-  children,
-  open,
-  setOpen,
-  question_id,
-}: {
-  children: ReactNode;
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  question_id: string | undefined;
-}) {
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState(false);
-  const handleDeleteQuestion = async () => {
-    setLoading(true);
-    try {
-      await deleteQusetion(question_id!);
-      setOpen(false);
-      setError(false);
-      window.location.reload();
-    } catch (error) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-  return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the
-            question you choose.
-          </AlertDialogDescription>
-          {error && (
-            <div className="px-3 py-2">
-              <span>Something went wrong!</span>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* NEW: The Dialog content that shows the question details */}
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-lg leading-relaxed">
+            {question.question_text}
+          </DialogTitle>
+          <DialogDescription className="flex items-center gap-2 pt-2">
+            <Badge variant="outline">{question.subject}</Badge>
+            <Badge variant="outline">Grade {question.grade}</Badge>
+            <Badge variant="outline">{question.chapter}</Badge>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 space-y-6">
+          <div>
+            <h4 className="font-semibold mb-3">Options</h4>
+            <div className="space-y-2">
+              {question.multiple_choice.map((choice, index) => (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 p-3 rounded-md border ${
+                    question.answer === index + 1
+                      ? "border-green-300 bg-green-50"
+                      : ""
+                  }`}
+                >
+                  {question.answer === index && (
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                  )}
+                  <p className="flex-1">{choice}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {question.explanation && (
+            <div>
+              <h4 className="font-semibold mb-2">Explanation</h4>
+              <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                {question.explanation}
+              </p>
             </div>
           )}
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <button
-            className="hover:bg-red-400 bg-red-500 px-5 rounded-lg text-white font-bold"
-            onClick={() => handleDeleteQuestion()}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+// components/ui/DataTablePagination.tsx
+
+interface DataTablePaginationProps {
+  pageIndex: number;
+  pageCount: number;
+  pageSize: number;
+  setPageIndex: (index: number) => void;
+  setPageSize: (size: number) => void;
+  itemCount: number;
+}
+
+export function DataTablePagination({
+  pageIndex,
+  pageCount,
+  pageSize,
+  setPageIndex,
+  setPageSize,
+  itemCount,
+}: DataTablePaginationProps) {
+  return (
+    <div className="flex items-center justify-between px-2 py-4">
+      <div className="flex-1 text-sm text-muted-foreground">
+        {itemCount} total rows
+      </div>
+      <div className="flex items-center space-x-6 lg:space-x-8">
+        <div className="flex items-center space-x-2">
+          <p className="text-sm font-medium">Rows per page</p>
+          <Select
+            value={`${pageSize}`}
+            onValueChange={(value) => setPageSize(Number(value))}
           >
-            {loading ? "Deleting..." : "Delete"}
-          </button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue placeholder={pageSize} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[10, 20, 30, 40, 50].map((size) => (
+                <SelectItem key={size} value={`${size}`}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          Page {pageIndex + 1} of {pageCount}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            className="h-8 w-8 p-0"
+            onClick={() => setPageIndex(0)}
+            disabled={pageIndex === 0}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            className="h-8 w-8 p-0"
+            onClick={() => setPageIndex(pageIndex - 1)}
+            disabled={pageIndex === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            className="h-8 w-8 p-0"
+            onClick={() => setPageIndex(pageIndex + 1)}
+            disabled={pageIndex >= pageCount - 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            className="h-8 w-8 p-0"
+            onClick={() => setPageIndex(pageCount - 1)}
+            disabled={pageIndex >= pageCount - 1}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

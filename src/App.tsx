@@ -3,8 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Dashboard from "./layout/DashboardLayout";
 import Contest from "./components/contests/Contest";
-import Questions from "./components/questions/Questions";
-import Users from "./components/users/Users";
+import UserListPage from "./components/users/Users";
 import Home from "./components/home/Home";
 import ContestById from "./components/contests/ContestById";
 import AddQuestions from "./components/questions/AddQuestions";
@@ -19,6 +18,7 @@ import Profile from "./components/profile/Profile";
 import FeedbackManagement from "./components/admin/FeedbackManagement";
 import HighScorersContactList from "./components/admin/HighScorersContactList";
 import { PaymentsPage } from "./components/payment/Payment";
+import QuestionsPage from "./components/questions/Questions";
 
 const router = createBrowserRouter([
   {
@@ -36,8 +36,8 @@ const router = createBrowserRouter([
           { path: "", element: <Home /> },
           { path: "contest", element: <Contest /> },
           { path: "contest/:id", element: <ContestById /> },
-          { path: "questions", element: <Questions /> },
-          { path: "users", element: <Users /> },
+          { path: "questions", element: <QuestionsPage /> },
+          { path: "users", element: <UserListPage /> },
           { path: "addquestion", element: <AddQuestions /> },
           { path: "addcontest", element: <AddContest /> },
           { path: "admins", element: <ApproveAdmin /> },

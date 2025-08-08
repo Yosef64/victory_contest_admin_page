@@ -1,319 +1,386 @@
-import { Box, Grid, SnackbarCloseReason, Typography } from "@mui/material";
-import React from "react";
-import { DatePickerDemo, TimePickerComponent } from "./DatePicker";
-import LoadingButton from "@mui/lab/LoadingButton";
-import SnackBar from "../questions/Snackbar";
-import { Contest, Question } from "../../types/models";
-import Questions from "./Questions";
-import { grades, Subjects } from "../questions/Data";
+"use client";
+
+import * as React from "react";
+import { toast } from "sonner";
+import dayjs from "dayjs";
+import { CalendarIcon } from "lucide-react";
+
+// Local imports (assuming these are your custom components/types)
 import { addContest } from "@/services/contestServices";
+import Questions from "./Questions";
+import { type Question, type Contest, APIContest } from "../../types/models";
+import { grades, Subjects } from "../questions/Data"; // Your constants
+import { cn } from "@/lib/utils"; // From shadcn/ui
+
+// Shadcn/ui Components
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import dayjs from "dayjs";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+
+// Define action types for the reducer
+type Action =
+  | { type: "UPDATE_FIELD"; field: keyof Contest; value: any }
+  | {
+      type: "SET_TIME";
+      field: "start_time" | "end_time";
+      value: dayjs.Dayjs | null;
+    }
+  | { type: "RESET_FORM" };
+
+// Reducer function to manage contest state
+const contestReducer = (state: Contest, action: Action): Contest => {
+  switch (action.type) {
+    case "UPDATE_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_TIME":
+      if (!state.date || !action.value) {
+        toast.error("Please select a date first.");
+        return state;
+      }
+      const combinedDateTime = dayjs(state.date)
+        .hour(action.value.hour())
+        .minute(action.value.minute())
+        .second(action.value.second());
+      return {
+        ...state,
+        [action.field]: combinedDateTime.format("YYYY-MM-DDTHH:mm:ss"),
+      };
+    case "RESET_FORM":
+      return initialState;
+    default:
+      return state;
+  }
+};
+
+const initialState: Contest = {
+  title: "",
+  description: "",
+  questions: [],
+  start_time: "",
+  end_time: "",
+  grade: "",
+  subject: "",
+  date: "",
+  prize: "",
+  type: "free",
+  status: "inactive",
+};
 
 export default function AddContest() {
-  const [selectedRows, setSelectedRows] = React.useState<Question[]>([]);
+  const [contest, dispatch] = React.useReducer(contestReducer, initialState);
+  const [selectedQuestions, setSelectedQuestions] = React.useState<Question[]>(
+    []
+  );
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const [addStatus, setaddStatus] = React.useState(200);
-  const [snakOpen, setSnakOpen] = React.useState(false);
-
-  const [contest, setContest] = React.useState<Contest>({
-    title: "",
-    description: "",
-    questions: [],
-    start_time: "",
-    end_time: "",
-    grade: "",
-    subject: "",
-    date: "",
-    prize: "",
-    type: "free",
-    status: "inactive",
-  });
-
-  const handleClose = (
-    _event: React.SyntheticEvent | Event,
-    reason?: SnackbarCloseReason
+  // Unified change handler for simple inputs
+  const handleContestChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnakOpen(false);
+    dispatch({
+      type: "UPDATE_FIELD",
+      field: e.target.id as keyof Contest,
+      value: e.target.value,
+    });
   };
 
-  function timeChangeHandler(newValue: dayjs.Dayjs | null, pos: string) {
-    if (!contest.date || !newValue) {
-      toast.error("Please select a date first.", {
-        style: {
-          background: "#f44336",
-          color: "#fff",
-        },
+  const handleSelectChange = (field: keyof Contest, value: string) => {
+    dispatch({ type: "UPDATE_FIELD", field, value });
+  };
+
+  // Handler for DatePicker
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      dispatch({
+        type: "UPDATE_FIELD",
+        field: "date",
+        value: dayjs(date).format("YYYY-MM-DD"),
       });
+    }
+  };
+
+  // Handler for question selection
+  const handleSelectionChange = (selectedQuestions: Question[]) => {
+    setSelectedQuestions(selectedQuestions);
+  };
+
+  // Submission handler
+  const handleSubmitContest = async () => {
+    if (
+      !contest.title ||
+      !contest.grade ||
+      !contest.subject ||
+      selectedQuestions.length === 0
+    ) {
+      toast.error(
+        "Please fill in all required fields: Title, Grade, Subject, and select at least one question."
+      );
       return;
     }
 
-    const selectedDate = dayjs(contest.date);
-    const combinedDateTime = selectedDate
-      .hour(newValue.hour())
-      .minute(newValue.minute())
-      .second(newValue.second());
-    const formattedDateTime = combinedDateTime.format("YYYY-MM-DDTHH:mm:ss");
-
-    // Update the state with the formatted string.
-    setContest({
+    const contestData: APIContest = {
       ...contest,
-      [pos === "start" ? "start_time" : "end_time"]: formattedDateTime,
-    });
-  }
+      questions: selectedQuestions.map((q) => q.id!),
+    };
+    console.log(contestData);
 
-  const handleSelectionChange = (newSelection: Question) => {
-    setSelectedRows((prevSelectedRows: any) => {
-      const isAlreadySelected = prevSelectedRows.some(
-        (row: Question) => row.id === newSelection.id
-      );
+    setIsLoading(true);
+    const promise = addContest(contestData);
 
-      if (isAlreadySelected) {
-        return prevSelectedRows.filter(
-          (row: Question) => row.id !== newSelection.id
-        );
-      } else {
-        return [...prevSelectedRows, newSelection];
-      }
+    toast.promise(promise, {
+      loading: "Submitting contest...",
+      success: () => {
+        dispatch({ type: "RESET_FORM" });
+        setSelectedQuestions([]);
+        setIsLoading(false);
+        return "Contest added successfully! 🎉";
+      },
+      error: (err) => {
+        setIsLoading(false);
+        return `Failed to add contest: ${err.message}`;
+      },
     });
   };
-
-  async function handleSubmitContest() {
-    const contestData: Contest = {
-      ...contest,
-      questions: selectedRows.map((q) => q.id!) || [],
-    };
-    setIsLoading(true);
-    console.log("Submitting Contest Data:", contestData); // The times here will now be in the correct format.
-    try {
-      console.log("Contest",contestData)
-      await addContest(contestData);
-      setaddStatus(200);
-    } catch (error) {
-      setaddStatus(500);
-    } finally {
-      setSnakOpen(true);
-      setIsLoading(false);
-    }
-  }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <SnackBar
-        snakOpen={snakOpen}
-        handleClose={handleClose}
-        addStatus={addStatus}
-      />
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          sx={{
-            fontFamily: "'Public Sans',sans-serif",
-            fontSize: 18,
-            fontWeight: 700,
-          }}
-        >
-          Add Contest
-        </Typography>
-      </Box>
-      <Box sx={{ mb: 3 }}>
-        <Box
-          sx={{ display: "flex", flexDirection: "column", mb: 3, width: "50%" }}
-        >
-          <input
-            type="text"
-            id="company"
-            className="bg-gray-50 h-12 border mb-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
-            placeholder="Contest Title"
-            onChange={(e) => setContest({ ...contest, title: e.target.value })}
-            required
-          />
+    <div className="container mx-auto p-4 space-y-8">
+      <h1 className="text-3xl font-bold tracking-tight">Add New Contest</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Form Fields */}
+        <div className="lg:col-span-2 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contest Details</CardTitle>
+              <CardDescription>
+                Provide the main information for your contest.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Contest Title</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., Weekly Algebra Challenge"
+                  value={contest.title}
+                  onChange={handleContestChange}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe the rules, topics, and goals of the contest."
+                  value={contest.description}
+                  onChange={handleContestChange}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prize">Prize</Label>
+                <Input
+                  id="prize"
+                  placeholder="e.g., $100 Amazon Gift Card, Gold Medal"
+                  value={contest.prize}
+                  onChange={handleContestChange}
+                  disabled={isLoading}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-          <textarea
-            id="message"
-            rows={4}
-            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#00AB55] focus:border-[#00AB55]  focus:outline-none"
-            placeholder="Write descrition..."
-            onChange={(e) =>
-              setContest({ ...contest, description: e.target.value })
-            }
-          ></textarea>
-
-          <input
-            type="text"
-            className="bg-gray-50 h-12 border mt-2 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#00AB55] focus:border-[#00AB55] block w-full p-2.5 focus:outline-none"
-            placeholder="Prize (e.g., $100, Medal, Trophy)"
-            onChange={(e) => setContest({ ...contest, prize: e.target.value })}
-          />
-        </Box>
-
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: 15,
-            mb: 3,
-            color: "rgb(99, 115, 129)",
-          }}
-        >
-          Choose Questions
-        </Typography>
-        <Questions handleSelectionChange={handleSelectionChange} />
-      </Box>
-      <div className="flex flex-col mb-8">
-        <div className="font-sans text-gray-500 mb-3 text-[17px] font-semibold">
-          Info
+          {/* Assuming `Questions` is a component that renders a selectable list */}
+          <Questions onSelectionChange={handleSelectionChange} />
         </div>
-        <div className="flex gap-4">
-          <Select
-            onValueChange={(value) =>
-              setContest({ ...contest, subject: value })
-            }
-          >
-            <SelectTrigger className="w-[180px] h-[50px]">
-              <SelectValue placeholder="Select Subject" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Subject</SelectLabel>
-                {Subjects.map((subject, index) => (
-                  <SelectItem key={index} value={subject}>
-                    {subject}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
 
-          <Select
-            onValueChange={(value) => setContest({ ...contest, grade: value })}
+        {/* Right Column: Metadata and Scheduling */}
+        <div className="lg:col-span-1 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Properties</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Subject</Label>
+                <Select
+                  onValueChange={(value) =>
+                    handleSelectChange("subject", value)
+                  }
+                  value={contest.subject}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Subjects.map((subject) => (
+                      <SelectItem key={subject} value={subject}>
+                        {subject}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Grade</Label>
+                <Select
+                  onValueChange={(value) => handleSelectChange("grade", value)}
+                  value={contest.grade}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade} value={grade}>
+                        {grade}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Contest Type</Label>
+                <Select
+                  onValueChange={(value) =>
+                    handleSelectChange("type", value as "free" | "premium")
+                  }
+                  value={contest.type}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Schedule</CardTitle>
+              <CardDescription>
+                Set the date and time for the contest.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !contest.date && "text-muted-foreground"
+                      )}
+                      disabled={isLoading}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {contest.date ? (
+                        dayjs(contest.date).format("MMMM D, YYYY")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        contest.date ? new Date(contest.date) : undefined
+                      }
+                      onSelect={handleDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                {/* Assuming TimePickerComponent is adapted or you use a shadcn-compatible one */}
+                {/* <TimePickerComponent ... /> */}
+                <Input
+                  type="time"
+                  id="start_time_picker"
+                  value={
+                    contest.start_time
+                      ? dayjs(contest.start_time).format("HH:mm")
+                      : ""
+                  }
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_TIME",
+                      field: "start_time",
+                      value: dayjs(`1970-01-01T${e.target.value}`),
+                    })
+                  }
+                  disabled={isLoading || !contest.date}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>End Time</Label>
+                {/* <TimePickerComponent ... /> */}
+                <Input
+                  type="time"
+                  id="end_time_picker"
+                  value={
+                    contest.end_time
+                      ? dayjs(contest.end_time).format("HH:mm")
+                      : ""
+                  }
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_TIME",
+                      field: "end_time",
+                      value: dayjs(`1970-01-01T${e.target.value}`),
+                    })
+                  }
+                  disabled={isLoading || !contest.date}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button
+            onClick={handleSubmitContest}
+            disabled={isLoading}
+            className="w-full"
           >
-            <SelectTrigger className="w-[180px] h-[50px]">
-              <SelectValue placeholder="Select Grade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Grade</SelectLabel>
-                {grades.map((subject, index) => (
-                  <SelectItem key={index} value={subject}>
-                    {subject}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) =>
-              setContest({ ...contest, type: (value as "free") || "premium" })
-            }
-          >
-            <SelectTrigger className="w-[180px] h-[50px]">
-              <SelectValue placeholder="Select Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Type</SelectLabel>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            {isLoading ? "Submitting..." : "Add Contest"}
+          </Button>
         </div>
       </div>
-      <Typography
-        sx={{
-          fontWeight: 700,
-          fontSize: 17,
-          fontFamily: "'Public Sans',sans-serif",
-          mb: 3,
-          color: "rgb(99, 115, 129)",
-        }}
-      >
-        Schedule Date
-      </Typography>
-      <Grid
-        container
-        alignItems={"center"}
-        justifyContent={"space-between"}
-        sx={{ mb: 3 }}
-        spacing={2}
-      >
-        <Grid item xs={12} md={3}>
-          <Typography
-            sx={{
-              color: "rgb(99, 115, 129)",
-              fontFamily: "'Public Sans',sans-serif",
-              fontSize: 14,
-              mb: 1,
-            }}
-          >
-            Date
-          </Typography>
-          <DatePickerDemo contest={contest} setContest={setContest} />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Typography
-            sx={{
-              color: "rgb(99, 115, 129)",
-              fontFamily: "'Public Sans',sans-serif",
-              fontSize: 14,
-              mb: 1,
-            }}
-          >
-            Start Time
-          </Typography>
-          <TimePickerComponent
-            timeChangeHandler={(newValue: any) =>
-              timeChangeHandler(newValue, "start")
-            }
-            // Pass the current start_time from contest state.
-            // dayjs can parse the "YYYY-MM-DDTHH:mm:ss" format directly.
-            value={contest.start_time ? dayjs(contest.start_time) : null}
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Typography
-            sx={{
-              color: "rgb(99, 115, 129)",
-              fontFamily: "'Public Sans',sans-serif",
-              fontSize: 14,
-              mb: 1,
-            }}
-          >
-            End Time
-          </Typography>
-          <TimePickerComponent
-            timeChangeHandler={(newValue: any) =>
-              timeChangeHandler(newValue, "end")
-            }
-            // Pass the current end_time from contest state.
-            value={contest.end_time ? dayjs(contest.end_time) : null}
-          />
-        </Grid>
-      </Grid>
-
-      <Box>
-        <LoadingButton
-          loading={isLoading}
-          loadingIndicator="Submiting..."
-          variant="contained"
-          sx={{ bgcolor: "#00AB55", textTransform: "none", fontWeight: 600 }}
-          onClick={handleSubmitContest}
-        >
-          Add Contest
-        </LoadingButton>
-      </Box>
-    </Box>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 export interface Student {
+  id?: string;
   name: string;
   telegram_id: string;
   sex: string;
@@ -26,7 +27,7 @@ export interface Contest {
   date: string | Date;
   title: string;
   description?: string;
-  questions: string[];
+  questions: Question[];
   start_time: string;
   end_time: string;
   active_contenstants?: Student[];
@@ -36,6 +37,9 @@ export interface Contest {
   prize: string;
   status: string;
   type: "free" | "premium";
+}
+export interface APIContest extends Omit<Contest, "questions"> {
+  questions: string[];
 }
 export interface Payment {
   id?: string;

@@ -1,27 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Chip,
-  Divider,
-  ListItemButton
-} from '@mui/material';
-import { MenuListItems } from '@/components/common/Sidentmenu'; // Ensure this path is correct
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Box, Typography, Divider } from "@mui/material";
+import { menuList } from "@/components/common/Sidentmenu"; // Ensure this path is correct
 
 export default function SearchResults() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [results, setResults] = useState<typeof MenuListItems>([]);
+  // const navigate = useNavigate();
+  const [results, setResults] = useState<typeof menuList>([]);
 
   useEffect(() => {
-    const query = new URLSearchParams(location.search).get('q');
+    const query = new URLSearchParams(location.search).get("q");
     if (query) {
-      const filtered = MenuListItems.filter(item =>
+      const filtered = menuList.filter((item) =>
         item.title.toLowerCase().includes(query.toLowerCase())
       );
       setResults(filtered);
@@ -40,11 +30,11 @@ export default function SearchResults() {
       </Typography>
       <Divider sx={{ my: 2 }} />
 
-      {results.length > 0 ? (
+      {/* {results.length > 0 ? (
         <List sx={{ width: '100%', maxWidth: 360 }}>
-          {results.map((item) => (
+          {results.map((item,index) => (
             <ListItem
-              key={item.id}
+              key={index}
               disablePadding
               sx={{
                 mb: 1,
@@ -92,7 +82,7 @@ export default function SearchResults() {
             Try different search terms
           </Typography>
         </Box>
-      )}
+      )} */}
     </Box>
   );
 }

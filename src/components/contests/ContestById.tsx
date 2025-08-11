@@ -109,7 +109,6 @@ export default function ContestById() {
   const { id } = useParams();
 
   // State for controlling dialog visibility
-  const [announceDialogOpen, setAnnounceDialogOpen] = useState(false);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [updateTimeDialogOpen, setUpdateTimeDialogOpen] = useState(false);
   // Removed isMenubarOpen state as it's not directly controlling MenubarMenu
@@ -158,8 +157,7 @@ export default function ContestById() {
   const handleActionMade = async (
     action: string,
     time?: { start_time: string; end_time: string },
-    info?: { title: string; description: string },
-    data?: { file: File | null; message: string }
+    info?: { title: string; description: string }
   ) => {
     if (!contest) return;
 

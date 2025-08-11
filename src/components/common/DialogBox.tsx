@@ -33,8 +33,6 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
   handler,
   contest,
 }) => {
-  const [message, setMessage] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
   const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
   const [cloneTitle, setCloneTitle] = useState("");
@@ -74,9 +72,7 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
   }, [open, action, contest]);
 
   const handleSubmit = async () => {
-    if (action === "announce") {
-      await handler(action, undefined, undefined, { file, message });
-    } else if (action === "clone") {
+    if (action === "clone") {
       await handler(action, undefined, {
         title: cloneTitle,
         description: cloneDescription,

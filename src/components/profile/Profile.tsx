@@ -5,13 +5,12 @@ import { PaymentManagement } from "@/components/profile/PaymentManagement";
 import { ContestStatistics } from "@/components/profile/ContestStatistics";
 import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
 import { Toaster } from "@/components/ui/toaster";
-import { mockUser } from "@/data/mockData";
 import { User } from "@/types/user";
 import { getUserProfile } from "@/services/studentServices";
 import { useParams } from "react-router-dom";
 
 function Profile() {
-  const [user, setUser] = useState(mockUser);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams() as { id: string }; // Assuming the user ID is passed as a URL parameter
 
@@ -26,11 +25,11 @@ function Profile() {
   }, []);
 
   const handleDeleteUser = () => {
-    console.log("Deleting user:", user.id);
+    console.log("Deleting user:", user?.id);
   };
 
   const handleNotifyUser = () => {
-    console.log("Notifying user:", user.id);
+    console.log("Notifying user:", user?.id);
   };
 
   if (isLoading) {
@@ -40,21 +39,21 @@ function Profile() {
   return (
     <div className="min-h-screen font-sans">
       <div className="max-w-7xl">
-        <ProfileHeader user={user} />
+        <ProfileHeader user={user!} />
 
         <div className="px-8 pb-8">
-          <StatsCards user={user} />
+          <StatsCards user={user!} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
               <PaymentManagement
-                user={user}
+                user={user!}
                 onDeleteUser={handleDeleteUser}
                 onNotifyUser={handleNotifyUser}
               />
             </div>
             <div className="lg:col-span-2">
-              <ContestStatistics user={user} />
+              <ContestStatistics user={user!} />
             </div>
           </div>
         </div>

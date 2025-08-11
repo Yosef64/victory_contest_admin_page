@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProfileSkeleton() {
   return (
@@ -16,7 +16,6 @@ export function ProfileSkeleton() {
             </div>
           </div>
         </div>
-
         {/* Profile Card Skeleton */}
         <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
           {/* Profile Header Skeleton */}
@@ -126,7 +125,10 @@ export function ProfileSkeleton() {
                     <Skeleton className="h-80 w-full rounded-lg" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {Array.from({ length: 6 }).map((_, index) => (
-                        <Skeleton key={index} className="h-24 w-full rounded-lg" />
+                        <Skeleton
+                          key={index}
+                          className="h-24 w-full rounded-lg"
+                        />
                       ))}
                     </div>
                   </div>

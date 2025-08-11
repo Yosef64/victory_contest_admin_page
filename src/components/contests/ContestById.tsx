@@ -67,6 +67,7 @@ import { Loading } from "../common/Stauts";
 import dayjs from "dayjs"; // Import dayjs for date formatting
 import { addContest } from "@/services/contestServices";
 import { getAllStudents } from "@/services/studentServices";
+import { toast } from "sonner";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -167,9 +168,7 @@ export default function ContestById() {
         ...contest,
         questions: contest.questions.map((q) => q.id!),
       };
-      if (action === "announce") {
-        await announceContest(contest, data!);
-      } else if (action === "clone") {
+      if (action === "clone") {
         await addContest({ ...contestToSend, ...info! });
       } else if (action === "update" && time) {
         // Ensure the data object is passed directly, not wrapped in another 'data' key
@@ -182,7 +181,6 @@ export default function ContestById() {
       queryClient.invalidateQueries({ queryKey: ["contest", id] });
     } catch (error) {
       console.error(`Error performing ${action} action:`, error);
-      // Optionally, show an error message to the user
     }
   };
 
@@ -199,6 +197,19 @@ export default function ContestById() {
   const handleQuestionDeleted = (deletedQuestionId: string) => {
     console.log(deletedQuestionId);
     // setQuestions((prev) => prev.filter((q) => q.id !== deletedQuestionId));
+  };
+
+  const handleAnnounceContest = async () => {
+    const promise = announceContest(contest!);
+    toast.promise(promise, {
+      loading: "Announcing contest...",
+      success: () => {
+        return "Contest announced successfully! 🎉";
+      },
+      error: (err) => {
+        return `Failed to add contest: ${err.message}`;
+      },
+    });
   };
 
   return (
@@ -334,11 +345,7 @@ export default function ContestById() {
                 style={{ fontFamily: "'Public Sans',sans-serif" }}
                 className="w-2"
               >
-                <MenubarItem
-                  onClick={() => {
-                    setAnnounceDialogOpen(true);
-                  }}
-                >
+                <MenubarItem onClick={handleAnnounceContest}>
                   Announce Contest
                 </MenubarItem>
                 <MenubarItem
@@ -456,14 +463,6 @@ export default function ContestById() {
           />
         </CustomTabPanel>
       </Box>
-      {/* Dialogs controlled by state */}
-      <DialogBox
-        action="announce"
-        open={announceDialogOpen}
-        onClose={() => setAnnounceDialogOpen(false)}
-        handler={handleActionMade}
-        contest={contest}
-      />
       <DialogBox
         action="clone"
         open={cloneDialogOpen}

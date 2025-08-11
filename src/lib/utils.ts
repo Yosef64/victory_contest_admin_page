@@ -35,25 +35,14 @@ export async function updateContest(
   return res.data;
 }
 
-export async function announceContest(
-  contest: Contest,
-  data: { file: File | null; message: string }
-) {
-  const formData = new FormData();
-  formData.append("contest", JSON.stringify(contest));
-  formData.append("message", data.message);
-  if (data.file) {
-    formData.append("file", data.file);
-  }
-
+export async function announceContest(contest: Contest) {
+  const finalContest = {
+    ...contest,
+    questions: contest.questions.map((question) => question.id),
+  };
   const res = await axios.post(
-    `${VITE_API_LINK}/api/contest/announce`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+    `${VITE_API_LINK}/api/notification/contest-announce`,
+    finalContest
   );
   return res.data;
 }

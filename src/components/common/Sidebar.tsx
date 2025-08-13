@@ -20,15 +20,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LogOut, Settings } from "lucide-react";
+
 import { menuList, NavGroup } from "./Sidentmenu";
 import { useAuth } from "@/context/AuthContext";
 
@@ -162,7 +154,7 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ isCollapsed }: UserProfileProps) {
-  const { user, logout } = useAuth(); // Example context usage
+  const { user } = useAuth(); // Example context usage
   // const user = { name: "Admin User", email: "admin@example.com" }; // Placeholder
 
   return (

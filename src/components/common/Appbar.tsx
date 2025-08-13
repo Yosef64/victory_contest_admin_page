@@ -1,5 +1,5 @@
 // src/components/layout/Header.tsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext"; // Assuming this context returns your Notification struct

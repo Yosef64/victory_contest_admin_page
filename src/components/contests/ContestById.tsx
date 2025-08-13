@@ -108,7 +108,6 @@ export default function ContestById() {
   const [cities, setCities] = useState<string[]>([]);
   const { id } = useParams();
 
-  // State for controlling dialog visibility
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [updateTimeDialogOpen, setUpdateTimeDialogOpen] = useState(false);
   // Removed isMenubarOpen state as it's not directly controlling MenubarMenu
@@ -169,7 +168,7 @@ export default function ContestById() {
       if (action === "clone") {
         await addContest({ ...contestToSend, ...info! });
       } else if (action === "update" && time) {
-        // Ensure the data object is passed directly, not wrapped in another 'data' key
+        // Ensure the data  object is passed directly, not wrapped in another 'data' key
         await updateContest(contest, {
           start_time: time.start_time,
           end_time: time.end_time,

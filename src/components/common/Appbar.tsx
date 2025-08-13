@@ -1,365 +1,229 @@
-// src/components/common/Appbar.tsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useNotifications } from '@/context/NotificationContext';
-import { formatDistanceToNow } from 'date-fns';
+// src/components/layout/Header.tsx
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext"; // Assuming this context returns your Notification struct
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils"; // From shadcn/ui setup
+
+// Shadcn/ui & Lucide Icons
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Badge,
-  Avatar,
-  Menu,
-  MenuItem,
-  InputBase,
-  Box,
-  Typography,
-  Divider,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  useMediaQuery,
-  useTheme,
-  Chip, // Import Chip for notification count
-} from '@mui/material';
-import { styled, alpha } from '@mui/material/styles';
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
-  Search as SearchIcon,
-  Notifications as NotificationsIcon,
-  Logout as LogoutIcon,
-  //Settings as SettingsIcon,
-  //Person as PersonIcon,
-} from '@mui/icons-material';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { LogOut, User, Bell, BellRing, Search, Settings } from "lucide-react";
 
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.1),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.15),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-    transition: theme.transitions.create(['background-color', 'border-color', 'box-shadow']),
-    '&:focus-within': {
-        borderColor: theme.palette.primary.main,
-        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
-    }
-  },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '25ch',
-      '&:focus': {
-        width: '35ch',
-      },
-    },
-  },
-}));
-
-const StyledBadge = styled(Badge)(({ theme }) => ({
-  '& .MuiBadge-badge': {
-    backgroundColor: '#44b700',
-    color: '#44b700',
-    boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-    '&::after': {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      borderRadius: '50%',
-      animation: 'ripple 1.2s infinite ease-in-out',
-      border: '1px solid currentColor',
-      content: '""',
-    },
-  },
-  '@keyframes ripple': {
-    '0%': {
-      transform: 'scale(.8)',
-      opacity: 1,
-    },
-    '100%': {
-      transform: 'scale(2.4)',
-      opacity: 0,
-    },
-  },
-}));
-
-export default function Appbar() {
-  const { user, logout } = useAuth();
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+// Sub-component for the global search functionality
+function GlobalSearch() {
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
-  const isMenuOpen = Boolean(anchorEl);
-  const isNotificationMenuOpen = Boolean(notificationAnchorEl);
-
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleNotificationMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setNotificationAnchorEl(event.currentTarget);
-  };
-
-  const handleNotificationMenuClose = () => {
-    markAsRead();
-    setNotificationAnchorEl(null);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery('');
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    handleMenuClose();
+  const runCommand = (command: () => void) => {
+    setIsOpen(false);
+    command();
   };
 
   return (
-    <AppBar
-      position="sticky"
-      elevation={2}
-      sx={{
-        backdropFilter: 'blur(20px)',
-        backgroundColor: alpha(theme.palette.background.paper, 0.8),
-        color: 'text.primary',
-        borderBottom: '1px solid',
-        borderColor: theme.palette.divider,
-      }}
-    >
-      <Toolbar>
-        {/* Search Bar */}
-        {isMobile ? (
-          <IconButton color="inherit" onClick={() => navigate('/dashboard/search')}>
-            <SearchIcon />
-          </IconButton>
-        ) : (
-          <Search>
-            <form onSubmit={handleSearch}>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Search menus..."
-                inputProps={{ 'aria-label': 'search' }}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
-          </Search>
-        )}
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        {/* Notification Icon */}
-        <Tooltip title="Notifications">
-          <IconButton
-            size="large"
-            aria-label={`show ${unreadCount} new notifications`}
-            color="inherit"
-            onClick={handleNotificationMenuOpen}
-            sx={{
-              mr: 1,
-              transition: 'transform 0.2s ease-in-out',
-              '&:hover': {
-                transform: 'scale(1.1)',
-                color: theme.palette.primary.main,
-              },
-            }}
-          >
-            <Badge badgeContent={unreadCount} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-        </Tooltip>
-
-        {/* Profile Avatar */}
-        <Tooltip title={user?.name || "Profile"}>
-          <IconButton
-            size="large"
-            edge="end"
-            aria-label="account of current user"
-            aria-controls="primary-search-account-menu"
-            aria-haspopup="true"
-            onClick={handleProfileMenuOpen}
-            color="inherit"
-            sx={{
-              transition: 'transform 0.2s ease-in-out',
-              '&:hover': {
-                transform: 'scale(1.1)',
-              },
-            }}
-          >
-            <StyledBadge
-              overlap="circular"
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              variant="dot"
+    <>
+      <Button
+        variant="outline"
+        className="relative h-9 w-full justify-start text-muted-foreground sm:w-64"
+        onClick={() => setIsOpen(true)}
+      >
+        <Search className="mr-2 h-4 w-4" />
+        <span className="hidden lg:inline-flex">Search anything...</span>
+        <span className="inline-flex lg:hidden">Search...</span>
+        <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium opacity-100 sm:flex">
+          <span className="text-lg">⌘</span>K
+        </kbd>
+      </Button>
+      <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
+        <CommandInput placeholder="Type a command or search..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Suggestions">
+            <CommandItem
+              onSelect={() => runCommand(() => navigate("/dashboard/users"))}
             >
-              <Avatar alt={user?.name} src={user?.imgurl} sx={{ width: 32, height: 32 }} />
-            </StyledBadge>
-          </IconButton>
-        </Tooltip>
+              Users
+            </CommandItem>
+            <CommandItem
+              onSelect={() =>
+                runCommand(() => navigate("/dashboard/questions"))
+              }
+            >
+              Questions
+            </CommandItem>
+            <CommandItem
+              onSelect={() => runCommand(() => navigate("/dashboard/contest"))}
+            >
+              Contests
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+    </>
+  );
+}
 
-        {/* Notification Menu */}
-        <Menu
-          anchorEl={notificationAnchorEl}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          open={isNotificationMenuOpen}
-          onClose={handleNotificationMenuClose}
-          PaperProps={{
-            sx: {
-              width: 380,
-              maxHeight: 440,
-              overflow: 'auto',
-              mt: 1.5,
-              borderRadius: theme.shape.borderRadius * 2,
-              boxShadow: theme.shadows[6],
-            },
-          }}
-        >
-          <MenuItem disabled sx={{ pb: 0, pt: 1.5 }}>
-            <Typography variant="h6" fontWeight="bold">Notifications</Typography>
+function NotificationBell() {
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+
+  return (
+    <DropdownMenu onOpenChange={(open) => !open && markAsRead()}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+          {unreadCount > 0 ? (
+            <BellRing className="h-5 w-5 animate-tada" />
+          ) : (
+            <Bell className="h-5 w-5" />
+          )}
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">
+              {unreadCount}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-80 p-2" align="end">
+        <DropdownMenuLabel>
+          <div className="flex items-center justify-between">
+            <span className="font-semibold">Notifications</span>
             {unreadCount > 0 && (
-              <Chip
-                label={`${unreadCount} new`}
-                color="primary"
-                size="small"
-                sx={{ ml: 1, fontWeight: 'bold' }}
-              />
+              <Badge variant="secondary">{unreadCount} new</Badge>
             )}
-          </MenuItem>
-          <Divider sx={{ my: 1 }} />
-
-          {Array.isArray(notifications) && notifications.length > 0 ? (
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <ScrollArea className="h-96">
+          {notifications.length > 0 ? (
             notifications.map((notification) => (
-              <MenuItem
+              <DropdownMenuItem
                 key={notification.id}
-                onClick={handleNotificationMenuClose}
-                sx={{
-                  backgroundColor: !notification.read ? alpha(theme.palette.primary.light, 0.1) : 'inherit',
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.action.hover, 0.8),
-                    boxShadow: theme.shadows[1],
-                  },
-                  py: 1.5,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  borderRadius: theme.shape.borderRadius,
-                  mx: 1,
-                  mb: 0.5,
-                }}
+                className={cn(
+                  "flex flex-col items-start gap-1 p-3",
+                  !notification.is_read && "bg-muted/50"
+                )}
               >
-                <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
-                  <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 36, height: 36 }}>
-                    <NotificationsIcon fontSize="small" sx={{ color: theme.palette.common.white }} />
-                  </Avatar>
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="body2" fontWeight={!notification.read ? 'medium' : 'normal'} component="div">
-                      {notification.message}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDistanceToNow(new Date(notification.createdAt)) + ' ago'}
-                    </Typography>
-                  }
-                  sx={{ ml: 1 }}
-                />
-              </MenuItem>
+                <p className="font-semibold">{notification.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  {notification.message}
+                </p>
+                <p className="text-xs text-muted-foreground pt-1">
+                  {formatDistanceToNow(new Date(notification.sent_at), {
+                    addSuffix: true,
+                  })}
+                </p>
+              </DropdownMenuItem>
             ))
           ) : (
-            <MenuItem disabled sx={{ justifyContent: 'center', py: 2 }}>
-              <ListItemText primary={
-                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                  No new notifications
-                </Typography>
-              } />
-            </MenuItem>
+            <div className="flex h-full items-center justify-center p-8 text-sm text-muted-foreground">
+              You're all caught up!
+            </div>
           )}
-        </Menu>
+        </ScrollArea>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
-        {/* Profile Menu */}
-        <Menu
-          anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          open={isMenuOpen}
-          onClose={handleMenuClose}
-          PaperProps={{
-            sx: {
-              width: 220,
-              overflow: 'visible',
-              mt: 1.5,
-              borderRadius: theme.shape.borderRadius * 2,
-              boxShadow: theme.shadows[6],
-            },
-          }}
+// Sub-component for the user profile avatar and menu
+function UserProfileNav() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (logout) logout();
+    navigate("/");
+  };
+
+  if (!user) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+          <Avatar className="h-9 w-9 border">
+            <AvatarImage src={user.imgurl} alt={user.name} />
+            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user.email || "No email provided"}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
+          <User className="mr-2 h-4 w-4" />
+          <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="text-destructive focus:text-destructive"
         >
-  
-          <Divider />
-          <MenuItem onClick={handleLogout}
-            sx={{ '&:hover': { bgcolor: alpha(theme.palette.error.light, 0.2) } }}
-          >
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText>Logout</ListItemText>
-          </MenuItem>
-        </Menu>
-      </Toolbar>
-    </AppBar>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// Main Header component that assembles everything
+export default function Header() {
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 max-w-screen-2xl items-center justify-between gap-4">
+        {/* You can add a logo or sidebar toggle here if needed */}
+        {/* <p className="font-bold">Dashboard</p> */}
+
+        {/* This div pushes the right-side icons to the end */}
+        <div className="flex-1" />
+
+        <div className="flex items-center gap-2">
+          <GlobalSearch />
+          <NotificationBell />
+          <UserProfileNav />
+        </div>
+      </div>
+    </header>
   );
 }

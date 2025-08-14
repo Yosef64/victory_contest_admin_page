@@ -16,12 +16,19 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    TablePagination
+    TablePagination,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button
 } from '@mui/material';
 import {
     Phone,
     Star,
-    TrendingUp
+    TrendingUp,
+    Delete
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -40,6 +47,9 @@ export default function HighScorersContactList() {
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [scorerToDelete, setScorerToDelete] = useState<HighScorer | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || "https://txnfqqn7-8081.euw.devtunnels.ms";
 
@@ -74,6 +84,36 @@ export default function HighScorersContactList() {
             setError('Failed to fetch high scorers data');
             setLoading(false);
         }
+    };
+
+    const handleDeleteClick = (scorer: HighScorer) => {
+        setScorerToDelete(scorer);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!scorerToDelete) return;
+
+        try {
+            setDeleting(true);
+            await axios.delete(`${API_BASE_URL}/api/feedback-response/${scorerToDelete.id}`);
+            
+            // Remove the deleted scorer from the list
+            setHighScorers(prev => prev.filter(scorer => scorer.id !== scorerToDelete.id));
+            
+            setDeleteDialogOpen(false);
+            setScorerToDelete(null);
+        } catch (error) {
+            console.error('Error deleting scorer:', error);
+            setError('Failed to delete scorer');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
+        setScorerToDelete(null);
     };
 
     const handleChangePage = (_event: unknown, newPage: number) => {
@@ -139,9 +179,9 @@ export default function HighScorersContactList() {
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Box>
                                     <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                                        {highScorers.filter(s => s.score >= 580).length}
+                                        {highScorers.filter(s => s.score >= 550).length}
                                     </Typography>
-                                    <Typography variant="body2">Excellent (580+)</Typography>
+                                    <Typography variant="body2">Excellent (550+)</Typography>
                                 </Box>
                                 <Star sx={{ fontSize: 40, opacity: 0.8 }} />
                             </Box>
@@ -150,7 +190,7 @@ export default function HighScorersContactList() {
                 </Grid>
             </Grid>
 
-            <Paper sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
                 <TableContainer>
                     <Table>
                         <TableHead>
@@ -160,6 +200,7 @@ export default function HighScorersContactList() {
                                 <TableCell sx={{ fontWeight: 600 }}>Phone Number</TableCell>
                                 <TableCell sx={{ fontWeight: 600 }}>Submitted Date</TableCell>
                                 <TableCell sx={{ fontWeight: 600 }}>Language</TableCell>
+                                <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -194,11 +235,21 @@ export default function HighScorersContactList() {
                                             </Box>
                                         </TableCell>
                                         <TableCell>
-                                            {new Date(scorer.submittedAt).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
+                                            {(() => {
+                                              try {
+                                                if (!scorer.submittedAt) return 'N/A';
+                                                const date = new Date(scorer.submittedAt);
+                                                if (isNaN(date.getTime())) return 'Invalid date';
+                                                return date.toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                });
+                                              } catch (error) {
+                                                console.warn('Error formatting submittedAt date:', error);
+                                                return 'N/A';
+                                              }
+                                            })()}
                                         </TableCell>
                                         <TableCell>
                                             <Chip
@@ -206,6 +257,21 @@ export default function HighScorersContactList() {
                                                 size="small"
                                                 variant="outlined"
                                             />
+                                        </TableCell>
+                                        <TableCell>
+                                            <IconButton
+                                                onClick={() => handleDeleteClick(scorer)}
+                                                color="error"
+                                                size="small"
+                                                title="Delete this contact"
+                                                sx={{
+                                                    '&:hover': {
+                                                        backgroundColor: 'rgba(244, 67, 54, 0.1)'
+                                                    }
+                                                }}
+                                            >
+                                                <Delete />
+                                            </IconButton>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -231,6 +297,41 @@ export default function HighScorersContactList() {
                     </Typography>
                 </Box>
             )}
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteCancel}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ color: 'error.main' }}>
+                    🗑️ Delete Contact
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                        Are you sure you want to delete the contact for <strong>{scorerToDelete?.name}</strong>?
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        This will permanently remove their feedback response and contact information. 
+                        This action cannot be undone.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDeleteCancel} variant="outlined">
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleDeleteConfirm} 
+                        variant="contained" 
+                        color="error"
+                        disabled={deleting}
+                        startIcon={deleting ? <LinearProgress sx={{ width: 16, height: 16 }} /> : <Delete />}
+                    >
+                        {deleting ? 'Deleting...' : 'Delete Contact'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 } 

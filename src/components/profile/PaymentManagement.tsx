@@ -154,7 +154,13 @@ export function PaymentManagement({
     const BOT_TOKEN = import.meta.env.VITE_BOT;
     setLoading({ ...loading, notice: true });
     try {
+      if (!user.payment.nextPayment) {
+        throw new Error('No next payment date available');
+      }
       const dateObj = new Date(user.payment.nextPayment);
+      if (isNaN(dateObj.getTime())) {
+        throw new Error('Invalid next payment date');
+      }
       const formattedDate = dateObj.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -183,8 +189,8 @@ export function PaymentManagement({
       });
     } catch (error) {
       toast({
-        title: "Final Notice Sent",
-        description: `Final payment notice has been sent to ${user.name}.`,
+        title: "Error Sending Notice",
+        description: `Failed to send final payment notice: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -197,10 +203,20 @@ export function PaymentManagement({
 
   // Calculate days until next payment
   const today = new Date();
-  const nextPayment = new Date(user.payment.nextPayment);
-  const daysUntilPayment = Math.ceil(
-    (nextPayment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  let daysUntilPayment = 0;
+  try {
+    if (user.payment.nextPayment) {
+      const nextPayment = new Date(user.payment.nextPayment);
+      if (!isNaN(nextPayment.getTime())) {
+        daysUntilPayment = Math.ceil(
+          (nextPayment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+      }
+    }
+  } catch (error) {
+    console.warn('Error calculating days until payment:', error);
+    daysUntilPayment = 0;
+  }
 
   const renderStatusSpecificContent = () => {
     switch (user.payment.paymentStatus) {

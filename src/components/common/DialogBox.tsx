@@ -61,10 +61,11 @@ export const DialogBox: React.FC<DialogBoxProps> = ({ open, onClose, action, han
     } else if (action === 'clone') {
       await handler(action, undefined, { title: cloneTitle, description: cloneDescription });
     } else if (action === 'update') {
+      // Construct full datetime strings by combining current date with selected time
+      const today = dayjs().format('YYYY-MM-DD');
       await handler(action, {
-        // Format to "HH:mm" for consistency with backend expectation
-        start_time: startTime ? startTime.format("HH:mm") : '',
-        end_time: endTime ? endTime.format("HH:mm") : '',
+        start_time: startTime ? `${today}T${startTime.format("HH:mm")}:00` : '',
+        end_time: endTime ? `${today}T${endTime.format("HH:mm")}:00` : '',
       });
     }
     onClose(); // Close the dialog after submission

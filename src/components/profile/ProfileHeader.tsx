@@ -179,7 +179,17 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                   <div className="min-w-0">
                     <p className="text-xs text-gray-600">Next Payment</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {new Date(user.payment.nextPayment).toLocaleDateString()}
+                      {(() => {
+                        try {
+                          if (!user.payment.nextPayment) return 'N/A';
+                          const date = new Date(user.payment.nextPayment);
+                          if (isNaN(date.getTime())) return 'Invalid date';
+                          return date.toLocaleDateString();
+                        } catch (error) {
+                          console.warn('Error formatting nextPayment date:', error);
+                          return 'N/A';
+                        }
+                      })()}
                     </p>
                   </div>
                 </div>

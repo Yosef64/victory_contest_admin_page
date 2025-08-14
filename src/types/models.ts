@@ -20,11 +20,10 @@ export interface Admin {
   imgurl?: string;
   is_approved?: boolean;
 }
-export interface ExtendedContestSubmission extends Student {}
+export interface ExtendedContestSubmission extends Student { }
 
 export interface Contest {
   id?: string;
-  date: string | Date;
   title: string;
   description?: string;
   questions: Question[];
@@ -81,4 +80,5 @@ export interface Submission {
   submission_time: string;
   score: number;
   missed_questions: Question[];
+  time_spend?: string;
 }

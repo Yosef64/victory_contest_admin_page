@@ -1,18 +1,20 @@
 // src/components/layout/MenuList.ts
-import {
-  LayoutDashboard,
-  Users,
-  MessageSquareWarning,
-  BarChart2,
-  ShieldCheck,
-  PlusSquare,
-  FilePlus,
-} from "lucide-react";
+// Unused imports removed - only keeping what's actually used in the component
 
 export interface NavItem {
+  id: number;
   title: string;
   path: string;
-}[] = [
+  icon: JSX.Element;
+}
+
+export interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+// Individual navigation items
+const navigationItems: NavItem[] = [
   {
     id: 0,
     title: "Home",
@@ -140,29 +142,7 @@ export interface NavItem {
       </svg>
     ),
   },
-  {
-    id: 8,
-    title: "Analytics",
-    path: "/dashboard/analytics",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="mr-4 h-5 w-5 align-middle"
-      >
-        <line x1="18" y1="20" x2="18" y2="10"></line>
-        <line x1="12" y1="20" x2="12" y2="4"></line>
-        <line x1="6" y1="20" x2="6" y2="14"></line>
-      </svg>
-    ),
-  },
+
   {
     id: 6,
     title: "Approve Admin",
@@ -278,3 +258,31 @@ export interface NavItem {
     ),
   },
 ];
+
+// Grouped menu list for sidebar navigation
+export const menuList: NavGroup[] = [
+  {
+    title: "Overview",
+    items: [navigationItems[0]], // Home
+  },
+  {
+    title: "Management",
+    items: [
+      navigationItems[1], // Questions
+      navigationItems[2], // Contests
+      navigationItems[3], // Users
+      navigationItems[4], // Feedback
+      navigationItems[5], // Approve Admin
+    ],
+  },
+  {
+    title: "Actions",
+    items: [
+      navigationItems[6], // Add Contest
+      navigationItems[7], // Add Question
+    ],
+  },
+];
+
+// For backward compatibility, also export the flat list
+export const flatMenuList: NavItem[] = navigationItems;

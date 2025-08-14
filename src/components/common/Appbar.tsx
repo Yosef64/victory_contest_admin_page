@@ -307,7 +307,17 @@ export default function Appbar() {
                   }
                   secondary={
                     <Typography variant="caption" color="text.secondary">
-                      {formatDistanceToNow(new Date(notification.createdAt)) + ' ago'}
+                      {(() => {
+                        try {
+                          if (!notification.createdAt) return 'Unknown time';
+                          const date = new Date(notification.createdAt);
+                          if (isNaN(date.getTime())) return 'Invalid date';
+                          return formatDistanceToNow(date) + ' ago';
+                        } catch (error) {
+                          console.warn('Error formatting notification date:', error);
+                          return 'Unknown time';
+                        }
+                      })()}
                     </Typography>
                   }
                   sx={{ ml: 1 }}

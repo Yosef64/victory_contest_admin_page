@@ -118,25 +118,24 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
           {group.items.map((item) => {
             const isActive = location.pathname === item.path;
 
-            const IconComponent = item.icon; // Get the component type
-
             return (
               <Tooltip key={item.path}>
                 <TooltipTrigger asChild>
                   <Link
                     to={item.path}
-                    className={`flex rounded-md py-4 mb-2 cursor-pointer items-center px-4 text-sm outline-none transition-all duration-100 ease-in-out hover:border-l-4 hover:border-[#00AB55] hover:text-[#00AB55] ${
-                      isActive
+                    className={`flex rounded-md py-4 mb-2 cursor-pointer items-center px-4 text-sm outline-none transition-all duration-100 ease-in-out hover:border-l-4 hover:border-[#00AB55] hover:text-[#00AB55] ${isActive
                         ? "border-l-4 bg-[#00AB5514] border-l-[#00AB55] text-[#00AB55] font-bold"
                         : "border-l-0 text-gray-600 font-medium"
-                    }`}
+                      }`}
                   >
-                    <IconComponent
+                    <span
                       className={cn(
                         "h-5 w-5 flex-shrink-0",
                         isCollapsed ? "" : "mr-2"
                       )}
-                    />
+                    >
+                      {item.icon}
+                    </span>
                     <span className={cn("truncate", isCollapsed && "sr-only")}>
                       {item.title}
                     </span>

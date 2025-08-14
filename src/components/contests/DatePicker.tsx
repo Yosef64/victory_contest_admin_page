@@ -66,7 +66,17 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
         >
           <CalendarIcon />
           {contest.date ? (
-            format(new Date(contest.date), "PPP")
+            (() => {
+              try {
+                if (!contest.date) return 'Pick a date';
+                const date = new Date(contest.date);
+                if (isNaN(date.getTime())) return 'Invalid date';
+                return format(date, "PPP");
+              } catch (error) {
+                console.warn('Error formatting contest date:', error);
+                return 'Invalid date';
+              }
+            })()
           ) : (
             <span>Pick a date</span>
           )}
@@ -76,7 +86,17 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
         <Calendar
           style={{ fontFamily: "'Public Sans',sans-serif" }}
           mode="single"
-          selected={contest.date ? new Date(contest.date) : undefined}
+          selected={(() => {
+            try {
+              if (!contest.date) return undefined;
+              const date = new Date(contest.date);
+              if (isNaN(date.getTime())) return undefined;
+              return date;
+            } catch (error) {
+              console.warn('Error parsing contest date:', error);
+              return undefined;
+            }
+          })()}
           onSelect={(newValue) => {
             if (!newValue) return;
             const localDateString = newValue.toLocaleDateString("en-CA");

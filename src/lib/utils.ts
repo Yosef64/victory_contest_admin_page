@@ -1,37 +1,31 @@
 import { Contest, Question, Submission } from "@/types/models";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import axios from "axios";
-const VITE_API_LINK = import.meta.env.VITE_API_URL;
+import api from "@/services/api";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-//Student Action
 
+//Student Action
 export async function deleteContest(contest_id: string) {
   if (!contest_id) {
     throw new Error("Contest ID is missing");
   }
-  const res = await axios.delete(
-    `${VITE_API_LINK}/api/contest/delete/${contest_id}`
-  );
+  const res = await api.delete(`/api/contest/delete/${contest_id}`);
   return res.data;
 }
 
 export async function getContestById(id: string): Promise<Contest> {
-  const res = await axios.get(`${VITE_API_LINK}/api/contest/${id}`);
-  const { contest } = res.data;
-  return contest;
+  const res = await api.get(`/api/contest/${id}`);
+  return res.data.contest;
 }
+
 export async function updateContest(
   contest: Contest,
-  data: { start_time?: string; end_time?: string }
+  data: Partial<Contest>
 ) {
-  const res = await axios.patch(
-    `${VITE_API_LINK}/api/contest/${contest.id}`,
-    data
-  );
+  const res = await api.patch(`/api/contest/${contest.id}`, data);
   return res.data;
 }
 
@@ -40,14 +34,13 @@ export async function announceContest(
   data: { file: File | null; message: string }
 ) {
   const formData = new FormData();
-  formData.append("contest", JSON.stringify(contest));
   formData.append("message", data.message);
   if (data.file) {
     formData.append("file", data.file);
   }
 
-  const res = await axios.post(
-    `${VITE_API_LINK}/api/contest/announce`,
+  const res = await api.post(
+    `/api/contest/announce/${contest.id}`,
     formData,
     {
       headers: {
@@ -57,17 +50,20 @@ export async function announceContest(
   );
   return res.data;
 }
+
 export async function getQuestions() {
-  const res = await axios.get(`${VITE_API_LINK}/api/question/`);
+  const res = await api.get(`/api/question/`);
   const { questions } = res.data;
   return questions;
 }
+
 export async function addQuestion(question: Question) {
-  const res = await axios.post(`${VITE_API_LINK}/api/question/addquestion`, {
+  const res = await api.post(`/api/question/addquestion`, {
     question,
   });
   return res.data;
 }
+
 export async function addMultipleQuestions(questions: Question[]) {
   const results = [];
   for (const question of questions) {
@@ -91,8 +87,8 @@ export async function addMultipleQuestions(questions: Question[]) {
         }
       });
 
-      const res = await axios.post(
-        `${VITE_API_LINK}/api/question/addquestion`,
+      const res = await api.post(
+        `/api/question/addquestion`,
         formData,
         {
           headers: {
@@ -131,19 +127,20 @@ export async function updateQuestion(question: Question) {
     }
   });
 
-  const res = await axios.put(
-    `${VITE_API_LINK}/api/question/updatequestion/${question.id}`,
-    formData, // Send as FormData
+  const res = await api.put(
+    `/api/question/updatequestion/${question.id}`,
+    formData,
     {
       headers: {
-        "Content-Type": "multipart/form-data", // Ensure correct content type for FormData
+        "Content-Type": "multipart/form-data",
       },
     }
   );
   return res.data;
 }
+
 export async function deleteQusetion(id: string) {
-  const res = await axios.delete(`${VITE_API_LINK}/api/question/delete/${id}`);
+  const res = await api.delete(`/api/question/delete/${id}`);
   return res.data;
 }
 
@@ -151,18 +148,15 @@ export async function deleteQusetion(id: string) {
 export async function getSubmissionByContest(
   id: string
 ): Promise<Submission[]> {
-  const res = await axios.get(
-    `${VITE_API_LINK}/api/submission/contest_id/${id}`
-  );
+  const res = await api.get(`/api/submission/contest/${id}`);
   const { submissions }: { submissions: Submission[] } = res.data;
   return submissions;
 }
 
 //Admin
-
 export async function loginUser(email: string, password: string) {
-  const res = await axios.post(
-    `${VITE_API_LINK}/api/admin/login`,
+  const res = await api.post(
+    `/api/admin/login`,
     {
       email,
       password,
@@ -171,29 +165,33 @@ export async function loginUser(email: string, password: string) {
   );
   return res.data;
 }
+
 export async function registerUser(data: {
   name: string;
   password: string;
   email: string;
 }) {
-  const res = await axios.post(`${VITE_API_LINK}/api/admin/register`, {
+  const res = await api.post(`/api/admin/register`, {
     data,
   });
   return res.data;
 }
+
 export async function approveAdmin(
   email: string,
   data: { isApproved: boolean }
 ) {
-  const res = await axios.put(`${VITE_API_LINK}/api/admin/${email}`, { data });
+  const res = await api.put(`/api/admin/${email}`, { data });
   return res.data;
 }
+
 export async function getAllAdmins() {
-  const res = await axios.get(`${VITE_API_LINK}/api/admin/`);
+  const res = await api.get(`/api/admin/`);
   const { admins } = res.data;
   return admins;
 }
+
 export async function deleteAdmin(email: string) {
-  const res = await axios.delete(`${VITE_API_LINK}/api/admin/${email}`);
+  const res = await api.delete(`/api/admin/${email}`);
   return res.data;
 }

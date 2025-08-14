@@ -94,10 +94,54 @@ function GlobalSearch() {
 }
 
 function NotificationBell() {
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markNotificationAsRead, deleteNotification } = useNotifications();
+  const navigate = useNavigate();
+
+  const handleNotificationClick = (notification: any) => {
+    // Mark as read when clicked
+    if (!notification.is_read) {
+      markNotificationAsRead(notification.id);
+    }
+    
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'contest_announcement':
+        navigate('/dashboard/contest');
+        break;
+      case 'payment_notification':
+        navigate('/dashboard/payment');
+        break;
+      case 'feedback_notification':
+      case 'feedback_question':
+      case 'feedback_response':
+        navigate('/dashboard/feedback');
+        break;
+      case 'user_notification':
+      case 'student_registration':
+        navigate('/dashboard/users');
+        break;
+      case 'contest_registration':
+        navigate('/dashboard/contest');
+        break;
+      default:
+        // For unknown types, navigate to dashboard home
+        navigate('/dashboard');
+        break;
+    }
+  };
+
+  const handleMarkAsRead = (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation();
+    markNotificationAsRead(notificationId);
+  };
+
+  const handleDelete = (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation();
+    deleteNotification(notificationId);
+  };
 
   return (
-    <DropdownMenu onOpenChange={(open) => !open && markAsRead()}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9">
           {unreadCount > 0 ? (
@@ -122,25 +166,75 @@ function NotificationBell() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {unreadCount > 0 && (
+          <>
+            <div className="px-2 py-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={markAsRead}
+                className="w-full h-8 text-xs"
+              >
+                Mark all as read
+              </Button>
+            </div>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <ScrollArea className="h-96">
           {notifications.length > 0 ? (
             notifications.map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 className={cn(
-                  "flex flex-col items-start gap-1 p-3",
+                  "flex flex-col items-start gap-1 p-3 cursor-pointer",
                   !notification.is_read && "bg-muted/50"
                 )}
+                onClick={() => handleNotificationClick(notification)}
               >
-                <p className="font-semibold">{notification.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {notification.message}
-                </p>
-                <p className="text-xs text-muted-foreground pt-1">
-                  {formatDistanceToNow(new Date(notification.sent_at), {
-                    addSuffix: true,
-                  })}
-                </p>
+                <div className="w-full">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-semibold">{notification.title}</p>
+                    {notification.type && (
+                      <Badge variant="outline" className="text-xs">
+                        {notification.type.split('_').map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(' ')}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {notification.message}
+                  </p>
+                  <p className="text-xs text-muted-foreground pt-1">
+                    {formatDistanceToNow(new Date(notification.sent_at), {
+                      addSuffix: true,
+                    })}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    {!notification.is_read && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => handleMarkAsRead(e, notification.id)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Mark as read
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => handleDelete(e, notification.id)}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                  <div className="text-xs text-blue-600 mt-1">
+                    💡 Click to navigate to related page
+                  </div>
+                </div>
               </DropdownMenuItem>
             ))
           ) : (

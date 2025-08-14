@@ -183,8 +183,8 @@ export function PaymentManagement({
       });
     } catch (error) {
       toast({
-        title: "Final Notice Sent",
-        description: `Final payment notice has been sent to ${user.name}.`,
+        title: "Error Sending Notice",
+        description: `Failed to send final payment notice: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {

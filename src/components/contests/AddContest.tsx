@@ -316,7 +316,17 @@ export default function AddContest() {
                     <Calendar
                       mode="single"
                       selected={
-                        contest.date ? new Date(contest.date) : undefined
+                        (() => {
+                          try {
+                            if (!contest.date) return undefined;
+                            const date = new Date(contest.date);
+                            if (isNaN(date.getTime())) return undefined;
+                            return date;
+                          } catch (error) {
+                            console.warn('Error parsing contest date:', error);
+                            return undefined;
+                          }
+                        })()
                       }
                       onSelect={handleDateChange}
                       initialFocus

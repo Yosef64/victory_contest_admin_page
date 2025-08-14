@@ -1,14 +1,9 @@
 import StatCard, { StatCardProps } from "./StatCard";
-import Grid from "@mui/material/Grid2";
-
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import HighlightedCard from "./HighlightedCard";
-import SessionsChart from "./SessionsChart";
-import PageViewsBarChart from "./PageViewsBarChart";
 import ChartUserByCountry from "./ChartUserByCountry";
-import CustomizedDataGrid from "./CustomizedDataGrid";
-// import CustomizedTreeView from "./CustomizedTreeView";
-import { columns, rows } from "./gridData";
+import PageViewsBarChart from "./PageViewsBarChart";
+import SessionsChart from "./SessionsChart";
 
 const data: StatCardProps[] = [
   {
@@ -43,9 +38,44 @@ const data: StatCardProps[] = [
     ],
   },
 ];
+
 export default function Home() {
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" }, p: 2 }}>
+      {/* Welcome Section */}
+      <Box sx={{ 
+        mb: 4, 
+        p: 4, 
+        borderRadius: 3, 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        textAlign: 'center'
+      }}>
+        <Typography
+          component="h1"
+          variant="h3"
+          sx={{ 
+            mb: 2, 
+            fontFamily: "'Public Sans',sans-serif", 
+            fontWeight: 700,
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}
+        >
+          Welcome to Victory Contest Admin
+        </Typography>
+        <Typography
+          component="p"
+          variant="h6"
+          sx={{ 
+            opacity: 0.9,
+            fontWeight: 400,
+            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+          }}
+        >
+          Manage your contests, questions, and user feedback with ease
+        </Typography>
+      </Box>
+
       <Typography
         component="h2"
         variant="h6"
@@ -53,44 +83,121 @@ export default function Home() {
       >
         Overview
       </Typography>
-      <Grid
-        container
-        spacing={2}
-        columns={12}
-        sx={{ mb: (theme) => theme.spacing(2) }}
-      >
+      
+      {/* Stat Cards Grid */}
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+        gap: 3,
+        mb: 4
+      }}>
         {data.map((card, index) => (
-          <Grid key={index} size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Box key={index}>
             <StatCard {...card} />
-          </Grid>
+          </Box>
         ))}
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Box>
           <HighlightedCard />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SessionsChart />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <PageViewsBarChart />
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
+
+      {/* Analytics Charts Section */}
       <Typography
         component="h2"
         variant="h6"
         sx={{ mb: 2, fontFamily: "'Public Sans',sans-serif", fontWeight: 700 }}
       >
-        Details
+        Analytics
       </Typography>
-      <Grid container spacing={2} columns={12}>
-        <Grid size={{ xs: 12, lg: 9 }}>
-          <CustomizedDataGrid value={{ rows, columns }} />
-        </Grid>
-        <Grid size={{ xs: 12, lg: 3 }}>
-          <Stack gap={2} direction={{ xs: "column", sm: "row", lg: "column" }}>
-            <ChartUserByCountry />
-          </Stack>
-        </Grid>
-      </Grid>
+      
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' },
+        gap: 3,
+        mb: 4
+      }}>
+        <ChartUserByCountry />
+        <PageViewsBarChart />
+      </Box>
+      
+      <Box sx={{ mb: 4 }}>
+        <SessionsChart />
+      </Box>
+
+      {/* Quick Actions Section */}
+      <Box sx={{ 
+        p: 3, 
+        borderRadius: 3, 
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <Typography
+          component="h2"
+          variant="h6"
+          sx={{ mb: 3, fontFamily: "'Public Sans',sans-serif", fontWeight: 700 }}
+        >
+          Quick Actions
+        </Typography>
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+          gap: 2
+        }}>
+          <Box sx={{ 
+            p: 2, 
+            borderRadius: 2, 
+            bgcolor: 'primary.main', 
+            color: 'primary.contrastText',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Create Contest
+            </Typography>
+          </Box>
+          <Box sx={{ 
+            p: 2, 
+            borderRadius: 2, 
+            bgcolor: 'secondary.main', 
+            color: 'secondary.contrastText',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Add Questions
+            </Typography>
+          </Box>
+          <Box sx={{ 
+            p: 2, 
+            borderRadius: 2, 
+            bgcolor: 'success.main', 
+            color: 'success.contrastText',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              View Feedback
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
     </Box>
   );
 }

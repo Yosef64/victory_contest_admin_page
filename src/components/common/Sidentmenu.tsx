@@ -8,7 +8,9 @@ import {
   PlusSquare,
   FilePlus,
 } from "lucide-react";
+import React from "react";
 export interface NavItem {
+  id: number;
   title: string;
   path: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -87,29 +89,46 @@ export const menuList: NavGroup[] = [
     title: "Manage",
     items: [
       {
+        id: 1,
         title: "Dashboard",
         path: "/dashboard",
         icon: LayoutDashboard,
       },
       {
+        id: 2,
         title: "Questions",
         path: "/dashboard/questions",
         icon: QuestionIcon, // Use custom icon
       },
       {
+        id: 3,
         title: "Contests",
         path: "/dashboard/contest",
         icon: ContestIcon, // Use custom icon
       },
       {
+        id: 4,
         title: "Payments",
         path: "/dashboard/payment",
         icon: PaymentHistoryIcon,
       },
       {
+        id: 5,
         title: "Users",
         path: "/dashboard/users",
         icon: Users,
+      },
+      {
+        id: 6,
+        title: "Feedback",
+        path: "/dashboard/feedback",
+        icon: MessageSquareWarning,
+      },
+      {
+        id: 7,
+        title: "High Scorers",
+        path: "/dashboard/high-scorers",
+        icon: BarChart2,
       },
     ],
   },
@@ -117,35 +136,21 @@ export const menuList: NavGroup[] = [
     title: "Create",
     items: [
       {
+        id: 8,
         title: "Add Contest",
         path: "/dashboard/addcontest",
         icon: PlusSquare,
       },
       {
+        id: 9,
         title: "Add Question",
         path: "/dashboard/addquestion",
         icon: FilePlus,
       },
     ],
   },
-  {
-    title: "Insights",
-    items: [
-      {
-        title: "Analytics",
-        path: "/dashboard/analytics",
-        icon: BarChart2,
-      },
-      {
-        title: "Feedback",
-        path: "/dashboard/feedback",
-        icon: MessageSquareWarning,
-      },
-      {
-        title: "Approve Admins",
-        path: "/dashboard/admins",
-        icon: ShieldCheck,
-      },
-    ],
-  },
 ];
+
+// Remove the Actions section that was referencing undefined navigationItems
+// For backward compatibility, create a flat list from the menuList
+export const flatMenuList: NavItem[] = menuList.flatMap(group => group.items);

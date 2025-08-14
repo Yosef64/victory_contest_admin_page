@@ -2,13 +2,16 @@
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TimePickerComponent } from "../contests/DatePicker"; // Corrected import path for TimePickerComponent
 import dayjs from "dayjs";
 import { Contest } from "../../types/models"; // Assuming Contest type path is correct
@@ -72,6 +75,7 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
   }, [open, action, contest]);
 
   const handleSubmit = async () => {
+    const today = dayjs().format("YYYY-MM-DD");
     if (action === "clone") {
       await handler(action, undefined, {
         title: cloneTitle,
@@ -87,122 +91,81 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle
-        sx={{
-          fontFamily: "'Public Sans',sans-serif",
-          fontWeight: 700,
-          fontSize: 20,
-        }}
-      >
-        {action === "announce" && "Announce Contest"}
-        {action === "clone" && "Clone Contest"}
-        {action === "update" && "Update Contest Time"}
-      </DialogTitle>
-      <DialogContent dividers>
-        {action === "announce" && <></>}
-        {action === "clone" && (
-          <>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="New Contest Title"
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={cloneTitle}
-              onChange={(e) => setCloneTitle(e.target.value)}
-              sx={{ mb: 2 }}
-              InputLabelProps={{
-                sx: { fontFamily: "'Public Sans',sans-serif" },
-              }}
-              inputProps={{
-                sx: { fontFamily: "'Public Sans',sans-serif" },
-              }}
-            />
-            <TextField
-              margin="dense"
-              label="New Contest Description"
-              type="text"
-              fullWidth
-              variant="outlined"
-              multiline
-              rows={4}
-              value={cloneDescription}
-              onChange={(e) => setCloneDescription(e.target.value)}
-              InputLabelProps={{
-                sx: { fontFamily: "'Public Sans',sans-serif" },
-              }}
-              inputProps={{
-                sx: { fontFamily: "'Public Sans',sans-serif" },
-              }}
-            />
-          </>
-        )}
-        {action === "update" && (
-          <>
-            <Typography
-              sx={{
-                color: "rgb(99, 115, 129)",
-                fontFamily: "'Public Sans',sans-serif",
-                fontSize: 14,
-                mb: 1,
-              }}
-            >
-              Start Time
-            </Typography>
-            {/* TimePickerComponent expects dayjs object and returns dayjs object */}
-            <TimePickerComponent
-              timeChangeHandler={(newValue: dayjs.Dayjs | null) =>
-                setStartTime(newValue)
-              }
-              value={startTime}
-            />
-            <Typography
-              sx={{
-                color: "rgb(99, 115, 129)",
-                fontFamily: "'Public Sans',sans-serif",
-                fontSize: 14,
-                mt: 2,
-                mb: 1,
-              }}
-            >
-              End Time
-            </Typography>
-            {/* TimePickerComponent expects dayjs object and returns dayjs object */}
-            <TimePickerComponent
-              timeChangeHandler={(newValue: dayjs.Dayjs | null) =>
-                setEndTime(newValue)
-              }
-              value={endTime}
-            />
-          </>
-        )}
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">
+            {action === "announce" && "Announce Contest"}
+            {action === "clone" && "Clone Contest"}
+            {action === "update" && "Update Contest Time"}
+          </DialogTitle>
+          <DialogDescription>
+            {action === "announce" && "Announce this contest to all participants"}
+            {action === "clone" && "Create a copy of this contest with new details"}
+            {action === "update" && "Update the contest start and end times"}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          {action === "announce" && <></>}
+          {action === "clone" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="title">New Contest Title</Label>
+                <Input
+                  id="title"
+                  value={cloneTitle}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCloneTitle(e.target.value)}
+                  placeholder="Enter contest title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">New Contest Description</Label>
+                <Textarea
+                  id="description"
+                  value={cloneDescription}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCloneDescription(e.target.value)}
+                  placeholder="Enter contest description"
+                  rows={4}
+                />
+              </div>
+            </>
+          )}
+          {action === "update" && (
+            <>
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <TimePickerComponent
+                  timeChangeHandler={(newValue: dayjs.Dayjs | null) =>
+                    setStartTime(newValue)
+                  }
+                  value={startTime}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>End Time</Label>
+                <TimePickerComponent
+                  timeChangeHandler={(newValue: dayjs.Dayjs | null) =>
+                    setEndTime(newValue)
+                  }
+                  value={endTime}
+                />
+              </div>
+            </>
+          )}
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
+            {action === "announce" && "Announce"}
+            {action === "clone" && "Clone"}
+            {action === "update" && "Update"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={onClose} // Use onClose from props
-          sx={{
-            fontFamily: "'Public Sans',sans-serif",
-            fontWeight: 600,
-            color: "rgb(99, 115, 129)",
-          }}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          sx={{
-            fontFamily: "'Public Sans',sans-serif",
-            fontWeight: 600,
-            color: "#00AB55",
-          }}
-        >
-          {action === "announce" && "Announce"}
-          {action === "clone" && "Clone"}
-          {action === "update" && "Update"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };

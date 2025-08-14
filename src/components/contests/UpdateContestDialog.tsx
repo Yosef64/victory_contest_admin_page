@@ -76,7 +76,6 @@ export const UpdateContestDialog: React.FC<UpdateContestDialogProps> = ({
         subject: normalizeSubject(contest.subject || ''),
         grade: contest.grade || '',
         prize: contest.prize || '',
-        status: contest.status || '',
         type: contest.type || 'free',
       });
     }
@@ -272,27 +271,6 @@ export const UpdateContestDialog: React.FC<UpdateContestDialogProps> = ({
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <p className="text-xs text-gray-500 mb-2">
-                Status controls the contest lifecycle: Active (running), Inactive (paused), Draft (preparing), Completed (finished)
-              </p>
-              <Select
-                value={formData.status || ''}
-                onValueChange={(value) => handleInputChange('status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select

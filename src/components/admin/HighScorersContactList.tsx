@@ -1,36 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Box,
-    Typography,
-    Card,
-    CardContent,
-    Grid,
-    Chip,
-    Avatar,
-    LinearProgress,
-    Alert,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TablePagination,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button
-} from '@mui/material';
-import {
-    Phone,
-    Star,
-    TrendingUp,
-    Delete
-} from '@mui/icons-material';
+import { Box, Typography, Card, CardContent, Grid, Chip, Avatar, LinearProgress, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Phone, Star, TrendingUp, Delete } from '@mui/icons-material';
 import axios from 'axios';
+
+// Replace with existing components
+import { Card as RadixCard, CardContent as RadixCardContent } from '../ui/card';
+import { Button as RadixButton } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Avatar as RadixAvatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Progress } from '../ui/progress';
+import { Alert as RadixAlert, AlertDescription } from '../ui/alert';
+import { Table as RadixTable, TableBody as RadixTableBody, TableCell as RadixTableCell, TableHead as RadixTableHead, TableHeader, TableRow as RadixTableRow } from '../ui/table';
+import { Dialog as RadixDialog, DialogContent as RadixDialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle as RadixDialogTitle } from '../ui/dialog';
+import { Phone as PhoneIcon, Star as StarIcon, TrendingUp as TrendingUpIcon, Trash2 as DeleteIcon } from 'lucide-react';
 
 interface HighScorer {
     id: string;

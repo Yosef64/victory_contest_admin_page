@@ -127,7 +127,7 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
                         isCollapsed ? "" : "mr-2"
                       )}
                     >
-                      {item.icon}
+                      {React.createElement(item.icon, { className: "h-5 w-5" })}
                     </span>
                     <span className={cn("truncate", isCollapsed && "sr-only")}>
                       {item.title}
@@ -153,8 +153,40 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ isCollapsed }: UserProfileProps) {
-  const { user } = useAuth(); // Example context usage
-  // const user = { name: "Admin User", email: "admin@example.com" }; // Placeholder
+  // Add try-catch to handle potential useAuth errors
+  let authData;
+  try {
+    authData = useAuth();
+  } catch (error) {
+    // If useAuth fails, show loading state
+    authData = { user: null, loading: true };
+  }
+  
+  const { user, loading } = authData;
+  
+  // Show loading state while auth is being initialized
+  if (loading || !user) {
+    return (
+      <Card
+        className={cn(
+          "cursor-pointer border-none bg-muted/50 transition-colors hover:bg-muted/80",
+          isCollapsed ? "p-0" : "p-2"
+        )}
+      >
+        <CardHeader className="flex flex-row items-center gap-3 p-2">
+          <Avatar>
+            <AvatarFallback>...</AvatarFallback>
+          </Avatar>
+          <div className={cn("truncate", isCollapsed ? "hidden" : "block")}>
+            <CardTitle className="text-sm font-semibold capitalize">
+              Loading...
+            </CardTitle>
+            <CardDescription className="text-xs">Please wait</CardDescription>
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -166,13 +198,13 @@ export function UserProfile({ isCollapsed }: UserProfileProps) {
       <CardHeader className="flex flex-row items-center gap-3 p-2">
         <Avatar>
           <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+          <AvatarFallback>{user.name?.charAt(0) || 'U'}</AvatarFallback>
         </Avatar>
         <div className={cn("truncate", isCollapsed ? "hidden" : "block")}>
           <CardTitle className="text-sm font-semibold capitalize">
-            {user.name}
+            {user.name || 'User'}
           </CardTitle>
-          <CardDescription className="text-xs">{user.email}</CardDescription>
+          <CardDescription className="text-xs">{user.email || 'No email'}</CardDescription>
         </div>
       </CardHeader>
     </Card>

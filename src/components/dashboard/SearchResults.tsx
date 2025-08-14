@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Box, Typography, Divider } from "@mui/material";
 import { flatMenuList } from "@/components/common/Sidentmenu"; // Ensure this path is correct
 
 export default function SearchResults() {

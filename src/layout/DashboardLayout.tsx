@@ -10,19 +10,38 @@ import { Loading } from "../components/common/Stauts.tsx";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [status, setstatus] = useState("pending");
-  const { user } = useAuth();
+  
+  // Add try-catch to handle potential useAuth errors
+  let authData;
+  try {
+    authData = useAuth();
+  } catch (error) {
+    // If useAuth fails, redirect to login
+    navigate("/");
+    return null;
+  }
+  
+  const { user } = authData;
+  
   useEffect(() => {
     if (!user) {
       navigate("/");
+    } else {
+      setstatus("success");
     }
-    setstatus("success");
-  }, [user]);
+  }, [user, navigate]);
+  
   if (status === "pending") {
     return (
       <div className="w-screen h-screen">
         <Loading />
       </div>
     );
+  }
+  
+  // Don't render if no user
+  if (!user) {
+    return null;
   }
   return (
     <div className="flex h-screen">

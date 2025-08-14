@@ -151,13 +151,17 @@ export default function ContestById() {
   const handleActionMade = async (
     action: string,
     time?: { start_time: string; end_time: string },
-    info?: { title: string; description: string }
+    info?: { title: string; description: string },
+    data?: { file: File | null; message: string }
   ) => {
     if (!contest) return;
 
     try {
       if (action === "announce") {
-        await announceContest(contest, { file: null, message: "Contest announced!" });
+        await announceContest(contest, { 
+          file: data?.file || null, 
+          message: data?.message || "Contest announced!" 
+        });
         toast.success("Contest announced successfully");
       } else if (action === "clone") {
         await cloneContest(contest, info!);

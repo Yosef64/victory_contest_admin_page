@@ -53,17 +53,25 @@ export async function deleteContest(contestId: string) {
 }
 
 export async function announceContest(contest: Contest, data: { file: File | null; message: string }) {
+  console.log('announceContest called with data:', data);
+  
+  // Ensure we have a message
+  const message = data.message?.trim() || "🎉 New contest announced! Check it out and register now!";
+  console.log('Using message:', message);
+  
   const formData = new FormData();
-  formData.append("message", data.message);
+  formData.append("message", message);
   if (data.file) {
     formData.append("file", data.file);
   }
 
-  const res = await api.post(`/api/contest/announce/${contest.id}`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  // Debug: Log FormData contents
+  for (let [key, value] of formData.entries()) {
+    console.log(`FormData - ${key}:`, value);
+  }
+
+  // Don't set Content-Type manually - let the browser handle it for FormData
+  const res = await api.post(`/api/contest/announce/${contest.id}`, formData);
   return res.data;
 }
 
@@ -83,9 +91,10 @@ export async function cloneContest(contest: Contest, info: { title: string; desc
     return res.data;
   } catch (error) {
     console.error('Clone error details:', error);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as any;
+      console.error('Response status:', axiosError.response?.status);
+      console.error('Response data:', axiosError.response?.data);
     }
     throw error;
   }

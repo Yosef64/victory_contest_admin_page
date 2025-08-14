@@ -40,6 +40,7 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
   const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
   const [cloneTitle, setCloneTitle] = useState("");
   const [cloneDescription, setCloneDescription] = useState("");
+  const [announceMessage, setAnnounceMessage] = useState("");
 
   // Initialize time states when dialog opens or contest prop changes
   useEffect(() => {
@@ -72,11 +73,21 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
         parsedEndTime
       ); // DEBUG
     }
+    
+    // Initialize announce message when dialog opens
+    if (open && action === "announce") {
+      setAnnounceMessage("🎉 New contest announced! Check it out and register now!");
+    }
   }, [open, action, contest]);
 
   const handleSubmit = async () => {
     const today = dayjs().format("YYYY-MM-DD");
-    if (action === "clone") {
+    if (action === "announce") {
+      await handler(action, undefined, undefined, {
+        file: null,
+        message: announceMessage || "Contest announced!"
+      });
+    } else if (action === "clone") {
       await handler(action, undefined, {
         title: cloneTitle,
         description: cloneDescription,
@@ -107,7 +118,23 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          {action === "announce" && <></>}
+          {action === "announce" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="announceMessage">Announcement Message</Label>
+                <Textarea
+                  id="announceMessage"
+                  value={announceMessage}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAnnounceMessage(e.target.value)}
+                  placeholder="Enter your announcement message (e.g., 'New contest starting soon!', 'Don't miss this opportunity!')"
+                  rows={4}
+                />
+                <p className="text-xs text-gray-500">
+                  This message will be sent to all students along with contest details.
+                </p>
+              </div>
+            </>
+          )}
           {action === "clone" && (
             <>
               <div className="space-y-2">

@@ -19,11 +19,20 @@ import { toast } from "sonner";
 import { getContestById, updateContest, deleteContest, announceContest, cloneContest, testBackendConnection } from "@/services/contestServices";
 import { getAllStudents, getGradesAndSchools } from "@/services/studentServices";
 import { transformSubmission } from "@/lib/helpers";
+<<<<<<< HEAD
 import { APIContest, Student } from "@/types/models";
 import { DialogBox } from "../common/DialogBox";
 import { UpdateContestDialog } from "./UpdateContestDialog";
 import QuestionTable from "../questions/QuestionTable";
 import { getSubmissionByContest } from "@/lib/utils";
+=======
+import { DialogBox } from "../common/DialogBox"; // Corrected import path for DialogBox
+import { Loading } from "../common/Stauts";
+import dayjs from "dayjs"; // Import dayjs for date formatting
+import { addContest } from "@/services/contestServices";
+import { getAllStudents } from "@/services/studentServices";
+import { toast } from "sonner";
+>>>>>>> 2538c5cdaf8921805924eda626a4c7f5b33dc135
 
 // Assets
 import leetcodeImage from "../../assets/leetcode.jpg";
@@ -40,8 +49,6 @@ export default function ContestById() {
   const [cities, setCities] = useState<string[]>([]);
   const { id } = useParams();
 
-  // State for controlling dialog visibility
-  const [announceDialogOpen, setAnnounceDialogOpen] = useState(false);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [updateContestDialogOpen, setUpdateContestDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -154,8 +161,7 @@ export default function ContestById() {
   const handleActionMade = async (
     action: string,
     time?: { start_time: string; end_time: string },
-    info?: { title: string; description: string },
-    data?: { file: File | null; message: string }
+    info?: { title: string; description: string }
   ) => {
     if (!contest) return;
 
@@ -164,18 +170,32 @@ export default function ContestById() {
         ...contest,
         questions: contest.questions.map((q: any) => q.id!),
       };
+<<<<<<< HEAD
       if (action === "announce") {
         await announceContest(contest, data!);
         toast.success("Contest announced successfully");
       } else if (action === "clone") {
         await cloneContest(contest, info!);
         toast.success("Contest cloned successfully");
+=======
+      if (action === "clone") {
+        await addContest({ ...contestToSend, ...info! });
+      } else if (action === "update" && time) {
+        // Ensure the data  object is passed directly, not wrapped in another 'data' key
+        await updateContest(contest, {
+          start_time: time.start_time,
+          end_time: time.end_time,
+        });
+>>>>>>> 2538c5cdaf8921805924eda626a4c7f5b33dc135
       }
       // Invalidate and refetch contest data after successful action
       queryClient.invalidateQueries({ queryKey: ["contest", id] });
     } catch (error) {
       console.error(`Error performing ${action} action:`, error);
+<<<<<<< HEAD
       toast.error(`Failed to ${action} contest`);
+=======
+>>>>>>> 2538c5cdaf8921805924eda626a4c7f5b33dc135
     }
   };
 
@@ -189,8 +209,24 @@ export default function ContestById() {
 
   const handleQuestionDeleted = (deletedQuestionId: string) => {
     console.log(deletedQuestionId);
+<<<<<<< HEAD
     toast.success("Question deleted successfully");
     queryClient.invalidateQueries({ queryKey: ["contest", id] });
+=======
+  };
+
+  const handleAnnounceContest = async () => {
+    const promise = announceContest(contest!);
+    toast.promise(promise, {
+      loading: "Announcing contest...",
+      success: () => {
+        return "Contest announced successfully! 🎉";
+      },
+      error: (err) => {
+        return `Failed to add contest: ${err.message}`;
+      },
+    });
+>>>>>>> 2538c5cdaf8921805924eda626a4c7f5b33dc135
   };
 
   if (status === "pending") {
@@ -296,6 +332,7 @@ export default function ContestById() {
                   </p>
                 </div>
               </div>
+<<<<<<< HEAD
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-red-600" />
                 <div>
@@ -322,6 +359,66 @@ export default function ContestById() {
             </div>
           </CardContent>
         </Card>
+=======
+            </HoverCardContent>
+          </HoverCard>
+          <Menubar className="bg-inherit border-none cursor-pointer">
+            <MenubarMenu>
+              {" "}
+              {/* Removed open and onOpenChange here */}
+              <MenubarTrigger className="cursor-pointer">
+                <MoreVertIcon sx={{ color: "black", fontSize: 18 }} />
+              </MenubarTrigger>
+              <MenubarContent
+                style={{ fontFamily: "'Public Sans',sans-serif" }}
+                className="w-2"
+              >
+                <MenubarItem onClick={handleAnnounceContest}>
+                  Announce Contest
+                </MenubarItem>
+                <MenubarItem
+                  onClick={() => {
+                    setCloneDialogOpen(true);
+                  }}
+                >
+                  Clone contest
+                </MenubarItem>
+                <MenubarItem
+                  onClick={() => {
+                    setUpdateTimeDialogOpen(true);
+                  }}
+                >
+                  Update time
+                </MenubarItem>
+                <MenubarItem
+                  className="bg-[#fff0f0] text-red-500 hover:bg-[#fff0f0] hover:text-red-500"
+                  onClick={() => {
+                    handleOpenDeleteDialog();
+                  }}
+                >
+                  Delete contest
+                </MenubarItem>
+              </MenubarContent>
+            </MenubarMenu>
+          </Menubar>
+        </Box>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <Select onValueChange={handleSelect}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select School" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>School</SelectLabel>
+                {schools.map((school, index) => (
+                  <SelectItem key={index} value={school}>
+                    {school}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+>>>>>>> 2538c5cdaf8921805924eda626a4c7f5b33dc135
 
         {/* Filters Section */}
         <Card>
@@ -405,6 +502,7 @@ export default function ContestById() {
               </TabsContent>
             </div>
           </Tabs>
+<<<<<<< HEAD
         </CardContent>
       </Card>
 
@@ -416,6 +514,19 @@ export default function ContestById() {
         handler={handleActionMade}
         contest={contest}
       />
+=======
+        </Box>
+        <CustomTabPanel value={tabValue} index={0}>
+          <Standing school={school} city={city} contest={contest} />
+        </CustomTabPanel>
+        <CustomTabPanel value={tabValue} index={1}>
+          <QuestionTable
+            questions={contest?.questions ?? []}
+            onQuestionDeleted={handleQuestionDeleted}
+          />
+        </CustomTabPanel>
+      </Box>
+>>>>>>> 2538c5cdaf8921805924eda626a4c7f5b33dc135
       <DialogBox
         action="clone"
         open={cloneDialogOpen}

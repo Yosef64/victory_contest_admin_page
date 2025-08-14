@@ -1,249 +1,128 @@
-import {
-  Box,
-  Typography,
-  TextField,
-  MenuItem,
-  FormControlLabel,
-  Autocomplete,
-  Chip,
-} from "@mui/material";
+// src/pages/ContestPage.tsx
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ListFilter } from "lucide-react";
+import { ContestList } from "@/components/contests/ContestList";
+import { Leaderboard } from "@/components/contests/Leaderboard";
+import { grades, Subjects } from "../questions/Data";
 
-import Checkbox from "@mui/material/Checkbox";
-import RankingAndContest from "./RankingAndContest.tsx";
+// Define the filter state type
+interface ContestFilters {
+  grades: string[];
+  subjects: string[];
+}
 
-// interface OptionType {
-//   label: string;
-//   value: string;
-//   children?: OptionType[];
-// }
+export default function ContestPage() {
+  const [filters, setFilters] = useState<ContestFilters>({
+    grades: [],
+    subjects: [],
+  });
 
-export default function Contest() {
-  const fixedOptions: { title: string; year: number | JSX.Element }[] = [];
-  const [value, setValue] = useState([...fixedOptions]);
-  const fixedSchool: { title: string; year: number | JSX.Element }[] = [];
-  const [subjectValue, setsubjectValue] = useState([...fixedSchool]);
+  const handleFilterChange = (
+    category: keyof ContestFilters,
+    value: string
+  ) => {
+    setFilters((prev) => {
+      const currentValues = prev[category];
+      const newValues = currentValues.includes(value)
+        ? currentValues.filter((v) => v !== value)
+        : [...currentValues, value];
+      return { ...prev, [category]: newValues };
+    });
+  };
+
+  const clearFilters = () => setFilters({ grades: [], subjects: [] });
+  const hasFilters = filters.grades.length > 0 || filters.subjects.length > 0;
 
   return (
-    <Box sx={{ paddingY: 2, overflow: "auto" }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          mb: 5,
-        }}
-      >
-        <Typography
-          sx={{
-            fontFamily: '"Public Sans", sans-serif',
-            fontSize: 25,
-            fontWeight: 700,
-          }}
-        >
-          Contests
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: "0.875rem",
-            color: "rgb(145, 158, 171)",
-            fontFamily: '"Public Sans", sans-serif',
-          }}
-        >
-          Ranking and Contests
-        </Typography>
-      </Box>
-      <Box sx={{ display: "flex", gap: 5, width: "90%", mb: 4 }}>
-        <Autocomplete
-          multiple
-          id="fixed-tags-demo"
-          value={value}
-          onChange={(_event, newValue) => {
-            setValue([
-              ...fixedOptions,
-              ...newValue.filter((option) => !fixedOptions.includes(option)),
-            ]);
-          }}
-          options={top100Films}
-          getOptionLabel={(option) => option.title}
-          renderOption={(_props, option, { selected }) => (
-            <MenuItem
-              sx={{
-                "&.Mui-selected": {
-                  backgroundColor: "#00AB5514",
-                  color: "#00AB55",
-                  fontWeight: 700,
-                },
-                borderRadius: 3,
-                margin: 1,
-                fontFamily: '"Public Sans", sans-serif',
-              }}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (selected) {
-                  setValue((prev) => prev.filter((item) => item !== option));
-                } else {
-                  setValue((prev) => [...prev, option]);
-                }
-              }}
-              selected={selected}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selected}
-                    inputProps={{ "aria-label": option.title }}
-                    color="success"
-                  />
-                }
-                label={`${option.title}`}
-                sx={{
-                  ".MuiFormControlLabel-label": {
-                    fontSize: 16,
-                    fontWeight: selected ? 700 : "normal",
-                    fontFamily: '"Public Sans", sans-serif',
-                  },
-                }}
-              />
-            </MenuItem>
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Contests</h1>
+          <p className="text-muted-foreground">
+            Browse contests and view top player rankings.
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 flex items-center gap-2">
+          {/* Grade Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-1">
+                <ListFilter className="h-3.5 w-3.5" />
+                <span>
+                  Grade{" "}
+                  {filters.grades.length > 0 && `(${filters.grades.length})`}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Filter by Grade</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {grades.map((grade) => (
+                <DropdownMenuCheckboxItem
+                  key={grade}
+                  checked={filters.grades.includes(grade)}
+                  onCheckedChange={() => handleFilterChange("grades", grade)}
+                >
+                  {grade}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Subject Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-1">
+                <ListFilter className="h-3.5 w-3.5" />
+                <span>
+                  Subject{" "}
+                  {filters.subjects.length > 0 &&
+                    `(${filters.subjects.length})`}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Filter by Subject</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {Subjects.map((subject) => (
+                <DropdownMenuCheckboxItem
+                  key={subject}
+                  checked={filters.subjects.includes(subject)}
+                  onCheckedChange={() =>
+                    handleFilterChange("subjects", subject)
+                  }
+                >
+                  {subject}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {hasFilters && (
+            <Button variant="ghost" onClick={clearFilters}>
+              Clear
+            </Button>
           )}
-          renderTags={(tagValue, getTagProps) =>
-            tagValue.map((option, index) => {
-              const { key, ...tagProps } = getTagProps({ index });
-              return (
-                <Chip
-                  key={key}
-                  label={option.title}
-                  {...tagProps}
-                  disabled={fixedOptions.includes(option)}
-                />
-              );
-            })
-          }
-          style={{ width: 500 }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Grades"
-              InputLabelProps={{
-                sx: {
-                  fontFamily: "'Public Sans', sans-serif",
-                  fontWeight: 500,
-                  fontSize: "16px",
-                  "&.Mui-focused": {
-                    color: "green",
-                  },
-                },
-              }}
-            />
-          )}
-          disableCloseOnSelect
-        />
-        <Autocomplete
-          multiple
-          id="fixed-tags-demo"
-          value={subjectValue}
-          onChange={(_event, newValue) => {
-            setsubjectValue([
-              ...fixedSchool,
-              ...newValue.filter((option) => !fixedSchool.includes(option)),
-            ]);
-          }}
-          options={subject}
-          getOptionLabel={(option) => option.title}
-          renderOption={(_props, option, { selected }) => (
-            <MenuItem
-              sx={{
-                "&.Mui-selected": {
-                  backgroundColor: "#00AB5514",
-                  color: "#00AB55",
-                  fontWeight: 700,
-                },
-                borderRadius: 3,
-                margin: 1,
-                fontFamily: '"Public Sans", sans-serif',
-              }}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (selected) {
-                  setsubjectValue((prev) =>
-                    prev.filter((item) => item !== option)
-                  );
-                } else {
-                  setsubjectValue((prev) => [...prev, option]);
-                }
-              }}
-              selected={selected}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selected}
-                    inputProps={{ "aria-label": option.title }}
-                    color="success"
-                  />
-                }
-                label={`${option.title}`}
-                sx={{
-                  ".MuiFormControlLabel-label": {
-                    fontSize: 16,
-                    fontWeight: selected ? 700 : "normal",
-                    fontFamily: '"Public Sans", sans-serif',
-                  },
-                }}
-              />
-            </MenuItem>
-          )}
-          renderTags={(tagValue, getTagProps) =>
-            tagValue.map((option, index) => {
-              const { key, ...tagProps } = getTagProps({ index });
-              return (
-                <Chip
-                  key={key}
-                  label={option.title}
-                  {...tagProps}
-                  disabled={fixedSchool.includes(option)}
-                />
-              );
-            })
-          }
-          style={{ width: 500 }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Subject"
-              InputLabelProps={{
-                sx: {
-                  fontFamily: "'Public Sans', sans-serif",
-                  fontWeight: 500,
-                  fontSize: "16px",
-                },
-              }}
-            />
-          )}
-          disableCloseOnSelect
-        />
-      </Box>
-      <RankingAndContest grade={value} subject={subjectValue} />
-    </Box>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2">
+          <ContestList filters={filters} />
+        </div>
+        <div className="lg:col-span-1">
+          <Leaderboard />
+        </div>
+      </div>
+    </div>
   );
 }
-const top100Films = [
-  {
-    title: "Grade 12",
-    year: 0,
-  },
-  {
-    title: "Grade 11",
-    year: 0,
-  },
-];
-const subject = [
-  {
-    title: "Science",
-    year: 0,
-  },
-  {
-    title: "Science",
-    year: 0,
-  },
-];

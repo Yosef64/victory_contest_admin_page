@@ -1,14 +1,16 @@
 // src/context/NotificationContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
+import axios from "axios";
+import api from "@/services/api";
 
 interface Notification {
   id: string;
   message: string;
+  title: string;
   type: string;
-  read: boolean;
-  createdAt: string;
+  sent_at: string;
+  is_read: boolean;
 }
 
 interface NotificationContextType {
@@ -21,7 +23,11 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
 
-export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
+export const NotificationProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -29,45 +35,49 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const fetchNotifications = async () => {
     if (!user) return;
     try {
-      const response = await axios.get('/api/notifications');
-      // Ensure response.data is an array
-      const notifications = Array.isArray(response.data) ? response.data : [];
-      setNotifications(notifications);
-      setUnreadCount(notifications.filter((n: Notification) => !n.read).length);
+      const response = await api.get("/api/notification/recipient/admin");
+      const nots = response.data.notifications;
+      setNotifications(nots);
+      console.log(nots.filter((n: Notification) => !n.is_read).length);
+      setUnreadCount(nots.filter((n: Notification) => !n.is_read).length);
     } catch (error) {
-      console.error('Failed to fetch notifications', error);
+      console.error("Failed to fetch notifications", error);
     }
   };
 
   const markAsRead = async () => {
     try {
-      await axios.post('/api/notifications/mark-read');
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      await axios.post("/api/notifications/mark-read");
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to mark notifications as read', error);
+      console.error("Failed to mark notifications as read", error);
     }
   };
 
   const addNotification = async (message: string, type: string) => {
     if (!user) return;
     try {
-      await axios.post('/api/notifications', { message, type });
-      await fetchNotifications(); // Refresh notifications
+      await axios.post("/api/notifications", { message, type });
+      await fetchNotifications(); 
     } catch (error) {
-      console.error('Failed to add notification', error);
+      console.error("Failed to add notification", error);
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
-    return () => clearInterval(interval);
   }, [user]);
 
   return (
     <NotificationContext.Provider
-      value={{ notifications, unreadCount, fetchNotifications, markAsRead, addNotification }}
+      value={{
+        notifications,
+        unreadCount,
+        fetchNotifications,
+        markAsRead,
+        addNotification,
+      }}
     >
       {children}
     </NotificationContext.Provider>
@@ -77,7 +87,9 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider"
+    );
   }
   return context;
 };

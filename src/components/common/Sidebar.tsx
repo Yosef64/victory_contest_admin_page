@@ -20,16 +20,9 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LogOut, Settings } from "lucide-react";
+
 import { menuList, NavGroup } from "./Sidentmenu";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -160,46 +153,28 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ isCollapsed }: UserProfileProps) {
-  // const { user, logout } = useAuth(); // Example context usage
-  const user = { name: "Admin User", email: "admin@example.com" }; // Placeholder
+  const { user } = useAuth(); // Example context usage
+  // const user = { name: "Admin User", email: "admin@example.com" }; // Placeholder
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Card
-          className={cn(
-            "cursor-pointer border-none bg-muted/50 transition-colors hover:bg-muted/80",
-            isCollapsed ? "p-0" : "p-2"
-          )}
-        >
-          <CardHeader className="flex flex-row items-center gap-3 p-2">
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className={cn("truncate", isCollapsed ? "hidden" : "block")}>
-              <CardTitle className="text-sm font-semibold">
-                {user.name}
-              </CardTitle>
-              <CardDescription className="text-xs">
-                {user.email}
-              </CardDescription>
-            </div>
-          </CardHeader>
-        </Card>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" sideOffset={10}>
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive focus:text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Card
+      className={cn(
+        "cursor-pointer border-none bg-muted/50 transition-colors hover:bg-muted/80",
+        isCollapsed ? "p-0" : "p-2"
+      )}
+    >
+      <CardHeader className="flex flex-row items-center gap-3 p-2">
+        <Avatar>
+          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <div className={cn("truncate", isCollapsed ? "hidden" : "block")}>
+          <CardTitle className="text-sm font-semibold capitalize">
+            {user.name}
+          </CardTitle>
+          <CardDescription className="text-xs">{user.email}</CardDescription>
+        </div>
+      </CardHeader>
+    </Card>
   );
 }

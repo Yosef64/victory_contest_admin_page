@@ -3,9 +3,9 @@ import api from "./api";
 import { Student } from "@/types/models";
 
 export async function getUserProfile(userId: string): Promise<User> {
-  const res = await api.get(`/api/student/profile/${userId}`);
+  const res = await api.get(`/api/student/profile-admin/${userId}`);
 
-  return res.data.user;
+  return res.data.profile;
 }
 
 export async function updateUserInfo(student: any) {

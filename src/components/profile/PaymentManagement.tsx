@@ -154,13 +154,7 @@ export function PaymentManagement({
     const BOT_TOKEN = import.meta.env.VITE_BOT;
     setLoading({ ...loading, notice: true });
     try {
-      if (!user.payment.nextPayment) {
-        throw new Error('No next payment date available');
-      }
-      const dateObj = new Date(user.payment.nextPayment);
-      if (isNaN(dateObj.getTime())) {
-        throw new Error('Invalid next payment date');
-      }
+      const dateObj = new Date(user.payment.expirationDate);
       const formattedDate = dateObj.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -197,29 +191,35 @@ export function PaymentManagement({
       setLoading({ ...loading, notice: false });
     }
   };
+  let paymentStatus;
+  const expirationDateStr = user.payment.expirationDate;
+  const today = new Date();
 
-  const statusInfo = getPaymentStatusInfo(user.payment.paymentStatus);
+  if (!expirationDateStr) {
+    // Case 1: No expiration date exists
+    paymentStatus = "unpaid";
+  } else {
+    const expirationDate = new Date();
+
+    // Case 2: Compare expiration date with today's date
+    if (expirationDate >= today) {
+      paymentStatus = "active";
+    } else {
+      paymentStatus = "unpaid";
+    }
+  }
+
+  const statusInfo = getPaymentStatusInfo(paymentStatus);
   const StatusIcon = statusInfo.icon;
 
   // Calculate days until next payment
-  const today = new Date();
-  let daysUntilPayment = 0;
-  try {
-    if (user.payment.nextPayment) {
-      const nextPayment = new Date(user.payment.nextPayment);
-      if (!isNaN(nextPayment.getTime())) {
-        daysUntilPayment = Math.ceil(
-          (nextPayment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        );
-      }
-    }
-  } catch (error) {
-    console.warn('Error calculating days until payment:', error);
-    daysUntilPayment = 0;
-  }
+  const nextPayment = new Date(user.payment.expirationDate);
+  const daysUntilPayment = Math.ceil(
+    (nextPayment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
   const renderStatusSpecificContent = () => {
-    switch (user.payment.paymentStatus) {
+    switch (paymentStatus) {
       case "unpaid":
         return (
           <div className="p-4 mt-4">
@@ -469,8 +469,7 @@ export function PaymentManagement({
             <Badge
               className={`${statusInfo.color} font-medium text-xs hover:bg-${statusInfo.bgColor}`}
             >
-              {user.payment.paymentStatus.charAt(0).toUpperCase() +
-                user.payment.paymentStatus.slice(1)}
+              {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
             </Badge>
           </div>
 
@@ -496,7 +495,7 @@ export function PaymentManagement({
                     Last Payment
                   </p>
                   <p className="text-gray-700 font-medium text-xs">
-                    {formatDate(user.payment.lastPayment)}
+                    {formatDate(user.payment.createdAt)}
                   </p>
                   {/* <p className="text-gray-600 text-xs mt-1">
                     Payment received successfully
@@ -515,7 +514,7 @@ export function PaymentManagement({
                     Next Payment Due
                   </p>
                   <p className="text-gray-700 font-medium text-xs">
-                    {formatDate(user.payment.nextPayment)}
+                    {formatDate(user.payment.expirationDate)}
                   </p>
                   <p className="text-gray-600 text-xs mt-1">
                     {daysUntilPayment > 0

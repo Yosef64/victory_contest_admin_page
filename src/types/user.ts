@@ -14,10 +14,19 @@ export interface User {
   payment: Payment;
   contestSubmissions: ContestSubmission[];
 }
+export type PaymentStatus = "Approved" | "Pending" | "Rejected" | "Expired";
+
 export interface Payment {
-  paymentStatus: "active" | "overdue" | "pending" | "unpaid" | "inactive";
-  lastPayment: Date | string;
-  nextPayment: Date;
+  id: string;
+  userId: string;
+  fullName: string;
+  bankName: string;
+  billScreenshotUrl: string;
+  status: PaymentStatus;
+  rejectionReason?: string;
+  createdAt: string; // ISO String
+  updatedAt: string;
+  expirationDate: string;
 }
 export interface ContestSubmission {
   id: string;

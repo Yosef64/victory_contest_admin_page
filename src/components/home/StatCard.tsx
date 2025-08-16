@@ -1,12 +1,13 @@
-import { useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import { SparkLineChart } from "@mui/x-charts/SparkLineChart";
-import { areaElementClasses } from "@mui/x-charts/LineChart";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { cn } from "@/lib/utils";
 
 export type StatCardProps = {
   title: string;
@@ -14,33 +15,8 @@ export type StatCardProps = {
   interval: string;
   trend: "up" | "down" | "neutral";
   data: number[];
+  change?: string;
 };
-
-function getDaysInMonth(month: number, year: number) {
-  const date = new Date(year, month, 0);
-  const monthName = date.toLocaleDateString("en-US", {
-    month: "short",
-  });
-  const daysInMonth = date.getDate();
-  const days = [];
-  let i = 1;
-  while (days.length < daysInMonth) {
-    days.push(`${monthName} ${i}`);
-    i += 1;
-  }
-  return days;
-}
-
-function AreaGradient({ color, id }: { color: string; id: string }) {
-  return (
-    <defs>
-      <linearGradient id={id} x1="50%" y1="0%" x2="50%" y2="100%">
-        <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-        <stop offset="100%" stopColor={color} stopOpacity={0} />
-      </linearGradient>
-    </defs>
-  );
-}
 
 export default function StatCard({
   title,
@@ -48,108 +24,123 @@ export default function StatCard({
   interval,
   trend,
   data,
+  change,
 }: StatCardProps) {
-  const theme = useTheme();
-  const daysInWeek = getDaysInMonth(4, 2024);
+  // Generate last N days labels
+  const generateDailyLabels = (dataLength: number) => {
+    const labels = [];
+    const currentDate = new Date();
+    for (let i = dataLength - 1; i >= 0; i--) {
+      const date = new Date(currentDate);
+      date.setDate(date.getDate() - i);
+      labels.push(
+        date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      );
+    }
+    return labels;
+  };
+
+  const safeData =
+    Array.isArray(data) && data.length
+      ? data.map((val) =>
+          Number.isFinite(Number(val)) && Number(val) >= 0 ? Math.floor(val) : 0
+        )
+      : Array(30).fill(0);
+
+  const labels = generateDailyLabels(safeData.length);
+  const chartData = safeData.map((val, i) => ({ date: labels[i], value: val }));
+  const hasNonZeroData = chartData.some((p) => p.value > 0);
 
   const trendColors = {
-    up:
-      theme.palette.mode === "light"
-        ? theme.palette.success.main
-        : theme.palette.success.dark,
-    down:
-      theme.palette.mode === "light"
-        ? theme.palette.error.main
-        : theme.palette.error.dark,
-    neutral:
-      theme.palette.mode === "light"
-        ? theme.palette.grey[400]
-        : theme.palette.grey[700],
+    up: "text-green-600",
+    down: "text-red-600",
+    neutral: "text-gray-500",
   };
 
-  const labelColors = {
-    up: "#00AB5514" as const,
-    down: "#fff0f0" as const,
-    neutral: "white" as const,
+  const badgeColors = {
+    up: "bg-green-100 text-green-700",
+    down: "bg-red-100 text-red-700",
+    neutral: "bg-gray-100 text-gray-700",
   };
 
-  const color = labelColors[trend];
-  const chartColor = trendColors[trend];
-  const trendValues = { up: "+25%", down: "-25%", neutral: "+5%" };
+  const defaultTrendValues = { up: "+25%", down: "-25%", neutral: "+5%" };
 
   return (
-    <Card
-      variant="outlined"
-      sx={{ height: "100%", flexGrow: 1, borderRadius: 3 }}
-    >
-      <CardContent>
-        <Typography
-          sx={{ fontFamily: "'Public Sans',sans-serif", fontSize: 15 }}
-          component="h2"
-          variant="subtitle2"
-          gutterBottom
-        >
-          {title}
-        </Typography>
-        <Stack
-          direction="column"
-          sx={{ justifyContent: "space-between", flexGrow: "1", gap: 1 }}
-        >
-          <Stack sx={{ justifyContent: "space-between" }}>
-            <Stack
-              direction="row"
-              sx={{ justifyContent: "space-between", alignItems: "center" }}
-            >
-              <Typography
-                sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}
-                variant="h5"
-                component="p"
-              >
-                {value}
-              </Typography>
-              <Chip
-                size="small"
-                sx={{
-                  backgroundColor: color,
-                  fontFamily: "'Public Sans',sans-serif",
-                  fontWeight: 600,
-                  color: color == "#fff0f0" ? "red" : "green",
-                }}
-                label={trendValues[trend]}
-              />
-            </Stack>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "text.secondary",
-                fontFamily: "'Public Sans',sans-serif",
-              }}
-            >
-              {interval}
-            </Typography>
-          </Stack>
-          <Box sx={{ width: "100%", height: 50 }}>
-            <SparkLineChart
-              colors={[chartColor]}
-              data={data}
-              area
-              showHighlight
-              showTooltip
-              xAxis={{
-                scaleType: "band",
-                data: daysInWeek,
-              }}
-              sx={{
-                [`& .${areaElementClasses.root}`]: {
-                  fill: `url(#area-gradient-${value})`,
-                  fontFamily: "'Public Sans', sans-serif",
-                },
-              }}
-            >
-              <AreaGradient color={chartColor} id={`area-gradient-${value}`} />
-            </SparkLineChart>
-          </Box>
-        </Stack>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col justify-between flex-grow gap-2">
+        <div className="flex justify-between items-center">
+          <span className="text-2xl font-bold">{value || "0"}</span>
+          <Badge className={cn("text-xs font-semibold", badgeColors[trend])}>
+            {change || defaultTrendValues[trend]}
+          </Badge>
+        </div>
+        <CardDescription>{interval}</CardDescription>
+
+        <div className="w-full h-14">
+          {hasNonZeroData ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient
+                    id={`grad-${title}-${trend}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={
+                        trend === "up"
+                          ? "#16a34a"
+                          : trend === "down"
+                          ? "#dc2626"
+                          : "#6b7280"
+                      }
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={
+                        trend === "up"
+                          ? "#16a34a"
+                          : trend === "down"
+                          ? "#dc2626"
+                          : "#6b7280"
+                      }
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" hide />
+                <Tooltip cursor={false} />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={
+                    trend === "up"
+                      ? "#16a34a"
+                      : trend === "down"
+                      ? "#dc2626"
+                      : "#6b7280"
+                  }
+                  fill={`url(#grad-${title}-${trend})`}
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+              No activity in the last 30 days
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

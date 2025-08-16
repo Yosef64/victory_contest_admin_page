@@ -52,10 +52,11 @@ function renderStatus(status: "Online" | "Offline") {
     <Chip
       label={status}
       sx={{
-        backgroundColor: status == "Online" ? "#00AB5514" : "red",
+        backgroundColor: status == "Online" ? "#00AB5514" : "#fff0f0",
         color: status == "Online" ? "green" : "red",
         fontFamily: "'Public Sans',sans-serif",
         fontWeight: 700,
+        fontSize: "10px",
       }}
       size="small"
     />
@@ -84,7 +85,7 @@ export function renderAvatar(
 }
 
 export const columns: GridColDef[] = [
-  { field: "contest", headerName: "Contest", flex: 1.5, minWidth: 200 },
+  { field: "title", headerName: "Contest", flex: 1.5, minWidth: 200 },
   {
     field: "status",
     headerName: "Status",
@@ -118,7 +119,6 @@ export const columns: GridColDef[] = [
   },
   {
     field: "totaltime",
-
     headerName: "Total time",
     headerAlign: "right",
     align: "right",
@@ -130,7 +130,6 @@ export const columns: GridColDef[] = [
     headerName: "Contest date",
     flex: 1,
     minWidth: 150,
-    // renderCell: renderSparklineCell,
   },
 ];
 

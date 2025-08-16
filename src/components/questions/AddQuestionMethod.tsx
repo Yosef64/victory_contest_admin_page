@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/select";
 import { grades, Subjects } from "./Data";
 import { ProcessFile } from "./processData";
-import { addMultipleQuestions, updateQuestion } from "@/lib/utils";
+import { updateQuestion } from "@/lib/utils";
 import { Question } from "../../types/models";
 import { useSearchParams } from "react-router-dom";
-import { addQuestion } from "@/services/questionServices";
+import { addMultipleQuestions, addQuestion } from "@/services/questionServices";
 import * as React from "react";
 import { z } from "zod";
 import { toast } from "sonner";

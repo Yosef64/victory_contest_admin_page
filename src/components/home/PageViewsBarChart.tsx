@@ -1,110 +1,131 @@
-// import * as React from "react";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
-import { BarChart } from "@mui/x-charts/BarChart";
-import { useTheme } from "@mui/material/styles";
+"use client";
 
-export default function PageViewsBarChart() {
-  const theme = useTheme();
-  const colorPalette = [
-    theme.palette.primary.dark,
-    theme.palette.primary.main,
-    theme.palette.primary.light,
-  ];
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { cn } from "@/lib/utils";
+import { ContestStats } from "../../types/dashboard";
+
+interface PageViewsBarChartProps {
+  contestStats: ContestStats;
+}
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-2 text-sm">
+        <p className="font-semibold text-gray-800">{payload[0].payload.day}</p>
+        <p className="text-blue-500">Value: {payload[0].value}</p>
+      </div>
+    );
+  }
+  return null;
+};
+export default function PageViewsBarChart({
+  contestStats,
+}: PageViewsBarChartProps) {
+  // Calculate total participation and growth
+  const totalParticipation = contestStats.participation_data.reduce(
+    (sum, val) => sum + val,
+    0
+  );
+
+  const participationGrowth =
+    contestStats.participation_data.length > 1 &&
+    contestStats.participation_data[0] > 0
+      ? Math.round(
+          ((contestStats.participation_data[
+            contestStats.participation_data.length - 1
+          ] -
+            contestStats.participation_data[0]) /
+            contestStats.participation_data[0]) *
+            100
+        )
+      : 0;
+
+  // Generate month labels
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].slice(
+    0,
+    contestStats.participation_data.length
+  );
+
+  // Build chart data
+  const chartData = monthLabels.map((month, i) => ({
+    month,
+    active: Math.round(contestStats.participation_data[i] * 0.3),
+    completed: Math.round(contestStats.participation_data[i] * 0.5),
+    total: contestStats.participation_data[i],
+  }));
 
   return (
-    <Card variant="outlined" sx={{ width: "100%", borderRadius: 3 }}>
-      <CardContent>
-        <Typography
-          component="h2"
-          variant="subtitle2"
-          gutterBottom
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-        >
-          Passed Contestants
-        </Typography>
-        <Stack sx={{ justifyContent: "space-between" }}>
-          <Stack
-            direction="row"
-            sx={{
-              alignContent: { xs: "center", sm: "flex-start" },
-              alignItems: "center",
-              gap: 1,
-            }}
+    <Card className="w-full rounded-2xl shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">
+          Contest Participation
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-2xl font-bold">
+            {totalParticipation.toLocaleString()}
+          </span>
+          <Badge
+            className={cn(
+              "text-xs font-semibold",
+              participationGrowth >= 0
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            )}
           >
-            <Typography
-              variant="h5"
-              component="p"
-              sx={{ fontWeight: 600, fontFamily: "'Public Sans',sans-serif" }}
+            {participationGrowth >= 0 ? "+" : ""}
+            {participationGrowth}%
+          </Badge>
+        </div>
+        <CardDescription>
+          Contest participation for the last{" "}
+          {contestStats.participation_data.length} months
+        </CardDescription>
+
+        <div className="w-full h-[250px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ left: 20, right: 10, top: 20, bottom: 20 }}
             >
-              1.3M
-            </Typography>
-            <Chip
-              size="small"
-              sx={{
-                backgroundColor: "#fff0f0",
-                color: "red",
-                fontFamily: "'Public Sans',sans-serif",
-                fontWeight: 600,
-              }}
-              label="-8%"
-            />
-          </Stack>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              fontWeight: 500,
-              fontFamily: "'Public Sans',sans-serif",
-            }}
-          >
-            Number of student passed for the last 6 contests
-          </Typography>
-        </Stack>
-        <BarChart
-          borderRadius={8}
-          colors={colorPalette}
-          xAxis={
-            [
-              {
-                scaleType: "band",
-                categoryGapRatio: 0.5,
-                data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
-              },
-            ] as any
-          }
-          series={[
-            {
-              id: "page-views",
-              label: "Page views",
-              data: [2234, 3872, 2998, 4125, 3357, 2789, 2998],
-              stack: "A",
-            },
-            {
-              id: "downloads",
-              label: "Downloads",
-              data: [3098, 4215, 2384, 2101, 4752, 3593, 2384],
-              stack: "A",
-            },
-            {
-              id: "conversions",
-              label: "Conversions",
-              data: [4051, 2275, 3129, 4693, 3904, 2038, 2275],
-              stack: "A",
-            },
-          ]}
-          height={250}
-          margin={{ left: 50, right: 0, top: 20, bottom: 20 }}
-          grid={{ horizontal: true }}
-          slotProps={{
-            legend: {
-              hidden: true,
-            },
-          }}
-        />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar
+                dataKey="active"
+                stackId="A"
+                fill="hsl(var(--primary))"
+                radius={[6, 6, 0, 0]}
+              />
+              <Bar
+                dataKey="completed"
+                stackId="A"
+                fill="hsl(var(--primary) / 0.7)"
+              />
+              <Bar
+                dataKey="total"
+                stackId="A"
+                fill="hsl(var(--primary) / 0.5)"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,176 +1,206 @@
-import { useTheme } from "@mui/material/styles";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
-import { LineChart } from "@mui/x-charts/LineChart";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { UserStats } from "../../types/dashboard";
+import {
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+  CartesianGrid,
+} from "recharts";
 
-function AreaGradient({ color, id }: { color: string; id: string }) {
-  return (
-    <defs>
-      <linearGradient id={id} x1="50%" y1="0%" x2="50%" y2="100%">
-        <stop offset="0%" stopColor={color} stopOpacity={0.5} />
-        <stop offset="100%" stopColor={color} stopOpacity={0} />
-      </linearGradient>
-    </defs>
-  );
+interface SessionsChartProps {
+  userStats: UserStats;
 }
 
-function getDaysInMonth(month: number, year: number) {
-  const date = new Date(year, month, 0);
-  const monthName = date.toLocaleDateString("en-US", {
-    month: "short",
-  });
-  const daysInMonth = date.getDate();
-  const days = [];
-  let i = 1;
-  while (days.length < daysInMonth) {
-    days.push(`${monthName} ${i}`);
-    i += 1;
+// 🎨 Custom tooltip component
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+        <p className="text-xs text-gray-500 mb-1">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div
+            key={`item-${index}`}
+            className="flex items-center justify-between text-sm"
+          >
+            <span className="flex items-center gap-2">
+              <span
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              {entry.name.charAt(0).toUpperCase() + entry.name.slice(1)}
+            </span>
+            <span className="font-semibold text-gray-800">
+              {entry.value.toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
   }
-  return days;
-}
+  return null;
+};
 
-export default function SessionsChart() {
-  const theme = useTheme();
-  const data = getDaysInMonth(4, 2024);
+export default function SessionsChart({ userStats }: SessionsChartProps) {
+  const generateLabels = (dataLength: number) => {
+    const labels = [];
+    const currentDate = new Date();
 
-  const colorPalette = [
-    theme.palette.primary.light,
-    theme.palette.primary.main,
-    theme.palette.primary.dark,
-  ];
+    for (let i = dataLength - 1; i >= 0; i--) {
+      const date = new Date(currentDate);
+      date.setDate(date.getDate() - i);
+      const label = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      labels.push(label);
+    }
+    return labels;
+  };
+
+  const totalUsers =
+    userStats.by_gender.male +
+    userStats.by_gender.female +
+    userStats.by_gender.other;
+
+  const growthTrend = userStats.growth_trend;
+
+  // Convert daily registration data to cumulative growth data
+  const displayData = growthTrend.reduce(
+    (acc: number[], current: number, index: number) => {
+      const cumulative = index === 0 ? current : acc[index - 1] + current;
+      acc.push(cumulative);
+      return acc;
+    },
+    []
+  );
+
+  // If all trend data is zero but we have users, show the total at the end
+  const hasAnyTrendData = displayData.some((val) => val > 0);
+  if (!hasAnyTrendData && totalUsers > 0) {
+    // Set the last day to show the total users (assuming they were all registered before the 30-day window)
+    displayData[displayData.length - 1] = totalUsers;
+  }
+
+  const labels = generateLabels(displayData.length);
+
+  const chartData = displayData.map((total, i) => {
+    const femaleRatio = totalUsers
+      ? userStats.by_gender.female / totalUsers
+      : 0;
+    const maleRatio = totalUsers ? userStats.by_gender.male / totalUsers : 0;
+    const otherRatio = totalUsers ? userStats.by_gender.other / totalUsers : 0;
+
+    return {
+      date: labels[i],
+      female: Math.round(total * femaleRatio),
+      male: Math.round(total * maleRatio),
+      other: Math.round(total * otherRatio),
+    };
+  });
+
+  // Calculate growth percentage with proper handling of edge cases
+  const calculateGrowthPercentage = () => {
+    if (growthTrend.length < 2) return 0;
+
+    const firstValue = growthTrend[0];
+    const lastValue = growthTrend[growthTrend.length - 1];
+
+    // If first value is 0, calculate based on whether we have growth
+    if (firstValue === 0) {
+      return lastValue > 0 ? 100 : 0; // 100% growth from 0, or 0% if still 0
+    }
+
+    // Normal percentage calculation
+    const percentage = ((lastValue - firstValue) / firstValue) * 100;
+
+    // Handle infinity and NaN cases
+    if (!isFinite(percentage)) return 0;
+
+    return Math.round(percentage);
+  };
+
+  const growthPercentage = calculateGrowthPercentage();
 
   return (
-    <Card variant="outlined" sx={{ width: "100%", borderRadius: 3 }}>
-      <CardContent>
-        <Typography
-          component="h2"
-          variant="subtitle2"
-          gutterBottom
-          sx={{ fontFamily: "'Public Sans',sans-serif" }}
-        >
+    <Card className="w-full rounded-2xl shadow-sm">
+      <CardContent className="p-4 space-y-4">
+        <h2 className="text-sm font-medium text-muted-foreground">
           Contestant
-        </Typography>
-        <Stack sx={{ justifyContent: "space-between" }}>
-          <Stack
-            direction="row"
-            sx={{
-              alignContent: { xs: "center", sm: "flex-start" },
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <Typography
-              variant="h5"
-              component="p"
-              sx={{ fontFamily: "'Public Sans',sans-serif", fontWeight: 600 }}
+        </h2>
+
+        <div className="flex flex-col space-y-1">
+          <div className="flex items-center gap-2">
+            <p className="text-xl font-semibold">
+              {totalUsers.toLocaleString()}
+            </p>
+            <span
+              className={cn(
+                "px-2 py-0.5 text-xs font-semibold rounded-full",
+                growthPercentage >= 0
+                  ? "bg-green-100 text-green-600"
+                  : "bg-red-100 text-red-600"
+              )}
             >
-              13,277
-            </Typography>
-            <Chip
-              size="small"
-              sx={{
-                backgroundColor: "#00AB5514",
-                color: "green",
-                fontFamily: "'Public Sans',sans-serif",
-                fontWeight: 600,
-              }}
-              label="+35%"
-            />
-          </Stack>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              fontFamily: "'Public Sans',sans-serif",
-            }}
-          >
-            Contestants per contest for the last 30 days
-          </Typography>
-        </Stack>
-        <LineChart
-          colors={colorPalette}
-          xAxis={[
-            {
-              scaleType: "point",
-              data,
-              tickInterval: (i) => (i + 1) % 5 === 0,
-              labelStyle: {
-                fontFamily: "'Public Sans',sans-serif",
-                fontWeight: 700,
-              },
-            },
-          ]}
-          series={[
-            {
-              id: "direct",
-              label: "Female",
-              showMark: false,
-              curve: "linear",
-              stack: "total",
-              area: true,
-              stackOrder: "ascending",
-              data: [
-                300, 900, 600, 1200, 1500, 1800, 2400, 2100, 2700, 3000, 1800,
-                3300, 3600, 3900, 4200, 4500, 3900, 4800, 5100, 5400, 4800,
-                5700, 6000, 6300, 6600, 6900, 7200, 7500, 7800, 8100,
-              ],
-            },
-            {
-              id: "referral",
-              label: "Male",
-              showMark: false,
-              curve: "linear",
-              stack: "total",
-              area: true,
-              stackOrder: "ascending",
-              data: [
-                500, 900, 700, 1400, 1100, 1700, 2300, 2000, 2600, 2900, 2300,
-                3200, 3500, 3800, 4100, 4400, 2900, 4700, 5000, 5300, 5600,
-                5900, 6200, 6500, 5600, 6800, 7100, 7400, 7700, 8000,
-              ],
-            },
-            {
-              id: "organic",
-              label: "Total",
-              showMark: false,
-              curve: "linear",
-              stack: "total",
-              stackOrder: "ascending",
-              data: [
-                1000, 1500, 1200, 1700, 1300, 2000, 2400, 2200, 2600, 2800,
-                2500, 3000, 3400, 3700, 3200, 3900, 4100, 3500, 4300, 4500,
-                4000, 4700, 5000, 5200, 4800, 5400, 5600, 5900, 6100, 6300,
-              ],
-              area: true,
-            },
-          ]}
-          height={250}
-          margin={{ left: 50, right: 20, top: 20, bottom: 20 }}
-          grid={{ horizontal: true }}
-          sx={{
-            "& .MuiAreaElement-series-organic": {
-              fill: "url('#organic')",
-            },
-            "& .MuiAreaElement-series-referral": {
-              fill: "url('#referral')",
-            },
-            "& .MuiAreaElement-series-direct": {
-              fill: "url('#direct')",
-            },
-          }}
-          slotProps={{
-            legend: {
-              hidden: true,
-            },
-          }}
-        >
-          <AreaGradient color={theme.palette.primary.dark} id="organic" />
-          <AreaGradient color={theme.palette.primary.main} id="referral" />
-          <AreaGradient color={theme.palette.primary.light} id="direct" />
-        </LineChart>
+              {growthPercentage >= 0 ? "+" : ""}
+              {growthPercentage}%
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Total contestants growth over the last 30 days
+          </p>
+        </div>
+
+        <div className="h-[250px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="female" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="male" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="other" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#1e40af" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#1e40af" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} />
+              <Tooltip content={<CustomTooltip />} />
+
+              <Area
+                type="monotone"
+                dataKey="female"
+                stroke="#60a5fa"
+                fill="url(#female)"
+                stackId="1"
+              />
+              <Area
+                type="monotone"
+                dataKey="male"
+                stroke="#3b82f6"
+                fill="url(#male)"
+                stackId="1"
+              />
+              <Area
+                type="monotone"
+                dataKey="other"
+                stroke="#1e40af"
+                fill="url(#other)"
+                stackId="1"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

@@ -10,40 +10,7 @@ import Stack from "@mui/material/Stack";
 import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
-
-const data = [
-  { label: "India", value: 50000 },
-  { label: "USA", value: 35000 },
-  { label: "Brazil", value: 10000 },
-  { label: "Other", value: 5000 },
-];
-
-const countries = [
-  {
-    name: "Addis Ababa",
-    value: 50,
-    // flag: <IndiaFlag />,
-    color: "hsl(220, 25%, 65%)",
-  },
-  {
-    name: "Adama",
-    value: 35,
-    // flag: <UsaFlag />,
-    color: "hsl(220, 25%, 45%)",
-  },
-  {
-    name: "Bishoftu",
-    value: 10,
-    // flag: <BrazilFlag />,
-    color: "hsl(220, 25%, 30%)",
-  },
-  {
-    name: "Other",
-    value: 5,
-    // flag: <GlobeFlag />,
-    color: "hsl(220, 25%, 20%)",
-  },
-];
+import { UserStats } from "../../types/dashboard";
 
 interface StyledTextProps {
   variant: "primary" | "secondary";
@@ -116,7 +83,32 @@ const colors = [
   "hsl(220, 20%, 25%)",
 ];
 
-export default function ChartUserByCountry() {
+interface ChartUserByCountryProps {
+  userStats: UserStats;
+}
+
+export default function ChartUserByCountry({
+  userStats,
+}: ChartUserByCountryProps) {
+  // Transform city data for the pie chart
+  const data = userStats.by_city.map((city) => ({
+    label: city.city,
+    value: city.count,
+  }));
+
+  // Transform city data for the progress bars
+  const cities = userStats.by_city.map((city, index) => ({
+    name: city.city,
+    value: city.percentage,
+    color: colors[index % colors.length],
+  }));
+
+  // Calculate total users
+  const totalUsers = userStats.by_city.reduce(
+    (sum, city) => sum + city.count,
+    0
+  );
+
   return (
     <Card
       variant="outlined"
@@ -161,10 +153,17 @@ export default function ChartUserByCountry() {
             }}
             sx={{ fontFamily: "'Public Sans', sans-serif", fontWeight: 700 }}
           >
-            <PieCenterLabel primaryText="98.5K" secondaryText="Total" />
+            <PieCenterLabel
+              primaryText={
+                totalUsers >= 1000
+                  ? `${(totalUsers / 1000).toFixed(1)}K`
+                  : totalUsers.toString()
+              }
+              secondaryText="Total"
+            />
           </PieChart>
         </Box>
-        {countries.map((country, index) => (
+        {cities.map((city, index) => (
           <Stack
             key={index}
             direction="row"
@@ -186,7 +185,7 @@ export default function ChartUserByCountry() {
                     fontFamily: "'Public Sans',san-serif",
                   }}
                 >
-                  {country.name}
+                  {city.name}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -195,16 +194,16 @@ export default function ChartUserByCountry() {
                     fontFamily: "'Public Sans',san-serif",
                   }}
                 >
-                  {country.value}%
+                  {city.value}%
                 </Typography>
               </Stack>
               <LinearProgress
                 variant="determinate"
                 aria-label="Number of users by country"
-                value={country.value}
+                value={city.value}
                 sx={{
                   [`& .${linearProgressClasses.bar}`]: {
-                    backgroundColor: country.color,
+                    backgroundColor: city.color,
                   },
                 }}
               />

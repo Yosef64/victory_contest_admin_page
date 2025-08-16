@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Card, CardContent, Grid, Chip, Avatar, LinearProgress, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { Phone, Star, TrendingUp, Delete } from '@mui/icons-material';
 import axios from 'axios';
+import { feedbackServices } from '../../services/feedbackServices';
 
 // Replace with existing components
 import { Card as RadixCard, CardContent as RadixCardContent } from '../ui/card';
@@ -78,7 +79,8 @@ export default function HighScorersContactList() {
 
         try {
             setDeleting(true);
-            await axios.delete(`${API_BASE_URL}/api/feedback-response/${scorerToDelete.id}`);
+            // Use the feedback service to delete only the contact information
+            await feedbackServices.deleteContact(scorerToDelete.phoneNumber);
             
             // Remove the deleted scorer from the list
             setHighScorers(prev => prev.filter(scorer => scorer.id !== scorerToDelete.id));
@@ -86,8 +88,8 @@ export default function HighScorersContactList() {
             setDeleteDialogOpen(false);
             setScorerToDelete(null);
         } catch (error) {
-            console.error('Error deleting scorer:', error);
-            setError('Failed to delete scorer');
+            console.error('Error deleting contact:', error);
+            setError('Failed to delete contact');
         } finally {
             setDeleting(false);
         }
@@ -288,15 +290,15 @@ export default function HighScorersContactList() {
                 fullWidth
             >
                 <DialogTitle sx={{ color: 'error.main' }}>
-                    🗑️ Delete Contact
+                    🗑️ Delete Contact Information
                 </DialogTitle>
                 <DialogContent>
                     <Typography variant="body1" sx={{ mb: 2 }}>
-                        Are you sure you want to delete the contact for <strong>{scorerToDelete?.name}</strong>?
+                        Are you sure you want to delete the contact information for <strong>{scorerToDelete?.name}</strong>?
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        This will permanently remove their feedback response and contact information. 
-                        This action cannot be undone.
+                        This will permanently remove their contact information (phone number and score) from the high scorers list. 
+                        Their feedback response will remain intact. This action cannot be undone.
                     </Typography>
                 </DialogContent>
                 <DialogActions>
@@ -310,7 +312,7 @@ export default function HighScorersContactList() {
                         disabled={deleting}
                         startIcon={deleting ? <LinearProgress sx={{ width: 16, height: 16 }} /> : <Delete />}
                     >
-                        {deleting ? 'Deleting...' : 'Delete Contact'}
+                        {deleting ? 'Deleting...' : 'Delete Contact Info'}
                     </Button>
                 </DialogActions>
             </Dialog>

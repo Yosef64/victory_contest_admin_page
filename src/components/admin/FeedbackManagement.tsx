@@ -63,6 +63,8 @@ export default function FeedbackManagement() {
   const [questions, setQuestions] = useState<FeedbackQuestion[]>([]);
   const [pollOptions, setPollOptions] = useState<PollOption[]>([]);
   const [responses, setResponses] = useState<FeedbackResponse[]>([]);
+  const [filteredResponses, setFilteredResponses] = useState<FeedbackResponse[]>([]);
+  const [selectedScoreRangeFilter, setSelectedScoreRangeFilter] = useState<string>('all');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<FeedbackQuestion | null>(null);
   const [pollDialog, setPollDialog] = useState(false);
@@ -73,6 +75,7 @@ export default function FeedbackManagement() {
   // State for Confirmation Dialog
   const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
   const [itemToDeleteType, setItemToDeleteType] = useState<DeletableItemType | null>(null);
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
   // Form states
   const [newQuestion, setNewQuestion] = useState({
@@ -93,6 +96,14 @@ export default function FeedbackManagement() {
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  useEffect(() => {
+    if (selectedScoreRangeFilter === 'all') {
+      setFilteredResponses(responses);
+    } else {
+      setFilteredResponses(responses.filter(r => r.pollResponse === selectedScoreRangeFilter));
+    }
+  }, [responses, selectedScoreRangeFilter]);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -134,15 +145,18 @@ export default function FeedbackManagement() {
         maxScore: po.max_score,
         requiresContact: po.requires_contact
       }));
+      console.log('Fetched poll options:', fetchedPollOptions);
       setPollOptions(fetchedPollOptions);
     } catch (error) {
       console.error('Error fetching poll options:', error);
-      setPollOptions([
+      const fallbackOptions = [
         { id: 'p1', label: 'Less than 300', minScore: 0, maxScore: 299, requiresContact: false },
         { id: 'p2', label: 'Less than 400', minScore: 300, maxScore: 399, requiresContact: false },
         { id: 'p3', label: 'Less than 500', minScore: 400, maxScore: 499, requiresContact: false },
         { id: 'p4', label: 'Between 500-600', minScore: 500, maxScore: 600, requiresContact: true }
-      ]);
+      ];
+      console.log('Using fallback poll options:', fallbackOptions);
+      setPollOptions(fallbackOptions);
     }
   };
 
@@ -163,6 +177,10 @@ export default function FeedbackManagement() {
         } : undefined,
         submittedAt: r.submitted_at
       }));
+      console.log('Fetched responses with poll responses:', fetchedResponses.map(r => ({ 
+        studentName: r.studentName, 
+        pollResponse: r.pollResponse 
+      })));
       setResponses(fetchedResponses);
     } catch (error) {
       console.error('Error fetching responses:', error);
@@ -216,6 +234,7 @@ export default function FeedbackManagement() {
           fetchPollOptions();
           break;
         case 'response':
+          // For now, use the existing endpoint until the backend is restarted
           await axios.delete(`${API_BASE_URL}/api/feedback-response/${itemToDeleteId}`);
           fetchResponses();
           break;
@@ -227,6 +246,24 @@ export default function FeedbackManagement() {
     } finally {
       setItemToDeleteId(null);
       setItemToDeleteType(null);
+    }
+  };
+
+  const handleDeleteAllResponses = async () => {
+    try {
+      // For now, use the existing endpoint until the backend is restarted
+      const deletePromises = responses.map(response => 
+        axios.delete(`${API_BASE_URL}/api/feedback-response/${response.id}`)
+      );
+      
+      await Promise.all(deletePromises);
+      console.log(`Successfully deleted ${responses.length} responses`);
+      
+      // Refresh the responses list
+      fetchResponses();
+      setShowDeleteAllDialog(false);
+    } catch (error) {
+      console.error('Error deleting all responses:', error);
     }
   };
 
@@ -628,8 +665,11 @@ export default function FeedbackManagement() {
               <Card key={option.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg">{option.label}</CardTitle>
-                  <CardDescription>
-                    Score Range: {option.minScore} - {option.maxScore}
+                  <CardDescription className="flex items-center gap-2">
+                    <span>Score Range:</span>
+                    <Badge variant="outline" className="font-mono">
+                      {option.minScore} - {option.maxScore}
+                    </Badge>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -696,6 +736,7 @@ export default function FeedbackManagement() {
               <h2 className="text-2xl font-semibold">Student Responses</h2>
               <p className="text-muted-foreground">View and manage student feedback responses</p>
             </div>
+             <div className="flex items-center gap-2">
             <Button
               onClick={() => navigate('../high-scorers')}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
@@ -703,11 +744,84 @@ export default function FeedbackManagement() {
               <Star className="h-4 w-4 mr-2" />
               High Scorers Contact List
             </Button>
+               {responses.length > 0 && (
+                 <Button
+                   variant="destructive"
+                   onClick={() => setShowDeleteAllDialog(true)}
+                   className="bg-red-600 hover:bg-red-700 text-white"
+                 >
+                   <Trash2 className="h-4 w-4 mr-2" />
+                   Delete All Responses
+                 </Button>
+               )}
+             </div>
+           </div>
+
+          {/* Filter by Score Range */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Filter Responses</h3>
+                <p className="text-sm text-muted-foreground">
+                  Total Responses: {responses.length}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="score-range-filter" className="text-sm">Filter by Score Range:</Label>
+                <select 
+                  id="score-range-filter" 
+                  className="w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={selectedScoreRangeFilter} 
+                  onChange={(e) => setSelectedScoreRangeFilter(e.target.value)}
+                >
+                  <option value="all">All Score Ranges</option>
+                  {pollOptions.map((option) => (
+                    <option key={option.id} value={option.label}>
+                      {option.label} ({option.minScore}-{option.maxScore})
+                    </option>
+                  ))}
+                </select>
+                {selectedScoreRangeFilter !== 'all' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedScoreRangeFilter('all')}
+                    className="text-xs"
+                  >
+                    Clear Filter
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">
-            {responses.length > 0 ? (
-              responses.map((response) => (
+            {selectedScoreRangeFilter !== 'all' && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Filtered by: {selectedScoreRangeFilter}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedScoreRangeFilter('all')}
+                    className="ml-auto text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                  >
+                    Clear Filter
+                  </Button>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredResponses.length} of {responses.length} responses
+                {selectedScoreRangeFilter !== 'all' && ` for "${selectedScoreRangeFilter}"`}
+              </p>
+            </div>
+            {filteredResponses.length > 0 ? (
+              filteredResponses.map((response) => (
                 <Card key={response.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -752,8 +866,99 @@ export default function FeedbackManagement() {
 
                     {/* Poll Response */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Score Range:</Label>
-                      <p className="text-sm text-muted-foreground">{response.pollResponse}</p>
+                      <Label className="text-sm font-medium">Score Range Selection:</Label>
+                      <div className="space-y-2">
+                        {response.pollResponse && response.pollResponse.trim() !== "" ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-sm">
+                                {response.pollResponse}
+                              </Badge>
+                              {(() => {
+                                // Try exact match first
+                                let pollOption = pollOptions.find(opt => opt.label === response.pollResponse);
+                                
+                                // If exact match not found, try case-insensitive match
+                                if (!pollOption) {
+                                  pollOption = pollOptions.find(opt => 
+                                    opt.label.toLowerCase() === response.pollResponse.toLowerCase()
+                                  );
+                                }
+                                
+                                // If still not found, try partial match
+                                if (!pollOption) {
+                                  pollOption = pollOptions.find(opt => 
+                                    opt.label.toLowerCase().includes(response.pollResponse.toLowerCase()) ||
+                                    response.pollResponse.toLowerCase().includes(opt.label.toLowerCase())
+                                  );
+                                }
+                                
+                                if (pollOption?.requiresContact) {
+                                  return (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Requires Contact
+                                    </Badge>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+                            {(() => {
+                              // Find the corresponding poll option to get the actual score range
+                              // Try exact match first
+                              let pollOption = pollOptions.find(opt => opt.label === response.pollResponse);
+                              
+                              // If exact match not found, try case-insensitive match
+                              if (!pollOption) {
+                                pollOption = pollOptions.find(opt => 
+                                  opt.label.toLowerCase() === response.pollResponse.toLowerCase()
+                                );
+                              }
+                              
+                              // If still not found, try partial match
+                              if (!pollOption) {
+                                pollOption = pollOptions.find(opt => 
+                                  opt.label.toLowerCase().includes(response.pollResponse.toLowerCase()) ||
+                                  response.pollResponse.toLowerCase().includes(opt.label.toLowerCase())
+                                );
+                              }
+                              
+                              console.log('Looking for poll option:', response.pollResponse, 'Available options:', pollOptions.map(opt => opt.label), 'Found:', pollOption);
+                              
+                              if (pollOption && pollOption.minScore !== undefined && pollOption.maxScore !== undefined) {
+                                return (
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>Score Range:</span>
+                                    <code className="bg-muted px-2 py-1 rounded font-mono">
+                                      {pollOption.minScore} - {pollOption.maxScore}
+                                    </code>
+                                  </div>
+                                );
+                              } else {
+                                // If poll option not found, show a fallback message
+                                return (
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>Score Range:</span>
+                                    <code className="bg-muted px-2 py-1 rounded font-mono">
+                                      Not available
+                                    </code>
+                                    <span className="text-orange-600">(Poll option not found for: "{response.pollResponse}")</span>
+                                  </div>
+                                );
+                              }
+                            })()}
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-sm bg-gray-100 text-gray-600">
+                              No Score Range Selected
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              Student did not provide a score range
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Contact Info */}
@@ -797,7 +1002,7 @@ export default function FeedbackManagement() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Response</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this response? This action cannot be undone.
+                          Are you sure you want to delete this response? This will permanently remove the entire response including contact information. This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -817,10 +1022,21 @@ export default function FeedbackManagement() {
                 <CardContent className="py-12">
                   <div className="text-center space-y-2">
                     <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto" />
+                    {selectedScoreRangeFilter === 'all' ? (
+                      <>
                     <h3 className="text-lg font-medium">No responses yet</h3>
                     <p className="text-muted-foreground">
                       Student feedback responses will appear here once they start submitting.
                     </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-lg font-medium">No responses for selected score range</h3>
+                        <p className="text-muted-foreground">
+                          No students have selected "{selectedScoreRangeFilter}" as their score range.
+                        </p>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -828,6 +1044,29 @@ export default function FeedbackManagement() {
           </div>
         </TabsContent>
       </Tabs>
+
+       {/* Delete All Responses Confirmation Dialog */}
+       <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+         <AlertDialogContent>
+           <AlertDialogHeader>
+             <AlertDialogTitle>Delete All Responses</AlertDialogTitle>
+                           <AlertDialogDescription>
+                Are you sure you want to delete all {responses.length} student feedback responses? 
+                This will permanently remove all responses including contact information. 
+                This action cannot be undone.
+              </AlertDialogDescription>
+           </AlertDialogHeader>
+           <AlertDialogFooter>
+             <AlertDialogCancel>Cancel</AlertDialogCancel>
+             <AlertDialogAction 
+               onClick={handleDeleteAllResponses} 
+               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+             >
+               Delete All Responses
+             </AlertDialogAction>
+           </AlertDialogFooter>
+         </AlertDialogContent>
+       </AlertDialog>
     </div>
   );
 }

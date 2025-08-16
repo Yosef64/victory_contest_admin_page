@@ -116,7 +116,7 @@ export default function Home() {
           <SessionsChart userStats={dashboardData.user_stats} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <PageViewsBarChart contestStats={dashboardData.contest_stats} />
+          <PageViewsBarChart pageViewStats={dashboardData.page_view_stats} />
         </Grid>
       </Grid>
       <Typography

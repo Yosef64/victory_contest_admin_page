@@ -17,85 +17,103 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { ContestStats } from "../../types/dashboard";
+import { PageViewStats } from "../../types/dashboard";
 
 interface PageViewsBarChartProps {
-  contestStats: ContestStats;
+  pageViewStats: PageViewStats;
 }
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-2 text-sm">
         <p className="font-semibold text-gray-800">{payload[0].payload.day}</p>
-        <p className="text-blue-500">Value: {payload[0].value}</p>
+        <p className="text-blue-500">Views: {payload[0].value}</p>
       </div>
     );
   }
   return null;
 };
-export default function PageViewsBarChart({
-  contestStats,
-}: PageViewsBarChartProps) {
-  // Calculate total participation and growth
-  const totalParticipation = contestStats.participation_data.reduce(
-    (sum, val) => sum + val,
-    0
-  );
 
-  const participationGrowth =
-    contestStats.participation_data.length > 1 &&
-    contestStats.participation_data[0] > 0
-      ? Math.round(
-          ((contestStats.participation_data[
-            contestStats.participation_data.length - 1
-          ] -
-            contestStats.participation_data[0]) /
-            contestStats.participation_data[0]) *
-            100
-        )
+export default function PageViewsBarChart({
+  pageViewStats,
+}: PageViewsBarChartProps) {
+  // Calculate total views and growth
+  const totalViews = pageViewStats.total_views;
+  const viewsByDay = pageViewStats.views_by_day;
+
+  // Calculate growth percentage (comparing first and last week)
+  const firstWeekViews = viewsByDay
+    .slice(0, 7)
+    .reduce((sum, val) => sum + val, 0);
+  const lastWeekViews = viewsByDay.slice(-7).reduce((sum, val) => sum + val, 0);
+
+  const viewsGrowth =
+    firstWeekViews > 0
+      ? Math.round(((lastWeekViews - firstWeekViews) / firstWeekViews) * 100)
+      : lastWeekViews > 0
+      ? 100
       : 0;
 
-  // Generate month labels
-  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].slice(
-    0,
-    contestStats.participation_data.length
-  );
+  // Generate day labels for the last 30 days
+  const generateDayLabels = (dataLength: number) => {
+    const labels = [];
+    const currentDate = new Date();
+    for (let i = dataLength - 1; i >= 0; i--) {
+      const date = new Date(currentDate);
+      date.setDate(date.getDate() - i);
+      labels.push(
+        date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      );
+    }
+    return labels;
+  };
 
-  // Build chart data
-  const chartData = monthLabels.map((month, i) => ({
-    month,
-    active: Math.round(contestStats.participation_data[i] * 0.3),
-    completed: Math.round(contestStats.participation_data[i] * 0.5),
-    total: contestStats.participation_data[i],
-  }));
+  const dayLabels = generateDayLabels(viewsByDay.length);
+
+  // Build chart data - group by weeks for better visualization
+  const chartData = [];
+  for (let i = 0; i < viewsByDay.length; i += 7) {
+    const weekViews = viewsByDay
+      .slice(i, i + 7)
+      .reduce((sum, val) => sum + val, 0);
+    const weekStart = dayLabels[i];
+    const weekEnd = dayLabels[Math.min(i + 6, dayLabels.length - 1)];
+
+    chartData.push({
+      week: `${weekStart} - ${weekEnd}`,
+      views: weekViews,
+      day: `Week ${Math.floor(i / 7) + 1}`,
+    });
+  }
 
   return (
     <Card className="w-full rounded-2xl shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">
-          Contest Participation
-        </CardTitle>
+        <CardTitle className="text-sm font-medium">Page Views</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold">
-            {totalParticipation.toLocaleString()}
+            {totalViews.toLocaleString()}
           </span>
           <Badge
             className={cn(
               "text-xs font-semibold",
-              participationGrowth >= 0
+              viewsGrowth >= 0
                 ? "bg-green-100 text-green-700"
                 : "bg-red-100 text-red-700"
             )}
           >
-            {participationGrowth >= 0 ? "+" : ""}
-            {participationGrowth}%
+            {viewsGrowth >= 0 ? "+" : ""}
+            {viewsGrowth}%
           </Badge>
         </div>
         <CardDescription>
-          Contest participation for the last{" "}
-          {contestStats.participation_data.length} months
+          Total page views for the last 30 days ({pageViewStats.unique_visitors}{" "}
+          unique visitors)
         </CardDescription>
 
         <div className="w-full h-[250px]">
@@ -104,24 +122,13 @@ export default function PageViewsBarChart({
               data={chartData}
               margin={{ left: 20, right: 10, top: 20, bottom: 20 }}
             >
-              <XAxis dataKey="month" />
+              <XAxis dataKey="day" />
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
               <Bar
-                dataKey="active"
-                stackId="A"
+                dataKey="views"
                 fill="hsl(var(--primary))"
-                radius={[6, 6, 0, 0]}
-              />
-              <Bar
-                dataKey="completed"
-                stackId="A"
-                fill="hsl(var(--primary) / 0.7)"
-              />
-              <Bar
-                dataKey="total"
-                stackId="A"
-                fill="hsl(var(--primary) / 0.5)"
+                radius={[4, 4, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>

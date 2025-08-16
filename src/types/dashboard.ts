@@ -4,6 +4,7 @@ export interface DashboardStatsResponse {
   overview: OverviewStats;
   user_stats: UserStats;
   contest_stats: ContestStats;
+  page_view_stats: PageViewStats;
   recent_activity: RecentContest[];
 }
 
@@ -73,4 +74,18 @@ export interface RecentContest {
   noquestion: number;
   totaltime: string;
   date: string;
+}
+
+export interface PageViewStats {
+  total_views: number;
+  unique_visitors: number;
+  views_by_page: Record<string, number>;
+  views_by_day: number[];
+  top_pages: PageViewSummary[];
+}
+
+export interface PageViewSummary {
+  page: string;
+  views: number;
+  percentage: number;
 }

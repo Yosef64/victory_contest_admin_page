@@ -22,14 +22,17 @@ export function PendingPaymentsTab() {
     loadData();
   }, []);
 
-  const handleApprove = async (paymentId: string) => {
-    await approvePaymentRequest(paymentId);
-    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+  const handleApprove = async (payment: PaymentRequest) => {
+    payment.status = "Approved";
+    await approvePaymentRequest(payment);
+    setPayments((prev) => prev.filter((p) => p.id !== payment.id));
   };
 
-  const handleReject = async (paymentId: string, reason: string) => {
-    await rejectPaymentRequest(paymentId, reason);
-    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+  const handleReject = async (payment: PaymentRequest, reason: string) => {
+    payment.status = "Rejected";
+    payment.rejectionReason = reason;
+    await rejectPaymentRequest(payment);
+    setPayments((prev) => prev.filter((p) => p.id !== payment.id));
   };
 
   // Memoize columns to prevent re-creation on every render

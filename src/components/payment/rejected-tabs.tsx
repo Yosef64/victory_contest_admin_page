@@ -20,9 +20,10 @@ export function RejectedPaymentsTab() {
     };
     loadData();
   }, []);
-  const onPend = async (paymentId: string) => {
-    await pendPaymentRequest(paymentId);
-    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+  const onPend = async (payment: PaymentRequest) => {
+    setPayments((prev) => prev.filter((p) => p.id !== payment.id));
+    payment.status = "Pending";
+    await pendPaymentRequest(payment);
   };
 
   const columns = useMemo(

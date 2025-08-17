@@ -22,27 +22,23 @@ export const notifyUser = async (
 };
 
 export const approvePaymentRequest = async (
-  paymentId: string
+  payment: PaymentRequest
 ): Promise<{ success: boolean }> => {
-  await api.post(`/api/payment/update?payment_id=${paymentId}&status=Approved`);
+  await api.post(`/api/payment/update`, payment);
   return { success: true };
 };
 
 // Simulate rejecting a payment
 export const rejectPaymentRequest = async (
-  paymentId: string,
-  reason: string
+  payment: PaymentRequest
 ): Promise<{ success: boolean }> => {
-  await api.post(
-    `/api/payment/update?payment_id=${paymentId}&status=Rejected`,
-    { reason }
-  );
+  await api.post(`/api/payment/update`, payment);
   return { success: true };
 };
 export const pendPaymentRequest = async (
-  paymentId: string
+  payment: PaymentRequest
 ): Promise<{ success: boolean }> => {
-  await api.post(`/api/payment/update?payment_id=${paymentId}&status=Pending`);
+  await api.post(`/api/payment/update`, payment);
   return { success: true };
 };
 

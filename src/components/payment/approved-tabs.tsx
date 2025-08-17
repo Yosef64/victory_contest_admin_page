@@ -21,9 +21,10 @@ export function ApprovedPaymentsTab() {
     loadData();
   }, []);
 
-  const onPend = async (paymentId: string) => {
-    await pendPaymentRequest(paymentId);
-    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+  const onPend = async (payment: PaymentRequest) => {
+    payment.status = "Pending";
+    await pendPaymentRequest(payment);
+    setPayments((prev) => prev.filter((p) => p.id !== payment.id));
   };
 
   const columns = useMemo(

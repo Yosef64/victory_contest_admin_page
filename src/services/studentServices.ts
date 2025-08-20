@@ -24,3 +24,7 @@ export async function getGradesAndSchools(): Promise<{ grades: string[]; schools
   const res = await api.get(`/api/student/grades-and-schools`);
   return res.data;
 }
+
+export async function deleteStudent(studentId: string): Promise<void> {
+  await api.delete(`/api/student/${studentId}`);
+}

@@ -108,11 +108,6 @@ export function PaymentManagement({
 
   const handleDeleteUser = () => {
     onDeleteUser();
-    toast({
-      title: "User Account Deleted",
-      description: "The user has been successfully removed from the system.",
-      variant: "destructive",
-    });
   };
 
   const handleNotifyUser = () => {

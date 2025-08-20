@@ -6,26 +6,81 @@ import { ContestStatistics } from "@/components/profile/ContestStatistics";
 import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
 import { Toaster } from "@/components/ui/toaster";
 import { User } from "@/types/user";
-import { getUserProfile } from "@/services/studentServices";
-import { useParams } from "react-router-dom";
+import { getUserProfile, deleteStudent } from "@/services/studentServices";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams() as { id: string }; // Assuming the user ID is passed as a URL parameter
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadUserData = async () => {
-      const res: User = await getUserProfile(id);
-      setUser(res);
-      setIsLoading(false);
+      try {
+        const res: User = await getUserProfile(id);
+        console.log("User profile data received:", res);
+        console.log("User ID field:", res.id);
+        console.log("User telegram_id field:", res.telegram_id);
+        console.log("Full user object:", JSON.stringify(res, null, 2));
+        setUser(res);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+        setIsLoading(false);
+      }
     };
 
     loadUserData();
-  }, []);
+  }, [id]);
 
-  const handleDeleteUser = () => {
-    console.log("Deleting user:", user?.id);
+  const handleDeleteUser = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "No user data available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("Attempting to delete user:", {
+      id: user.id,
+      telegram_id: user.telegram_id,
+      name: user.name
+    });
+    
+    try {
+      // Use the student's telegram_id as the primary identifier for deletion
+      const studentId = user.telegram_id;
+      if (!studentId) {
+        console.error("User object:", user);
+        console.error("User telegram_id is undefined or null");
+        throw new Error("No valid telegram_id found for user. Please check the user data.");
+      }
+      
+      console.log("Deleting student with telegram_id:", studentId);
+      console.log("Making DELETE request to:", `/api/student/${studentId}`);
+      await deleteStudent(studentId);
+      toast({
+        title: "User deleted",
+        description: `User ${user.name} deleted.`,
+      });
+      navigate("/users");
+    } catch (error) {
+      console.error("Delete error:", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        user: user,
+        telegramId: user?.telegram_id
+      });
+      toast({
+        title: "Error deleting user",
+        description: error instanceof Error ? error.message : "Failed to delete user.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleNotifyUser = () => {

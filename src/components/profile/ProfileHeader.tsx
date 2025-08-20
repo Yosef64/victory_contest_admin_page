@@ -105,7 +105,7 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                 <div className="flex gap-2 items-center">
                   <span className="text-sm text-gray-600">Gender: </span>
                   <span className="text-sm font-medium text-gray-900 capitalize">
-                    {user.sex}
+                    {user.gender}
                   </span>
                 </div>
               </div>

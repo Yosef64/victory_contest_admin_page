@@ -8,7 +8,7 @@ export interface User {
   phoneNumber: string;
   region: string;
   school: string;
-  sex: "male" | "female";
+  gender: "male" | "female";
   telegram_id: string;
   totalPoints: number;
   payment: Payment;

@@ -95,38 +95,80 @@ export async function addMultipleQuestions(questions: Question[]) {
 }
 
 export async function updateQuestion(question: Question) {
+  console.log("updateQuestion called with:", question);
+  
   if (!question.id) {
+    console.error("Question ID is missing:", question);
     throw new Error("Question ID is missing for update.");
   }
-  const formData = new FormData();
-  Object.entries(question).forEach(([key, value]) => {
-    if (key === "multiple_choice" && Array.isArray(value)) {
-      value.forEach((v) => {
-        if (v !== null && v !== undefined) {
-          formData.append(`multiple_choice`, v.toString());
+  
+  // Check if there are any File objects (images) that need FormData
+  const hasFiles = question.question_image instanceof File || question.explanation_image instanceof File;
+  console.log("Has files:", hasFiles);
+  
+  if (hasFiles) {
+    // Use FormData for file uploads
+    console.log("Using FormData for file uploads");
+    const formData = new FormData();
+    Object.entries(question).forEach(([key, value]) => {
+      if (key === "multiple_choice" && Array.isArray(value)) {
+        value.forEach((v) => {
+          if (v !== null && v !== undefined) {
+            formData.append(`multiple_choice`, v.toString());
+          }
+        });
+      } else if (value !== null && value !== undefined && key !== "id") {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, value.toString());
         }
-      });
-    } else if (value !== null && value !== undefined) {
-      if (key === "question_image" && value instanceof File) {
-        formData.append("question_image", value);
-      } else if (key === "explanation_image" && value instanceof File) {
-        formData.append("explanation_image", value);
-      } else if (key !== "id") {
-        formData.append(key, value.toString());
       }
-    }
-  });
+    });
 
-  const res = await api.put(
-    `/api/question/updatequestion/${question.id}`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    console.log("FormData entries:");
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
     }
-  );
-  return res.data;
+
+    const res = await api.patch(
+      `/api/question/${question.id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } else {
+    // Use JSON for text-only updates
+    console.log("Using JSON for text-only updates");
+    const updateData = {
+      question_text: question.question_text,
+      multiple_choice: question.multiple_choice,
+      answer: question.answer,
+      grade: question.grade,
+      subject: question.subject,
+      chapter: question.chapter,
+      explanation: question.explanation,
+      question_image: question.question_image,
+      explanation_image: question.explanation_image,
+    };
+    
+    console.log("JSON update data:", updateData);
+
+    const res = await api.patch(
+      `/api/question/${question.id}`,
+      updateData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return res.data;
+  }
 }
 
 export async function deleteQusetion(id: string) {

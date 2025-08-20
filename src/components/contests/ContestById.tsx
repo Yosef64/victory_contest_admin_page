@@ -23,6 +23,7 @@ import { Student } from "@/types/models";
 import { DialogBox } from "../common/DialogBox";
 import { UpdateContestDialog } from "./UpdateContestDialog";
 import QuestionTable from "../questions/QuestionTable";
+import ContestStatistics from "./ContestStatistics";
 import { getSubmissionByContest } from "@/lib/utils";
 
 // Assets
@@ -382,9 +383,10 @@ export default function ContestById() {
         <CardContent className="p-0">
           <Tabs value={tabValue.toString()} onValueChange={(value) => setTabValue(parseInt(value))} className="w-full">
             <CardHeader className="pb-0">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="0">Standings</TabsTrigger>
                 <TabsTrigger value="1">Problems</TabsTrigger>
+                <TabsTrigger value="2">Statistics</TabsTrigger>
               </TabsList>
             </CardHeader>
             <div className="p-6">
@@ -405,6 +407,9 @@ export default function ContestById() {
                     </p>
                   </div>
                 )}
+              </TabsContent>
+              <TabsContent value="2">
+                <ContestStatistics contestId={id!} contest={contest} />
               </TabsContent>
             </div>
           </Tabs>

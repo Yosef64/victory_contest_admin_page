@@ -1,4 +1,4 @@
-export type PaymentStatus = "pending" | "approved" | "rejected" | "expired";
+export type PaymentStatus = "Pending" | "Approved" | "Rejected" | "Expired";
 
 export interface PaymentRequest {
   id: string;

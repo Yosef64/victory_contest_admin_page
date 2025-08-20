@@ -30,11 +30,11 @@ import { toast } from "sonner";
 
 // Type definition for handlers passed from the parent component
 interface PendingActionsHandlers {
-  onApprove: (paymentId: string) => Promise<void>;
-  onReject: (paymentId: string, reason: string) => Promise<void>;
+  onApprove: (payment: PaymentRequest) => Promise<void>;
+  onReject: (payment: PaymentRequest, reason: string) => Promise<void>;
 }
 interface ActionHandlerForUndo {
-  onPend: (paymentId: string) => Promise<void>;
+  onPend: (payment: PaymentRequest) => Promise<void>;
 }
 // --- Cell Components for Modals and Dialogs ---
 
@@ -54,9 +54,9 @@ const PendingActionsCell = ({
       description: `Approving payment ${payment.id}`,
     });
     try {
-      await handlers.onApprove(payment.id);
+      await handlers.onApprove(payment);
       toast("✅ Success", { description: "Payment has been approved." });
-      handlers.onApprove(payment.id);
+      handlers.onApprove(payment);
     } catch (error) {
       toast.error("❌ Error", {
         description: "Failed to approve payment.",
@@ -75,11 +75,11 @@ const PendingActionsCell = ({
       description: `Rejecting payment ${payment.id}`,
     });
     try {
-      await handlers.onReject(payment.id, rejectionReason);
+      await handlers.onReject(payment, rejectionReason);
       toast.success("✅ Success", {
         description: "Payment has been rejected.",
       });
-      handlers.onReject(payment.id, rejectionReason);
+      handlers.onReject(payment, rejectionReason);
     } catch (error) {
       toast.error("❌ Error", {
         description: "Failed to reject payment.",
@@ -286,14 +286,21 @@ export const getApprovedColumns = (handlers: ActionHandlerForUndo) => {
         const [isRejecting, setIsRejecting] = useState(false);
         const payment = row.original;
         const handleRejectConfirm = async () => {
-          toast.warning("Sending Notification...", {
+          toast.warning("Undoing payment...", {
             description: `Notifying ${payment.fullName}`,
             duration: 10000,
           });
           try {
             setloading(true);
-            await handlers.onPend(payment.id);
+            await handlers.onPend(payment);
+            toast.warning("Operation was sucessfull!", {
+              duration: 10000,
+            });
           } catch (error) {
+            toast.warning("Undoing payment...", {
+              description: `Notifying ${payment.fullName}`,
+              duration: 10000,
+            });
           } finally {
             setloading(false);
           }
@@ -374,7 +381,7 @@ export const getRejectColumns = (handlers: ActionHandlerForUndo) => {
           });
           try {
             setloading(true);
-            await handlers.onPend(payment.id);
+            await handlers.onPend(payment);
             toast.success("Successfully sent!", {
               description: `Successfully undo payment for user ${payment.userId}`,
             });

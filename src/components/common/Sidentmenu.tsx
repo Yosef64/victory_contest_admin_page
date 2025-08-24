@@ -118,18 +118,6 @@ export const menuList: NavGroup[] = [
         path: "/dashboard/users",
         icon: Users,
       },
-      {
-        id: 6,
-        title: "Feedback",
-        path: "/dashboard/feedback",
-        icon: MessageSquareWarning,
-      },
-      {
-        id: 7,
-        title: "High Scorers",
-        path: "/dashboard/high-scorers",
-        icon: BarChart2,
-      },
     ],
   },
   {
@@ -149,8 +137,25 @@ export const menuList: NavGroup[] = [
       },
     ],
   },
+  {
+    title: "Insight",
+    items: [
+      {
+        id: 6,
+        title: "Feedback",
+        path: "/dashboard/feedback",
+        icon: MessageSquareWarning,
+      },
+      {
+        id: 7,
+        title: "High Scorers",
+        path: "/dashboard/high-scorers",
+        icon: BarChart2,
+      },
+    ],
+  },
 ];
 
 // Remove the Actions section that was referencing undefined navigationItems
 // For backward compatibility, create a flat list from the menuList
-export const flatMenuList: NavItem[] = menuList.flatMap(group => group.items);
+export const flatMenuList: NavItem[] = menuList.flatMap((group) => group.items);

@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Box, Typography, Divider } from "@mui/material";
-import { menuList } from "@/components/common/Sidentmenu"; // Ensure this path is correct
+import { flatMenuList } from "@/components/common/Sidentmenu"; // Ensure this path is correct
 
 export default function SearchResults() {
   const location = useLocation();
   // const navigate = useNavigate();
-  const [results, setResults] = useState<typeof menuList>([]);
+  const [results, setResults] = useState<typeof flatMenuList>([]);
 
   useEffect(() => {
     const query = new URLSearchParams(location.search).get("q");
     if (query) {
-      const filtered = menuList.filter((item) =>
+      const filtered = flatMenuList.filter((item) =>
         item.title.toLowerCase().includes(query.toLowerCase())
       );
       setResults(filtered);

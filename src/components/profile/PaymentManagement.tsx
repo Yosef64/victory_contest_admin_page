@@ -108,11 +108,6 @@ export function PaymentManagement({
 
   const handleDeleteUser = () => {
     onDeleteUser();
-    toast({
-      title: "User Account Deleted",
-      description: "The user has been successfully removed from the system.",
-      variant: "destructive",
-    });
   };
 
   const handleNotifyUser = () => {
@@ -183,8 +178,8 @@ export function PaymentManagement({
       });
     } catch (error) {
       toast({
-        title: "Final Notice Sent",
-        description: `Final payment notice has been sent to ${user.name}.`,
+        title: "Error Sending Notice",
+        description: `Failed to send final payment notice: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {

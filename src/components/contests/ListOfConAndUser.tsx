@@ -87,7 +87,16 @@ export function ListOfContest({ grade, subject }: ListOfContestProps) {
                           }}
                         >
                           {contest.date
-                            ? new Date(contest.date).toLocaleDateString()
+                            ? (() => {
+                                try {
+                                  const date = new Date(contest.date);
+                                  if (isNaN(date.getTime())) return 'Invalid date';
+                                  return date.toLocaleDateString();
+                                } catch (error) {
+                                  console.warn('Error formatting contest date:', error);
+                                  return 'Invalid date';
+                                }
+                              })()
                             : "No date"}
                         </span>
                       </Box>

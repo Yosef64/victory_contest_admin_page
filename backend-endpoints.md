@@ -363,6 +363,22 @@ VITE_API_URL (from environment variables)
   }
   ```
 
+### Delete Student
+
+- **Endpoint:** `DELETE /api/student/{id}`
+- **Parameters:**
+  - `id` (path parameter): The ID of the student to delete
+- **Response:**
+  ```json
+  {
+    "message": "Student deleted successfully"
+  }
+  ```
+- **Error Responses:**
+  - `400 Bad Request`: Student ID is required
+  - `404 Not Found`: Student not found
+  - `500 Internal Server Error`: Failed to delete student
+
 ## Submission Endpoints
 
 ### Get Submissions by Contest

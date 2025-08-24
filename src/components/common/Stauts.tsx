@@ -1,5 +1,3 @@
-import { CircularProgress } from "@mui/material";
-
 export default function ErrorComponent({ message }: { message?: string }) {
   return (
     <div className="flex h-full w-full items-center justify-center">
@@ -15,7 +13,7 @@ export default function ErrorComponent({ message }: { message?: string }) {
 export function Loading() {
   return (
     <div className="w-full h-full flex justify-center items-center">
-      <CircularProgress sx={{ color: "green" }} />
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
     </div>
   );
 }

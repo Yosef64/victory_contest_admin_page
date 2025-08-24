@@ -181,7 +181,17 @@ const baseColumns: ColumnDef<PaymentRequest>[] = [
   {
     accessorKey: "createdAt",
     header: "Created At",
-    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    cell: ({ row }) => {
+      try {
+        if (!row.original.createdAt) return 'N/A';
+        const date = new Date(row.original.createdAt);
+        if (isNaN(date.getTime())) return 'Invalid date';
+        return date.toLocaleDateString();
+      } catch (error) {
+        console.warn('Error formatting createdAt date:', error);
+        return 'N/A';
+      }
+    },
   },
 ];
 
@@ -210,10 +220,17 @@ export const expiredColumns: ColumnDef<PaymentRequest>[] = [
   {
     accessorKey: "expirationDate",
     header: "Expired At",
-    cell: ({ row }) =>
-      row.original.expirationDate
-        ? new Date(row.original.expirationDate).toLocaleDateString()
-        : "N/A",
+    cell: ({ row }) => {
+      try {
+        if (!row.original.expirationDate) return 'N/A';
+        const date = new Date(row.original.expirationDate);
+        if (isNaN(date.getTime())) return 'Invalid date';
+        return date.toLocaleDateString();
+      } catch (error) {
+        console.warn('Error formatting expirationDate:', error);
+        return 'N/A';
+      }
+    },
   },
   {
     id: "actions",
@@ -249,7 +266,17 @@ export const getApprovedColumns = (handlers: ActionHandlerForUndo) => {
     {
       accessorKey: "updatedAt",
       header: "Approved At",
-      cell: ({ row }) => new Date(row.original.updatedAt).toLocaleString(),
+      cell: ({ row }) => {
+        try {
+          if (!row.original.updatedAt) return 'N/A';
+          const date = new Date(row.original.updatedAt);
+          if (isNaN(date.getTime())) return 'Invalid date';
+          return date.toLocaleString();
+        } catch (error) {
+          console.warn('Error formatting updatedAt date:', error);
+          return 'N/A';
+        }
+      },
     },
     {
       accessorKey: "",
@@ -329,7 +356,17 @@ export const getRejectColumns = (handlers: ActionHandlerForUndo) => {
     {
       accessorKey: "updatedAt",
       header: "Rejected At",
-      cell: ({ row }) => new Date(row.original.updatedAt).toLocaleString(),
+      cell: ({ row }) => {
+        try {
+          if (!row.original.updatedAt) return 'N/A';
+          const date = new Date(row.original.updatedAt);
+          if (isNaN(date.getTime())) return 'Invalid date';
+          return date.toLocaleString();
+        } catch (error) {
+          console.warn('Error formatting updatedAt date:', error);
+          return 'N/A';
+        }
+      },
     },
     {
       accessorKey: "",

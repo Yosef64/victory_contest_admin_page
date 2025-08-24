@@ -58,15 +58,25 @@ const getPaymentStatus = (
   if (!student.payment?.payment_date) {
     return { label: "Unpaid", variant: "destructive" };
   }
-  const paymentDate = new Date(student.payment.payment_date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  paymentDate.setHours(0, 0, 0, 0);
+  
+  try {
+    const paymentDate = new Date(student.payment.payment_date);
+    if (isNaN(paymentDate.getTime())) {
+      return { label: "Invalid Date", variant: "secondary" };
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    paymentDate.setHours(0, 0, 0, 0);
 
-  if (paymentDate >= today) {
-    return { label: "Paid", variant: "default" };
-  } else {
-    return { label: "Expired", variant: "destructive" };
+    if (paymentDate >= today) {
+      return { label: "Paid", variant: "default" };
+    } else {
+      return { label: "Expired", variant: "destructive" };
+    }
+  } catch (error) {
+    console.warn('Error processing payment date:', error);
+    return { label: "Error", variant: "secondary" };
   }
 };
 

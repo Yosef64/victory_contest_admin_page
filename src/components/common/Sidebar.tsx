@@ -111,25 +111,24 @@ export function NavLinks({ isCollapsed }: NavLinksProps) {
           {group.items.map((item) => {
             const isActive = location.pathname === item.path;
 
-            const IconComponent = item.icon; // Get the component type
-
             return (
               <Tooltip key={item.path}>
                 <TooltipTrigger asChild>
                   <Link
                     to={item.path}
-                    className={`flex rounded-md py-4 mb-2 cursor-pointer items-center px-4 text-sm outline-none transition-all duration-100 ease-in-out hover:border-l-4 hover:border-[#00AB55] hover:text-[#00AB55] ${
-                      isActive
+                    className={`flex rounded-md py-4 mb-2 cursor-pointer items-center px-4 text-sm outline-none transition-all duration-100 ease-in-out hover:border-l-4 hover:border-[#00AB55] hover:text-[#00AB55] ${isActive
                         ? "border-l-4 bg-[#00AB5514] border-l-[#00AB55] text-[#00AB55] font-bold"
                         : "border-l-0 text-gray-600 font-medium"
-                    }`}
+                      }`}
                   >
-                    <IconComponent
+                    <span
                       className={cn(
                         "h-5 w-5 flex-shrink-0",
                         isCollapsed ? "" : "mr-2"
                       )}
-                    />
+                    >
+                      {React.createElement(item.icon, { className: "h-5 w-5" })}
+                    </span>
                     <span className={cn("truncate", isCollapsed && "sr-only")}>
                       {item.title}
                     </span>
@@ -154,8 +153,40 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ isCollapsed }: UserProfileProps) {
-  const { user } = useAuth(); // Example context usage
-  // const user = { name: "Admin User", email: "admin@example.com" }; // Placeholder
+  // Add try-catch to handle potential useAuth errors
+  let authData;
+  try {
+    authData = useAuth();
+  } catch (error) {
+    // If useAuth fails, show loading state
+    authData = { user: null, loading: true };
+  }
+  
+  const { user, loading } = authData;
+  
+  // Show loading state while auth is being initialized
+  if (loading || !user) {
+    return (
+      <Card
+        className={cn(
+          "cursor-pointer border-none bg-muted/50 transition-colors hover:bg-muted/80",
+          isCollapsed ? "p-0" : "p-2"
+        )}
+      >
+        <CardHeader className="flex flex-row items-center gap-3 p-2">
+          <Avatar>
+            <AvatarFallback>...</AvatarFallback>
+          </Avatar>
+          <div className={cn("truncate", isCollapsed ? "hidden" : "block")}>
+            <CardTitle className="text-sm font-semibold capitalize">
+              Loading...
+            </CardTitle>
+            <CardDescription className="text-xs">Please wait</CardDescription>
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -167,13 +198,13 @@ export function UserProfile({ isCollapsed }: UserProfileProps) {
       <CardHeader className="flex flex-row items-center gap-3 p-2">
         <Avatar>
           <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+          <AvatarFallback>{user.name?.charAt(0) || 'U'}</AvatarFallback>
         </Avatar>
         <div className={cn("truncate", isCollapsed ? "hidden" : "block")}>
           <CardTitle className="text-sm font-semibold capitalize">
-            {user.name}
+            {user.name || 'User'}
           </CardTitle>
-          <CardDescription className="text-xs">{user.email}</CardDescription>
+          <CardDescription className="text-xs">{user.email || 'No email'}</CardDescription>
         </div>
       </CardHeader>
     </Card>

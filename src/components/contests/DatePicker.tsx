@@ -9,10 +9,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { Dayjs } from "dayjs";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import dayjs from "dayjs";
 import { Contest } from "../../types/models";
 
 interface TimePickerComponentProps {
@@ -24,27 +23,28 @@ interface TimePickerComponentProps {
 export function TimePickerComponent({
   timeChangeHandler,
   value,
-  format = "hh:mm A",
+  format = "HH:mm",
 }: TimePickerComponentProps) {
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const timeValue = e.target.value;
+    if (timeValue) {
+      const [hours, minutes] = timeValue.split(':');
+      const newTime = dayjs().hour(parseInt(hours)).minute(parseInt(minutes));
+      timeChangeHandler(newTime);
+    } else {
+      timeChangeHandler(null);
+    }
+  };
+
+  const timeValue = value ? value.format("HH:mm") : "";
+
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <MobileTimePicker
-        onChange={timeChangeHandler}
-        value={value}
-        format={format}
-        ampm={true}
-        slotProps={{
-          textField: {
-            sx: {
-              height: 50,
-              "& .MuiInputBase-root": {
-                height: "95%",
-              },
-            },
-          },
-        }}
-      />
-    </LocalizationProvider>
+    <Input
+      type="time"
+      value={timeValue}
+      onChange={handleTimeChange}
+      className="h-12"
+    />
   );
 }
 
@@ -66,7 +66,17 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
         >
           <CalendarIcon />
           {contest.date ? (
-            format(new Date(contest.date), "PPP")
+            (() => {
+              try {
+                if (!contest.date) return 'Pick a date';
+                const date = new Date(contest.date);
+                if (isNaN(date.getTime())) return 'Invalid date';
+                return format(date, "PPP");
+              } catch (error) {
+                console.warn('Error formatting contest date:', error);
+                return 'Invalid date';
+              }
+            })()
           ) : (
             <span>Pick a date</span>
           )}
@@ -76,12 +86,26 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
         <Calendar
           style={{ fontFamily: "'Public Sans',sans-serif" }}
           mode="single"
-          selected={contest.date ? new Date(contest.date) : undefined}
+          selected={(() => {
+            try {
+              if (!contest.date) return undefined;
+              const date = new Date(contest.date);
+              if (isNaN(date.getTime())) return undefined;
+              return date;
+            } catch (error) {
+              console.warn('Error parsing contest date:', error);
+              return undefined;
+            }
+          })()}
           onSelect={(newValue) => {
-            if (!newValue) return;
-            const localDateString = newValue.toLocaleDateString("en-CA");
-            setContest({ ...contest, date: localDateString });
+            setContest((prev) => ({
+              ...prev,
+              date: newValue ? newValue.toISOString() : "",
+            }));
           }}
+          disabled={(date) =>
+            date < new Date("1900-01-01")
+          }
           initialFocus
         />
       </PopoverContent>

@@ -160,35 +160,63 @@ export function AddQuestionManual(): JSX.Element {
       return;
     }
 
-    const formData: FormData = new FormData();
-    Object.entries(validationResult.data).forEach(([key, value]) => {
-      if (key === "multiple_choice" && Array.isArray(value)) {
-        value.forEach((opt: string) => formData.append(key, opt));
-      } else if (value instanceof File) {
-        formData.append(key, value);
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, String(value));
+    try {
+      if (isEditing && questionToEdit?.id) {
+        // For editing: create a Question object and call updateQuestion
+        console.log("Editing question with ID:", questionToEdit.id);
+        console.log("Question to edit:", questionToEdit);
+        
+        const questionToUpdate: Question = {
+          id: questionToEdit.id,
+          question_text: validationResult.data.question_text,
+          multiple_choice: validationResult.data.multiple_choice,
+          answer: parseInt(validationResult.data.answer),
+          grade: validationResult.data.grade,
+          subject: validationResult.data.subject,
+          chapter: validationResult.data.chapter,
+          explanation: validationResult.data.explanation,
+          question_image: validationResult.data.question_image,
+          explanation_image: validationResult.data.explanation_image,
+        };
+        
+        console.log("Question to update:", questionToUpdate);
+
+        const promise = updateQuestion(questionToUpdate);
+        toast.promise(promise, {
+          loading: "Updating question...",
+          success: () => {
+            return "Question updated successfully!";
+          },
+          error: (err: Error) => `Operation failed: ${err.message}`,
+          finally: () => setIsLoading(false),
+        });
+      } else {
+        // For adding new question: use FormData and call addQuestion
+        const formData: FormData = new FormData();
+        Object.entries(validationResult.data).forEach(([key, value]) => {
+          if (key === "multiple_choice" && Array.isArray(value)) {
+            value.forEach((opt: string) => formData.append(key, opt));
+          } else if (value instanceof File) {
+            formData.append(key, value);
+          } else if (value !== undefined && value !== null) {
+            formData.append(key, String(value));
+          }
+        });
+
+        const promise = addQuestion(formData as any);
+        toast.promise(promise, {
+          loading: "Adding question...",
+          success: () => {
+            return "Question added successfully!";
+          },
+          error: (err: Error) => `Operation failed: ${err.message}`,
+          finally: () => setIsLoading(false),
+        });
       }
-    });
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
+    } catch (error) {
+      toast.error(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsLoading(false);
     }
-
-    if (isEditing && questionToEdit?.id) {
-      formData.append("id", questionToEdit.id);
-    }
-
-    const action = isEditing ? updateQuestion : addQuestion;
-
-    const promise = action(formData as any);
-    toast.promise(promise, {
-      loading: isEditing ? "Updating question..." : "Adding question...",
-      success: () => {
-        return `Question ${isEditing ? "updated" : "added"} successfully!`;
-      },
-      error: (err: Error) => `Operation failed: ${err.message}`,
-      finally: () => setIsLoading(false),
-    });
   };
 
   return (

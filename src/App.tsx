@@ -13,12 +13,12 @@ import RootLayout from "./components/RootLoyout";
 import Register from "./components/auth/Register";
 import ApproveAdmin from "./components/ApproveAdmin";
 import { NotificationProvider } from "./context/NotificationContext";
-import SearchResults from "./components/dashboard/SearchResults"; // Import SearchResults
 import Profile from "./components/profile/Profile";
 import FeedbackManagement from "./components/admin/FeedbackManagement";
 import HighScorersContactList from "./components/admin/HighScorersContactList";
 import { PaymentsPage } from "./components/payment/Payment";
 import QuestionsPage from "./components/questions/Questions";
+import ArticlesPage from "./components/articles/ArticlesPage";
 
 const router = createBrowserRouter([
   {
@@ -37,11 +37,11 @@ const router = createBrowserRouter([
           { path: "contest", element: <Contest /> },
           { path: "contest/:id", element: <ContestById /> },
           { path: "questions", element: <QuestionsPage /> },
+          { path: "articles", element: <ArticlesPage /> },
           { path: "users", element: <UserListPage /> },
           { path: "addquestion", element: <AddQuestions /> },
           { path: "addcontest", element: <AddContest /> },
           { path: "admins", element: <ApproveAdmin /> },
-          { path: "search", element: <SearchResults /> }, // Add this new route for search results
           { path: "user/:id", element: <Profile /> },
 
           { path: "feedback", element: <FeedbackManagement /> },

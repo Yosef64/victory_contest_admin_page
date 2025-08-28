@@ -54,12 +54,6 @@ export default function StatCard({
   const chartData = safeData.map((val, i) => ({ date: labels[i], value: val }));
   const hasNonZeroData = chartData.some((p) => p.value > 0);
 
-  const trendColors = {
-    up: "text-green-600",
-    down: "text-red-600",
-    neutral: "text-gray-500",
-  };
-
   const badgeColors = {
     up: "bg-green-100 text-green-700",
     down: "bg-red-100 text-red-700",

@@ -21,23 +21,8 @@ export async function getContestById(id: string): Promise<Contest> {
   return res.data.contest;
 }
 
-export async function updateContest(
-  contest: Contest,
-  data: Partial<Contest>
-) {
+export async function updateContest(contest: Contest, data: Partial<Contest>) {
   const res = await api.patch(`/api/contest/${contest.id}`, data);
-  return res.data;
-}
-
-export async function announceContest(contest: Contest) {
-  const finalContest = {
-    ...contest,
-    questions: contest.questions.map((question) => question.id),
-  };
-  const res = await axios.post(
-    `${VITE_API_LINK}/api/notification/contest-announce`,
-    finalContest
-  );
   return res.data;
 }
 
@@ -77,15 +62,11 @@ export async function addMultipleQuestions(questions: Question[]) {
         }
       });
 
-      const res = await api.post(
-        `/api/question/addquestion`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await api.post(`/api/question/addquestion`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       results.push(res.data);
     } catch (error) {
       results.push({ status: "failed", error: error });
@@ -96,16 +77,18 @@ export async function addMultipleQuestions(questions: Question[]) {
 
 export async function updateQuestion(question: Question) {
   console.log("updateQuestion called with:", question);
-  
+
   if (!question.id) {
     console.error("Question ID is missing:", question);
     throw new Error("Question ID is missing for update.");
   }
-  
+
   // Check if there are any File objects (images) that need FormData
-  const hasFiles = question.question_image instanceof File || question.explanation_image instanceof File;
+  const hasFiles =
+    question.question_image instanceof File ||
+    question.explanation_image instanceof File;
   console.log("Has files:", hasFiles);
-  
+
   if (hasFiles) {
     // Use FormData for file uploads
     console.log("Using FormData for file uploads");
@@ -131,15 +114,11 @@ export async function updateQuestion(question: Question) {
       console.log(key, value);
     }
 
-    const res = await api.patch(
-      `/api/question/${question.id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    const res = await api.patch(`/api/question/${question.id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return res.data;
   } else {
     // Use JSON for text-only updates
@@ -155,18 +134,14 @@ export async function updateQuestion(question: Question) {
       question_image: question.question_image,
       explanation_image: question.explanation_image,
     };
-    
+
     console.log("JSON update data:", updateData);
 
-    const res = await api.patch(
-      `/api/question/${question.id}`,
-      updateData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await api.patch(`/api/question/${question.id}`, updateData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return res.data;
   }
 }

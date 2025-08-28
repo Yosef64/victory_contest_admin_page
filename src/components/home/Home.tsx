@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import StatCard, { StatCardProps } from "./StatCard";
 
-import { Box, Stack, Typography, CircularProgress, Grid } from "@mui/material";
+import { Box, Stack, Typography, Grid } from "@mui/material";
 import HighlightedCard from "./HighlightedCard";
 import SessionsChart from "./SessionsChart";
 import PageViewsBarChart from "./PageViewsBarChart";

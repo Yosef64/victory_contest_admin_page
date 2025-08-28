@@ -23,12 +23,11 @@ interface TimePickerComponentProps {
 export function TimePickerComponent({
   timeChangeHandler,
   value,
-  format = "HH:mm",
 }: TimePickerComponentProps) {
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const timeValue = e.target.value;
     if (timeValue) {
-      const [hours, minutes] = timeValue.split(':');
+      const [hours, minutes] = timeValue.split(":");
       const newTime = dayjs().hour(parseInt(hours)).minute(parseInt(minutes));
       timeChangeHandler(newTime);
     } else {
@@ -61,20 +60,20 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
           variant={"outline"}
           className={cn(
             "w-[280px] justify-start text-left font-normal",
-            !contest.date && "text-muted-foreground"
+            !contest.start_time && "text-muted-foreground"
           )}
         >
           <CalendarIcon />
-          {contest.date ? (
+          {contest.start_time ? (
             (() => {
               try {
-                if (!contest.date) return 'Pick a date';
-                const date = new Date(contest.date);
-                if (isNaN(date.getTime())) return 'Invalid date';
+                if (!contest.start_time) return "Pick a date";
+                const date = new Date(contest.start_time);
+                if (isNaN(date.getTime())) return "Invalid date";
                 return format(date, "PPP");
               } catch (error) {
-                console.warn('Error formatting contest date:', error);
-                return 'Invalid date';
+                console.warn("Error formatting contest date:", error);
+                return "Invalid date";
               }
             })()
           ) : (
@@ -88,12 +87,12 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
           mode="single"
           selected={(() => {
             try {
-              if (!contest.date) return undefined;
-              const date = new Date(contest.date);
+              if (!contest.start_time) return undefined;
+              const date = new Date(contest.start_time);
               if (isNaN(date.getTime())) return undefined;
               return date;
             } catch (error) {
-              console.warn('Error parsing contest date:', error);
+              console.warn("Error parsing contest date:", error);
               return undefined;
             }
           })()}
@@ -103,9 +102,7 @@ export function DatePickerDemo({ setContest, contest }: DatePickerDemoProps) {
               date: newValue ? newValue.toISOString() : "",
             }));
           }}
-          disabled={(date) =>
-            date < new Date("1900-01-01")
-          }
+          disabled={(date) => date < new Date("1900-01-01")}
           initialFocus
         />
       </PopoverContent>

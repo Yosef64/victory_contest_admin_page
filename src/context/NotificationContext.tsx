@@ -1,7 +1,6 @@
 // src/context/NotificationContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import axios from "axios";
 import api from "@/services/api";
 
 interface Notification {
@@ -50,11 +49,11 @@ export const NotificationProvider = ({
   const markAsRead = async () => {
     try {
       // Mark all unread notifications as read
-      const unreadNotifications = notifications.filter(n => !n.is_read);
-      const markPromises = unreadNotifications.map(n => 
+      const unreadNotifications = notifications.filter((n) => !n.is_read);
+      const markPromises = unreadNotifications.map((n) =>
         api.patch(`/api/notification/${n.id}/read`)
       );
-      
+
       await Promise.all(markPromises);
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
@@ -80,7 +79,9 @@ export const NotificationProvider = ({
       await api.delete(`/api/notification/${id}`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       // Recalculate unread count
-      const newUnreadCount = notifications.filter(n => n.id !== id && !n.is_read).length;
+      const newUnreadCount = notifications.filter(
+        (n) => n.id !== id && !n.is_read
+      ).length;
       setUnreadCount(newUnreadCount);
     } catch (error) {
       console.error("Failed to delete notification", error);
@@ -91,7 +92,7 @@ export const NotificationProvider = ({
     if (!user) return;
     try {
       await api.post("/api/notification", { message, type });
-      await fetchNotifications(); 
+      await fetchNotifications();
     } catch (error) {
       console.error("Failed to add notification", error);
     }

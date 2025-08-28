@@ -165,7 +165,7 @@ export function AddQuestionManual(): JSX.Element {
         // For editing: create a Question object and call updateQuestion
         console.log("Editing question with ID:", questionToEdit.id);
         console.log("Question to edit:", questionToEdit);
-        
+
         const questionToUpdate: Question = {
           id: questionToEdit.id,
           question_text: validationResult.data.question_text,
@@ -174,11 +174,13 @@ export function AddQuestionManual(): JSX.Element {
           grade: validationResult.data.grade,
           subject: validationResult.data.subject,
           chapter: validationResult.data.chapter,
-          explanation: validationResult.data.explanation,
-          question_image: validationResult.data.question_image,
-          explanation_image: validationResult.data.explanation_image,
+          explanation: validationResult.data.explanation ?? "",
+          question_image:
+            validationResult.data.question_image?.name || undefined,
+          explanation_image:
+            validationResult.data.explanation_image?.name || undefined,
         };
-        
+
         console.log("Question to update:", questionToUpdate);
 
         const promise = updateQuestion(questionToUpdate);
@@ -214,7 +216,11 @@ export function AddQuestionManual(): JSX.Element {
         });
       }
     } catch (error) {
-      toast.error(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Operation failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
       setIsLoading(false);
     }
   };
@@ -663,7 +669,7 @@ export function QuestionItem({
   const [isEditing, setIsEditing] = useState(false);
   const [editableQuestion, setEditableQuestion] = useState<Question>(question);
 
-  const handleFieldChange = (field: keyof Question, value: string) => {
+  const handleFieldChange = (field: keyof Question, value: string | number) => {
     setEditableQuestion((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -704,19 +710,25 @@ export function QuestionItem({
               Options & Correct Answer
             </Label>
             <RadioGroup
+              // The 'answer' is a number, so convert it to a string for the RadioGroup
               value={editableQuestion.answer?.toString() ?? ""}
-              onValueChange={(value) => handleFieldChange("answer", value)}
+              onValueChange={(value: string) =>
+                handleFieldChange("answer", parseInt(value, 10))
+              } // Use the new handler
               className="mt-2 space-y-2"
             >
-              {editableQuestion.multiple_choice.map((choice, i) => (
-                <div key={i} className="flex items-center gap-2">
+              {editableQuestion.multiple_choice.map((choice, choiceIndex) => (
+                <div key={choiceIndex} className="flex items-center gap-2">
                   <RadioGroupItem
-                    value={choice}
-                    id={`edit-q${index}-opt${i}`}
+                    // CORRECTED: Use the index of the CHOICE
+                    value={(choiceIndex + 1).toString()}
+                    id={`edit-q${index}-opt${choiceIndex}`}
                   />
                   <Input
                     value={choice}
-                    onChange={(e) => handleOptionChange(i, e.target.value)}
+                    onChange={(e) =>
+                      handleOptionChange(choiceIndex, e.target.value)
+                    }
                     className="flex-grow"
                   />
                 </div>
@@ -758,10 +770,14 @@ export function QuestionItem({
       </CardHeader>
       <CardContent>
         <RadioGroup value={question.answer?.toString() ?? ""} disabled>
-          {question.multiple_choice.map((choice, i) => (
-            <div key={i} className="flex items-center space-x-2">
-              <RadioGroupItem value={choice} id={`q${index}-opt${i}`} />
-              <Label htmlFor={`q${index}-opt${i}`}>{choice}</Label>
+          {question.multiple_choice.map((choice, choiceIndex) => (
+            <div key={choiceIndex} className="flex items-center space-x-2">
+              <RadioGroupItem
+                // CORRECTED: Use the index of the CHOICE
+                value={(choiceIndex + 1).toString()}
+                id={`q${index}-opt${choiceIndex}`}
+              />
+              <Label htmlFor={`q${index}-opt${choiceIndex}`}>{choice}</Label>
             </div>
           ))}
         </RadioGroup>

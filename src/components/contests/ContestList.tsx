@@ -109,8 +109,8 @@ export function ContestList({
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {contest.date
-                            ? new Date(contest.date).toLocaleDateString()
+                          {contest.start_time
+                            ? new Date(contest.start_time).toLocaleDateString()
                             : "TBD"}
                         </span>
                       </div>

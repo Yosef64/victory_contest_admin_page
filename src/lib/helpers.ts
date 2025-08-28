@@ -10,18 +10,22 @@ export function transformSubmission(submissions: Submission[]) {
   };
 
   submissions.sort((a: Submission, b: Submission) =>
-    b.score !== a.score ? b.score - a.score : toMs(a.submission_time) - toMs(b.submission_time)
+    b.score !== a.score
+      ? b.score - a.score
+      : toMs(a.submission_time) - toMs(b.submission_time)
   );
 
   const leaderboard = submissions.map((sub, index) => {
     return {
       name: sub.student.name,
       // Prefer student_id if present; fall back to id from backend payloads
-      student_id: (sub.student as any).student_id ?? (sub.student as any).id ?? "",
+      student_id:
+        (sub.student as any).student_id ?? (sub.student as any).id ?? "",
       rank: index + 1,
       penalty: sub.missed_questions.length,
       solved: sub.score,
       submission_time: toMs(sub.submission_time),
+      img_url: sub.student.imgurl,
     };
   });
   return leaderboard;

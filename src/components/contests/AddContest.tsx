@@ -54,11 +54,11 @@ const contestReducer = (state: Contest, action: Action): Contest => {
     case "UPDATE_FIELD":
       return { ...state, [action.field]: action.value };
     case "SET_TIME":
-      if (!state.date || !action.value) {
+      if (!state.start_time || !action.value) {
         toast.error("Please select a date first.");
         return state;
       }
-      const combinedDateTime = dayjs(state.date)
+      const combinedDateTime = dayjs(state.start_time)
         .hour(action.value.hour())
         .minute(action.value.minute())
         .second(action.value.second());
@@ -81,7 +81,7 @@ const initialState: Contest = {
   end_time: "",
   grade: "",
   subject: "",
-  date: "",
+
   prize: "",
   type: "free",
   status: "inactive",
@@ -110,15 +110,6 @@ export default function AddContest() {
   };
 
   // Handler for DatePicker
-  const handleDateChange = (date: Date | undefined) => {
-    if (date) {
-      dispatch({
-        type: "UPDATE_FIELD",
-        field: "date",
-        value: dayjs(date).format("YYYY-MM-DD"),
-      });
-    }
-  };
 
   // Handler for question selection
   const handleSelectionChange = (selectedQuestions: Question[]) => {
@@ -300,13 +291,13 @@ export default function AddContest() {
                       variant={"outline"}
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !contest.date && "text-muted-foreground"
+                        !contest.start_time && "text-muted-foreground"
                       )}
                       disabled={isLoading}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {contest.date ? (
-                        dayjs(contest.date).format("MMMM D, YYYY")
+                      {contest.start_time ? (
+                        dayjs(contest.start_time).format("MMMM D, YYYY")
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -315,20 +306,17 @@ export default function AddContest() {
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={
-                        (() => {
-                          try {
-                            if (!contest.date) return undefined;
-                            const date = new Date(contest.date);
-                            if (isNaN(date.getTime())) return undefined;
-                            return date;
-                          } catch (error) {
-                            console.warn('Error parsing contest date:', error);
-                            return undefined;
-                          }
-                        })()
-                      }
-                      onSelect={handleDateChange}
+                      selected={(() => {
+                        try {
+                          if (!contest.start_time) return undefined;
+                          const date = new Date(contest.start_time);
+                          if (isNaN(date.getTime())) return undefined;
+                          return date;
+                        } catch (error) {
+                          console.warn("Error parsing contest date:", error);
+                          return undefined;
+                        }
+                      })()}
                       initialFocus
                     />
                   </PopoverContent>
@@ -354,7 +342,7 @@ export default function AddContest() {
                       value: dayjs(`1970-01-01T${e.target.value}`),
                     })
                   }
-                  disabled={isLoading || !contest.date}
+                  disabled={isLoading || !contest.start_time}
                 />
               </div>
 
@@ -376,7 +364,7 @@ export default function AddContest() {
                       value: dayjs(`1970-01-01T${e.target.value}`),
                     })
                   }
-                  disabled={isLoading || !contest.date}
+                  disabled={isLoading || !contest.start_time}
                 />
               </div>
             </CardContent>

@@ -4,9 +4,9 @@ import {
   Users,
   MessageSquareWarning,
   BarChart2,
-  ShieldCheck,
   PlusSquare,
   FilePlus,
+  BookOpen,
 } from "lucide-react";
 import React from "react";
 export interface NavItem {
@@ -102,18 +102,24 @@ export const menuList: NavGroup[] = [
       },
       {
         id: 3,
+        title: "Articles",
+        path: "/dashboard/articles",
+        icon: BookOpen,
+      },
+      {
+        id: 4,
         title: "Contests",
         path: "/dashboard/contest",
         icon: ContestIcon, // Use custom icon
       },
       {
-        id: 4,
+        id: 5,
         title: "Payments",
         path: "/dashboard/payment",
         icon: PaymentHistoryIcon,
       },
       {
-        id: 5,
+        id: 6,
         title: "Users",
         path: "/dashboard/users",
         icon: Users,
@@ -141,13 +147,13 @@ export const menuList: NavGroup[] = [
     title: "Insight",
     items: [
       {
-        id: 6,
+        id: 7,
         title: "Feedback",
         path: "/dashboard/feedback",
         icon: MessageSquareWarning,
       },
       {
-        id: 7,
+        id: 8,
         title: "High Scorers",
         path: "/dashboard/high-scorers",
         icon: BarChart2,

@@ -6,18 +6,62 @@ import dayjs from "dayjs";
 
 // shadcn components
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 // Services and utilities
-import { getContestById, updateContest, deleteContest, announceContest, cloneContest, testBackendConnection } from "@/services/contestServices";
-import { getAllStudents, getGradesAndSchools } from "@/services/studentServices";
+import {
+  getContestById,
+  updateContest,
+  deleteContest,
+  announceContest,
+  cloneContest,
+  testBackendConnection,
+} from "@/services/contestServices";
+import {
+  getAllStudents,
+  getGradesAndSchools,
+} from "@/services/studentServices";
 import { transformSubmission } from "@/lib/helpers";
 import { Student } from "@/types/models";
 import { DialogBox } from "../common/DialogBox";
@@ -25,9 +69,6 @@ import { UpdateContestDialog } from "./UpdateContestDialog";
 import QuestionTable from "../questions/QuestionTable";
 import ContestStatistics from "./ContestStatistics";
 import { getSubmissionByContest } from "@/lib/utils";
-
-// Assets
-import leetcodeImage from "../../assets/leetcode.jpg";
 
 export default function ContestById() {
   const navigate = useNavigate();
@@ -52,9 +93,9 @@ export default function ContestById() {
   // Debug: Log contest data when it changes
   useEffect(() => {
     if (contest) {
-      console.log('Contest data loaded:', contest);
-      console.log('Questions count:', contest.questions?.length || 0);
-      console.log('Questions:', contest.questions);
+      console.log("Contest data loaded:", contest);
+      console.log("Questions count:", contest.questions?.length || 0);
+      console.log("Questions:", contest.questions);
     }
   }, [contest]);
 
@@ -63,7 +104,9 @@ export default function ContestById() {
     const testConnection = async () => {
       const isConnected = await testBackendConnection();
       if (!isConnected) {
-        toast.error("Backend connection failed. Please check if the backend is running.");
+        toast.error(
+          "Backend connection failed. Please check if the backend is running."
+        );
       }
     };
     testConnection();
@@ -91,17 +134,18 @@ export default function ContestById() {
         try {
           const submissions = await getSubmissionByContest(contest.id);
           const contestantCities = new Set<string>();
-          
+
           // Get unique cities from contestants
           for (const submission of submissions) {
             if (submission.student?.student_id) {
               // Try to find student info to get city
               try {
                 const students = await getAllStudents();
-                const student = students.find(s => 
-                  s.telegram_id === submission.student.student_id || 
-                  (s as any).id === submission.student.student_id ||
-                  s.name === submission.student.name
+                const student = students.find(
+                  (s) =>
+                    s.telegram_id === submission.student.student_id ||
+                    (s as any).id === submission.student.student_id ||
+                    s.name === submission.student.name
                 );
                 if (student?.city) {
                   contestantCities.add(student.city);
@@ -111,11 +155,13 @@ export default function ContestById() {
               }
             }
           }
-          
+
           // Update cities with contest-specific cities
-          const contestCities = Array.from(contestantCities).filter(city => city && city.trim() !== '');
+          const contestCities = Array.from(contestantCities).filter(
+            (city) => city && city.trim() !== ""
+          );
           if (contestCities.length > 0) {
-            setCities(prevCities => {
+            setCities((prevCities) => {
               const combined = [...new Set([...prevCities, ...contestCities])];
               return combined;
             });
@@ -125,7 +171,7 @@ export default function ContestById() {
         }
       }
     };
-    
+
     fetchContestCities();
   }, [contest?.id]);
 
@@ -159,9 +205,9 @@ export default function ContestById() {
 
     try {
       if (action === "announce") {
-        await announceContest(contest, { 
-          file: data?.file || null, 
-          message: data?.message || "Contest announced!" 
+        await announceContest(contest, {
+          file: data?.file || null,
+          message: data?.message || "Contest announced!",
         });
         toast.success("Contest announced successfully");
       } else if (action === "clone") {
@@ -174,7 +220,7 @@ export default function ContestById() {
         });
         toast.success("Contest updated successfully");
       }
-      
+
       // Invalidate and refetch contest data after successful action
       queryClient.invalidateQueries({ queryKey: ["contest", id] });
     } catch (error) {
@@ -209,8 +255,12 @@ export default function ContestById() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Contest</h2>
-          <p className="text-gray-600">Failed to load contest details. Please try again.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Error Loading Contest
+          </h2>
+          <p className="text-gray-600">
+            Failed to load contest details. Please try again.
+          </p>
         </div>
       </div>
     );
@@ -224,7 +274,8 @@ export default function ContestById() {
           <DialogHeader>
             <DialogTitle>Delete Contest</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this contest? This action cannot be undone.
+              Are you sure you want to delete this contest? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -243,7 +294,10 @@ export default function ContestById() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Contest Details</h1>
           <nav className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
-            <a href="/dashboard/contest" className="hover:text-green-600 transition-colors">
+            <a
+              href="/dashboard/contest"
+              className="hover:text-green-600 transition-colors"
+            >
               Contest
             </a>
             <span>/</span>
@@ -275,10 +329,12 @@ export default function ContestById() {
                     <MenubarItem onClick={() => setCloneDialogOpen(true)}>
                       Clone Contest
                     </MenubarItem>
-                    <MenubarItem onClick={() => setUpdateContestDialogOpen(true)}>
+                    <MenubarItem
+                      onClick={() => setUpdateContestDialogOpen(true)}
+                    >
                       Update Contest Details
                     </MenubarItem>
-                    <MenubarItem 
+                    <MenubarItem
                       className="text-red-600 focus:text-red-600 focus:bg-red-50"
                       onClick={handleOpenDeleteDialog}
                     >
@@ -294,9 +350,13 @@ export default function ContestById() {
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Start Time</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    Start Time
+                  </p>
                   <p className="text-sm text-gray-600">
-                    {contest.start_time ? dayjs(contest.start_time).format("MMM D, YYYY HH:mm") : "Not set"}
+                    {contest.start_time
+                      ? dayjs(contest.start_time).format("MMM D, YYYY HH:mm")
+                      : "Not set"}
                   </p>
                 </div>
               </div>
@@ -305,7 +365,9 @@ export default function ContestById() {
                 <div>
                   <p className="text-sm font-medium text-gray-900">End Time</p>
                   <p className="text-sm text-gray-600">
-                    {contest.end_time ? dayjs(contest.end_time).format("MMM D, YYYY HH:mm") : "Not set"}
+                    {contest.end_time
+                      ? dayjs(contest.end_time).format("MMM D, YYYY HH:mm")
+                      : "Not set"}
                   </p>
                 </div>
               </div>
@@ -313,14 +375,18 @@ export default function ContestById() {
                 <Building className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Subject</p>
-                  <p className="text-sm text-gray-600">{contest.subject || "Not set"}</p>
+                  <p className="text-sm text-gray-600">
+                    {contest.subject || "Not set"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Trophy className="h-5 w-5 text-yellow-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Prize</p>
-                  <p className="text-sm text-gray-600">{contest.prize || "Not set"}</p>
+                  <p className="text-sm text-gray-600">
+                    {contest.prize || "Not set"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -331,12 +397,16 @@ export default function ContestById() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Filters</CardTitle>
-            <CardDescription>Filter contestants by school and city</CardDescription>
+            <CardDescription>
+              Filter contestants by school and city
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Select School</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Select School
+                </label>
                 <Select onValueChange={handleSelect} value={school}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Schools" />
@@ -355,7 +425,9 @@ export default function ContestById() {
                 </Select>
               </div>
               <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Select City</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Select City
+                </label>
                 <Select onValueChange={handleSelectCity} value={city}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Cities" />
@@ -381,7 +453,11 @@ export default function ContestById() {
       {/* Tabs Section */}
       <Card>
         <CardContent className="p-0">
-          <Tabs value={tabValue.toString()} onValueChange={(value) => setTabValue(parseInt(value))} className="w-full">
+          <Tabs
+            value={tabValue.toString()}
+            onValueChange={(value) => setTabValue(parseInt(value))}
+            className="w-full"
+          >
             <CardHeader className="pb-0">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="0">Standings</TabsTrigger>
@@ -401,7 +477,9 @@ export default function ContestById() {
                   />
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">No questions found for this contest.</p>
+                    <p className="text-gray-500">
+                      No questions found for this contest.
+                    </p>
                     <p className="text-sm text-gray-400 mt-2">
                       Questions count: {contest?.questions?.length || 0}
                     </p>
@@ -409,7 +487,7 @@ export default function ContestById() {
                 )}
               </TabsContent>
               <TabsContent value="2">
-                <ContestStatistics contestId={id!} contest={contest} />
+                <ContestStatistics contestId={id!} />
               </TabsContent>
             </div>
           </Tabs>
@@ -439,32 +517,38 @@ export default function ContestById() {
         onUpdate={async (contestId, updates) => {
           if (!contest) return;
           try {
-            console.log('Before update - Contest questions:', contest.questions);
-            console.log('Update data:', updates);
-            console.log('Contest ID:', contestId);
-            
+            console.log(
+              "Before update - Contest questions:",
+              contest.questions
+            );
+            console.log("Update data:", updates);
+            console.log("Contest ID:", contestId);
+
             // Ensure we're not losing questions during update
             if (contest.questions && contest.questions.length > 0) {
-              console.log('Questions exist before update, count:', contest.questions.length);
+              console.log(
+                "Questions exist before update, count:",
+                contest.questions.length
+              );
             } else {
-              console.warn('No questions found before update!');
+              console.warn("No questions found before update!");
             }
-            
+
             await updateContest(contest, updates);
-            
+
             // Invalidate and refetch
             queryClient.invalidateQueries({ queryKey: ["contest", id] });
-            
+
             // Wait a bit for the refetch to complete
             setTimeout(() => {
-              console.log('After update - Refreshed contest data');
+              console.log("After update - Refreshed contest data");
               // Force a refetch to ensure we get the latest data
               queryClient.refetchQueries({ queryKey: ["contest", id] });
             }, 1000);
-            
+
             toast.success("Contest updated successfully");
           } catch (error) {
-            console.error('Error updating contest:', error);
+            console.error("Error updating contest:", error);
             toast.error("Failed to update contest");
             throw error;
           }
@@ -548,10 +632,10 @@ function Standing({ school, city, contest }: StandingProps) {
       }
     }
   } catch (error) {
-    console.warn('Error parsing contest start_time:', error);
+    console.warn("Error parsing contest start_time:", error);
     contestStartMs = 0;
   }
-  
+
   const rowsWithTime = rows.map((r) => {
     let submissionMs = 0;
     try {
@@ -562,14 +646,23 @@ function Standing({ school, city, contest }: StandingProps) {
         }
       }
     } catch (error) {
-      console.warn('Error parsing submission_time:', error);
+      console.warn("Error parsing submission_time:", error);
       submissionMs = 0;
     }
-    
-    const diffMs = submissionMs && contestStartMs ? Math.max(0, submissionMs - contestStartMs) : 0;
+
+    const diffMs =
+      submissionMs && contestStartMs
+        ? Math.max(0, submissionMs - contestStartMs)
+        : 0;
     const minutes = Math.floor(diffMs / 60000);
     const seconds = Math.floor((diffMs % 60000) / 1000);
-    const time_taken = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    const time_taken = `${String(Math.floor(minutes / 60)).padStart(
+      2,
+      "0"
+    )}:${String(minutes % 60).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
     return { ...r, time_taken };
   });
 
@@ -625,6 +718,7 @@ interface TableRowProps {
     solved: number;
     penalty: number;
     time_taken?: string;
+    img_url?: string;
   };
   contestPrize: string;
 }
@@ -638,17 +732,17 @@ function TableRowComponent({ rank, contestPrize }: TableRowProps) {
             rank.index === 0
               ? "st"
               : rank.index === 1
-                ? "nd"
-                : rank.index === 2
-                  ? "rd"
-                  : "th";
+              ? "nd"
+              : rank.index === 2
+              ? "rd"
+              : "th";
           return (rank.index + 1).toString() + suffix;
         })()}
       </TableCell>
       <TableCell>
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={leetcodeImage} alt="User" />
+            <AvatarImage src={rank.img_url} alt="User" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
           <span className="font-medium">{rank.name}</span>

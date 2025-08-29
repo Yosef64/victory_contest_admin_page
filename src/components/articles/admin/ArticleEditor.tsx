@@ -56,7 +56,7 @@ const initialArticleState: Article = {
   tags: [],
   thumbnail: "",
   readTime: 0,
-  viewsCount: 0,
+  viewCount: 0,
   likeCount: 0,
 };
 
@@ -232,7 +232,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
       updatedAt: new Date(),
       thumbnail: formData?.thumbnail,
       readTime: article?.readTime || 0,
-      viewsCount: article?.viewsCount || 0,
+      viewCount: article?.viewCount || 0,
       likeCount: article?.likeCount || 0,
     }),
     [article, editor, formData]

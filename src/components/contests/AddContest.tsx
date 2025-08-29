@@ -92,9 +92,9 @@ export default function AddContest() {
   const [selectedQuestions, setSelectedQuestions] = React.useState<Question[]>(
     []
   );
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
-  // Unified change handler for simple inputs
   const handleContestChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -115,6 +115,26 @@ export default function AddContest() {
   const handleSelectionChange = (selectedQuestions: Question[]) => {
     setSelectedQuestions(selectedQuestions);
   };
+  const handleTimeChange = (
+    field: "start_time" | "end_time",
+    timeValue: string
+  ) => {
+    if (!selectedDate) {
+      toast.error("Please select a date first.");
+      return;
+    }
+    // Combine the selected date with the new time
+    const combinedDateTime = dayjs(`${selectedDate}T${timeValue}`).format(
+      "YYYY-MM-DDTHH:mm:ss"
+    );
+
+    // Dispatch a simple UPDATE_FIELD action with the final value
+    dispatch({
+      type: "UPDATE_FIELD",
+      field: field,
+      value: combinedDateTime,
+    });
+  };
 
   // Submission handler
   const handleSubmitContest = async () => {
@@ -134,7 +154,6 @@ export default function AddContest() {
       ...contest,
       questions: selectedQuestions.map((q) => q.id!),
     };
-    console.log(contestData);
 
     setIsLoading(true);
     const promise = addContest(contestData);
@@ -247,7 +266,7 @@ export default function AddContest() {
                   <SelectContent>
                     {grades.map((grade) => (
                       <SelectItem key={grade} value={grade}>
-                        {grade}
+                        {`Grade ${grade}`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -291,13 +310,13 @@ export default function AddContest() {
                       variant={"outline"}
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !contest.start_time && "text-muted-foreground"
+                        !selectedDate && "text-muted-foreground"
                       )}
                       disabled={isLoading}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {contest.start_time ? (
-                        dayjs(contest.start_time).format("MMMM D, YYYY")
+                      {selectedDate ? (
+                        dayjs(selectedDate).format("MMMM D, YYYY")
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -308,8 +327,8 @@ export default function AddContest() {
                       mode="single"
                       selected={(() => {
                         try {
-                          if (!contest.start_time) return undefined;
-                          const date = new Date(contest.start_time);
+                          if (selectedDate === null) return undefined;
+                          const date = new Date(selectedDate);
                           if (isNaN(date.getTime())) return undefined;
                           return date;
                         } catch (error) {
@@ -318,6 +337,9 @@ export default function AddContest() {
                         }
                       })()}
                       initialFocus
+                      onSelect={(date) =>
+                        setSelectedDate(dayjs(date).format("YYYY-MM-DD"))
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -336,13 +358,9 @@ export default function AddContest() {
                       : ""
                   }
                   onChange={(e) =>
-                    dispatch({
-                      type: "SET_TIME",
-                      field: "start_time",
-                      value: dayjs(`1970-01-01T${e.target.value}`),
-                    })
+                    handleTimeChange("start_time", e.target.value)
                   }
-                  disabled={isLoading || !contest.start_time}
+                  disabled={isLoading || !selectedDate}
                 />
               </div>
 
@@ -357,14 +375,8 @@ export default function AddContest() {
                       ? dayjs(contest.end_time).format("HH:mm")
                       : ""
                   }
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_TIME",
-                      field: "end_time",
-                      value: dayjs(`1970-01-01T${e.target.value}`),
-                    })
-                  }
-                  disabled={isLoading || !contest.start_time}
+                  onChange={(e) => handleTimeChange("end_time", e.target.value)} // Use the new handler
+                  disabled={isLoading || !selectedDate}
                 />
               </div>
             </CardContent>

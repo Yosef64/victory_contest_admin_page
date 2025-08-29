@@ -13,7 +13,7 @@ export interface Article {
   tags: string[];
   thumbnail?: string;
   readTime: number;
-  viewsCount: number;
+  viewCount: number;
   likeCount: number;
 }
 
